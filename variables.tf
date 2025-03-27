@@ -62,6 +62,12 @@ variable "APPLICATION_OLLAMA" {
   default     = "true"
 }
 
+variable "APPLICATION_ARTIFACTS" {
+  description = "Deploy Artifacts Application"
+  type        = bool
+  default     = "true"
+}
+
 variable "PRODUCTION_ENVIRONMENT" {
   description = "The environment for deployment Production=(true|false)"
   type        = bool
