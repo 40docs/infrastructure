@@ -68,6 +68,12 @@ variable "APPLICATION_ARTIFACTS" {
   default     = "true"
 }
 
+variable "APPLICATION_EXTRACTOR" {
+  description = "Deploy Extractor Application"
+  type        = bool
+  default     = "true"
+}
+
 variable "PRODUCTION_ENVIRONMENT" {
   description = "The environment for deployment Production=(true|false)"
   type        = bool
