@@ -36,29 +36,6 @@ resource "kubernetes_namespace" "extractor" {
   }
 }
 
-resource "random_password" "salt" {
-  length           = 8
-  special          = false
-  #override_special = "!@#%&*()-_=+[]{}<>:?"
-}
-
-resource "htpasswd_password" "hash" {
-  password = var.HTPASSWD
-  salt     = random_password.salt.result
-}
-
-resource "kubernetes_secret" "htpasswd_secret" {
-  count = var.APPLICATION_EXTRACTOR ? 1 : 0
-  metadata {
-    name      = "htpasswd-secret"
-    namespace = kubernetes_namespace.extractor[0].metadata[0].name
-  }
-  data = {
-    htpasswd = "${var.HTUSERNAME}:${htpasswd_password.hash.apr1}"
-  }
-  type = "Opaque"
-}
-
 resource "kubernetes_secret" "extractor_fortiweb_login_secret" {
   count = var.APPLICATION_EXTRACTOR ? 1 : 0
   metadata {
