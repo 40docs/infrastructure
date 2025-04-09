@@ -114,6 +114,17 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-vip-video
   }
+  security_rule {
+    name                       = "VIP_rule-extractor"
+    priority                   = 105
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
+    source_address_prefix      = "*"
+    destination_address_prefix = var.hub-nva-vip-extractor
+  }
 }
 
 resource "azurerm_subnet_network_security_group_association" "hub-external-subnet-network-security-group_association" {
