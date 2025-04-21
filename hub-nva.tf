@@ -162,6 +162,7 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
         VAR-hub-nva-vip-ollama                   = var.hub-nva-vip-ollama
         VAR-hub-nva-vip-video                    = var.hub-nva-vip-video
         VAR-hub-nva-vip-dvwa                     = var.hub-nva-vip-dvwa
+        VAR-hub-nva-vip-artifacts                = var.hub-nva-vip-artifacts 
         VAR-HUB_NVA_USERNAME                     = var.HUB_NVA_USERNAME
         VAR-CERTIFICATE                          = tls_self_signed_cert.self_signed_cert.cert_pem
         VAR-PRIVATEKEY                           = tls_private_key.private_key.private_key_pem
