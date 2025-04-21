@@ -4,6 +4,15 @@ data "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
 
+resource "azurerm_dns_cname_record" "dvwa" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "dvwa"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
 resource "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
   count               = var.APPLICATION_DVWA ? 1 : 0
   name                = "hub-nva-vip_dvwa_public_ip"
