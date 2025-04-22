@@ -71,6 +71,15 @@ locals {
       subnet_id                     = azurerm_subnet.hub-external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_video_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_video_public_ip[0].id : null
       condition                     = var.APPLICATION_VIDEO
+    },
+    {
+      name                          = "hub-nva-external-vip-extractor_configuration"
+      primary                       = false
+      private_ip_address_allocation = "Static"
+      private_ip_address            = var.hub-nva-vip-extractor
+      subnet_id                     = azurerm_subnet.hub-external_subnet.id
+      public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_extractor_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_extractor_public_ip[0].id : null
+      condition                     = var.APPLICATION_EXTRACTOR
     }
   ]
 }
