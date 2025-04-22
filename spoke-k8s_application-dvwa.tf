@@ -13,6 +13,60 @@ resource "azurerm_dns_cname_record" "dvwa" {
   record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
 }
 
+resource "azurerm_dns_cname_record" "app2" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "app2"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
+resource "azurerm_dns_cname_record" "app3" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "app3"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
+resource "azurerm_dns_cname_record" "app4" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "app4"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
+resource "azurerm_dns_cname_record" "app5" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "app5"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
+resource "azurerm_dns_cname_record" "app6" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "app6"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
+resource "azurerm_dns_cname_record" "app7" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "app7"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
 resource "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
   count               = var.APPLICATION_DVWA ? 1 : 0
   name                = "hub-nva-vip_dvwa_public_ip"
