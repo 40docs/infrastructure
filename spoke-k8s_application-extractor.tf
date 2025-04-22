@@ -63,7 +63,7 @@ resource "azurerm_kubernetes_flux_configuration" "extractor" {
   git_repository {
     url                      = local.extractor_manifest_repo_fqdn
     reference_type           = "branch"
-    reference_value          = "extractor-version"
+    reference_value          = "main"
     sync_interval_in_seconds = 60
   }
   kustomizations {
