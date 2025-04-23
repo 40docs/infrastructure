@@ -13,6 +13,15 @@ resource "azurerm_dns_cname_record" "dvwa" {
   record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
 }
 
+resource "azurerm_dns_cname_record" "app1" {
+  count               = var.APPLICATION_DVWA ? 1 : 0
+  name                = "app1"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+}
+
 resource "azurerm_dns_cname_record" "app2" {
   count               = var.APPLICATION_DVWA ? 1 : 0
   name                = "app2"
