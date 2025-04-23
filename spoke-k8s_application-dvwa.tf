@@ -127,7 +127,7 @@ resource "azurerm_kubernetes_flux_configuration" "dvwa" {
   git_repository {
     url                      = local.dvwa_manifest_repo_fqdn
     reference_type           = "branch"
-    reference_value          = "dvwa-version"
+    reference_value          = "main"
     sync_interval_in_seconds = 60
     #ssh_private_key_base64   = base64encode(var.MANIFESTS_APPLICATIONS_SSH_PRIVATE_KEY)
   }
