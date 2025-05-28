@@ -22,11 +22,6 @@ resource "azapi_resource" "cloudshell_ssh_public_key" {
   parent_id = azurerm_resource_group.azure_resource_group.id
 }
 
-#output "key_data" {
-#  value     = azapi_resource_action.cloudshell_ssh_public_key_gen.output.privateKey
-#  sensitive = true
-#}
-
 resource "azurerm_virtual_network" "cloudshell_network" {
   count               = var.CLOUDSHELL ? 1 : 0
   name                = "cloudshell-Vnet"
@@ -52,14 +47,14 @@ resource "azurerm_public_ip" "cloudshell_public_ip" {
   sku                 = "Standard"
 }
 
-#resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
-#  count               = var.CLOUDSHELL ? 1 : 0
-#  name                = "cloudshell"
-#  zone_name           = azurerm_dns_zone.dns_zone.name
-#  resource_group_name = azurerm_resource_group.azure_resource_group.name
-#  ttl                 = 300
-#  record              = data.azurerm_public_ip.cloudshell_public_ip[0].fqdn
-#}
+resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
+  count               = var.CLOUDSHELL ? 1 : 0
+  name                = "cloudshell"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.cloudshell_public_ip[0].fqdn
+}
 
 resource "azurerm_network_security_group" "cloudshell_nsg" {
   count               = var.CLOUDSHELL ? 1 : 0
