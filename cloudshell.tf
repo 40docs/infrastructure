@@ -45,6 +45,7 @@ resource "azurerm_public_ip" "cloudshell_public_ip" {
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  domain_name_label   = "cloudshell"
 }
 
 resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
@@ -53,7 +54,7 @@ resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.cloudshell_public_ip[0].name
+  record              = data.azurerm_public_ip.cloudshell_public_ip[0].fqdn
 }
 
 resource "azurerm_network_security_group" "cloudshell_nsg" {
