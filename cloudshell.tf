@@ -45,7 +45,7 @@ resource "azurerm_public_ip" "cloudshell_public_ip" {
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  domain_name_label   = "cloudshell"
+  domain_name_label   = "cloudshell-${azurerm_resource_group.azure_resource_group.name}"
 }
 
 resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
