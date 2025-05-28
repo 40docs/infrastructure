@@ -9,6 +9,10 @@ terraform {
       source  = "hashicorp/random"
       version = "3.7.1"
     }
+    azapi = {
+      source  = "azure/azapi"
+      version = "1.5"
+    }
     tls = {
       source  = "hashicorp/tls"
       version = "4.0.6"
