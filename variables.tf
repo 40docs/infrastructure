@@ -531,34 +531,40 @@ variable "cloudshell_Directory_tenant_ID" {
   type        = string
   description = "The tenant ID of the Azure Active Directory."
   default     = "00000000-0000-0000-0000-000000000000"
+  sensitive = true
 }
 
 variable "cloudshell_Directory_client_ID" {
   type        = string
   description = "The client ID of the Azure Active Directory application."
   default     = "00000000-0000-0000-0000-000000000000"
+  sensitive = true
 }
 
 variable "Forticnapp_account" {
   type        = string
   description = "The FortiCnapp account name."
   default     = "account_name"
+  sensitive = true
 }
 
 variable "Forticnapp_subaccount" {
   type        = string
   description = "The FortiCnapp subaccount name."
   default     = "subaccount_name"
+  sensitive = true
 }
 
 variable "Forticnapp_api_key" {
   type        = string
   description = "The FortiCnapp api_key."
   default     = "000a0000-0000-0000-0000-000000000000"
+  sensitive = true
 }
 
 variable "Forticnapp_api_secret" {
   type        = string
   description = "The FortiCnapp api_secret."
   default     = "000a0000-0000-0000-0000-000000000000"
+  sensitive = true
 }
