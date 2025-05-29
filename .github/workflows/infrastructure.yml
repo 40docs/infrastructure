@@ -107,12 +107,12 @@ jobs:
           TF_VAR_APPLICATION_ARTIFACTS: ${{ vars.APPLICATION_ARTIFACTS }}
           TF_VAR_APPLICATION_EXTRACTOR: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_MANAGEMENT_PUBLIC_IP: ${{ vars.MANAGEMENT_PUBLIC_IP }}
-          TF_VAR_cloudshell_Directory_tenant_ID: $${{ secrets.cloudshell_Directory_tenant_ID }}
-          TF_VAR_cloudshell_Directory_client_ID: $${{ secrets.cloudshell_Directory_client_ID }}
-          TF_VAR_Forticnapp_account: $${{ secrets.Forticnapp_account }}
-          TF_VAR_Forticnapp_subaccount: $${{ secrets.Forticnapp_subaccount }}
-          TF_VAR_Forticnapp_api_key: $${{ secrets.Forticnapp_api_key }}
-          TF_VAR_Forticnapp_api_secret: $${{ secrets.Forticnapp_api_secret }}
+          TF_VAR_cloudshell_Directory_tenant_ID: ${{ secrets.cloudshell_Directory_tenant_ID }}
+          TF_VAR_cloudshell_Directory_client_ID: ${{ secrets.cloudshell_Directory_client_ID }}
+          TF_VAR_Forticnapp_account: ${{ secrets.Forticnapp_account }}
+          TF_VAR_Forticnapp_subaccount: ${{ secrets.Forticnapp_subaccount }}
+          TF_VAR_Forticnapp_api_key: ${{ secrets.Forticnapp_api_key }}
+          TF_VAR_Forticnapp_api_secret: ${{ secrets.Forticnapp_api_secret }}
           TF_VAR_HTUSERNAME: ${{ secrets.HTUSERNAME }}
           TF_VAR_HTPASSWD: ${{ secrets.HTPASSWD }}
           TF_VAR_DNS_ZONE: ${{ vars.DNS_ZONE }}
@@ -242,12 +242,12 @@ jobs:
           TF_VAR_APPLICATION_ARTIFACTS: ${{ vars.APPLICATION_ARTIFACTS }}
           TF_VAR_APPLICATION_EXTRACTOR: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_MANAGEMENT_PUBLIC_IP: ${{ vars.MANAGEMENT_PUBLIC_IP }}
-          TF_VAR_cloudshell_Directory_tenant_ID: $${{ secrets.cloudshell_Directory_tenant_ID }}
-          TF_VAR_cloudshell_Directory_client_ID: $${{ secrets.cloudshell_Directory_client_ID }}
-          TF_VAR_Forticnapp_account: $${{ secrets.Forticnapp_account }}
-          TF_VAR_Forticnapp_subaccount: $${{ secrets.Forticnapp_subaccount }}
-          TF_VAR_Forticnapp_api_key: $${{ secrets.Forticnapp_api_key }}
-          TF_VAR_Forticnapp_api_secret: $${{ secrets.Forticnapp_api_secret }}
+          TF_VAR_cloudshell_Directory_tenant_ID: ${{ secrets.cloudshell_Directory_tenant_ID }}
+          TF_VAR_cloudshell_Directory_client_ID: ${{ secrets.cloudshell_Directory_client_ID }}
+          TF_VAR_Forticnapp_account: ${{ secrets.Forticnapp_account }}
+          TF_VAR_Forticnapp_subaccount: ${{ secrets.Forticnapp_subaccount }}
+          TF_VAR_Forticnapp_api_key: ${{ secrets.Forticnapp_api_key }}
+          TF_VAR_Forticnapp_api_secret: ${{ secrets.Forticnapp_api_secret }}
           TF_VAR_HTUSERNAME: ${{ secrets.HTUSERNAME }}
           TF_VAR_HTPASSWD: ${{ secrets.HTPASSWD }}
           TF_VAR_DNS_ZONE: ${{ vars.DNS_ZONE }}
@@ -346,12 +346,12 @@ jobs:
           TF_VAR_APPLICATION_ARTIFACTS: ${{ vars.APPLICATION_ARTIFACTS }}
           TF_VAR_APPLICATION_EXTRACTOR: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_MANAGEMENT_PUBLIC_IP: ${{ vars.MANAGEMENT_PUBLIC_IP }}
-          TF_VAR_cloudshell_Directory_tenant_ID: $${{ secrets.cloudshell_Directory_tenant_ID }}
-          TF_VAR_cloudshell_Directory_client_ID: $${{ secrets.cloudshell_Directory_client_ID }}
-          TF_VAR_Forticnapp_account: $${{ secrets.Forticnapp_account }}
-          TF_VAR_Forticnapp_subaccount: $${{ secrets.Forticnapp_subaccount }}
-          TF_VAR_Forticnapp_api_key: $${{ secrets.Forticnapp_api_key }}
-          TF_VAR_Forticnapp_api_secret: $${{ secrets.Forticnapp_api_secret }}
+          TF_VAR_cloudshell_Directory_tenant_ID: ${{ secrets.cloudshell_Directory_tenant_ID }}
+          TF_VAR_cloudshell_Directory_client_ID: ${{ secrets.cloudshell_Directory_client_ID }}
+          TF_VAR_Forticnapp_account: ${{ secrets.Forticnapp_account }}
+          TF_VAR_Forticnapp_subaccount: ${{ secrets.Forticnapp_subaccount }}
+          TF_VAR_Forticnapp_api_key: ${{ secrets.Forticnapp_api_key }}
+          TF_VAR_Forticnapp_api_secret: ${{ secrets.Forticnapp_api_secret }}
           TF_VAR_HTUSERNAME: ${{ secrets.HTUSERNAME }}
           TF_VAR_HTPASSWD: ${{ secrets.HTPASSWD }}
           TF_VAR_DNS_ZONE: ${{ vars.DNS_ZONE }}
