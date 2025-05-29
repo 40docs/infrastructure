@@ -139,12 +139,12 @@ resource "azurerm_kubernetes_flux_configuration" "dvwa" {
     depends_on                 = ["dvwa-dependencies"]
     sync_interval_in_seconds   = 60
   }
-  kustomizations {                                                                                                                                          
-    name                       = "dvwa-dependencies"                                                                                                        
-    recreating_enabled         = true                                                                                                                       
-    garbage_collection_enabled = true                                                                                                                       
-    path                       = "./dvwa-dependencies"                                                                                                      
-    sync_interval_in_seconds   = 60                                                                                                                         
+  kustomizations {
+    name                       = "dvwa-dependencies"
+    recreating_enabled         = true
+    garbage_collection_enabled = true
+    path                       = "./dvwa-dependencies"
+    sync_interval_in_seconds   = 60
   }
   depends_on = [
     azurerm_kubernetes_flux_configuration.infrastructure

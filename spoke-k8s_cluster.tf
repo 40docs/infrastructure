@@ -116,12 +116,12 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     orchestrator_version        = "1.30.6"
     vnet_subnet_id              = azurerm_subnet.spoke_subnet.id
     upgrade_settings {
-      max_surge = var.PRODUCTION_ENVIRONMENT ? 10 : 1 
+      max_surge = var.PRODUCTION_ENVIRONMENT ? 10 : 1
     }
     only_critical_addons_enabled = var.PRODUCTION_ENVIRONMENT ? true : false
     node_labels = {
       "system-pool" = "true"
-      "user-pool" = var.PRODUCTION_ENVIRONMENT ? false : true 
+      "user-pool"   = var.PRODUCTION_ENVIRONMENT ? false : true
     }
   }
   network_profile {
@@ -189,12 +189,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "cpu-node-pool" {
   min_count             = var.PRODUCTION_ENVIRONMENT ? 3 : null
   max_count             = var.PRODUCTION_ENVIRONMENT ? 5 : null
   node_count            = var.PRODUCTION_ENVIRONMENT ? 3 : 1
-  os_disk_type      = var.PRODUCTION_ENVIRONMENT ? "Managed" : "Ephemeral"
-  ultra_ssd_enabled = var.PRODUCTION_ENVIRONMENT ? null : true
-  os_disk_size_gb   = var.PRODUCTION_ENVIRONMENT ? "256" : "175"
-  max_pods          = "50"
-  zones             = ["1"]
-  vnet_subnet_id    = azurerm_subnet.spoke_subnet.id
+  os_disk_type          = var.PRODUCTION_ENVIRONMENT ? "Managed" : "Ephemeral"
+  ultra_ssd_enabled     = var.PRODUCTION_ENVIRONMENT ? null : true
+  os_disk_size_gb       = var.PRODUCTION_ENVIRONMENT ? "256" : "175"
+  max_pods              = "50"
+  zones                 = ["1"]
+  vnet_subnet_id        = azurerm_subnet.spoke_subnet.id
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "gpu-node-pool" {

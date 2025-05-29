@@ -37,8 +37,8 @@ resource "kubernetes_namespace" "docs" {
 }
 
 resource "random_password" "salt" {
-  length           = 8
-  special          = false
+  length  = 8
+  special = false
   #override_special = "!@#%&*()-_=+[]{}<>:?"
 }
 

@@ -28,8 +28,8 @@ resource "tls_private_key" "cloudshell_host_rsa" {
 }
 
 resource "tls_private_key" "cloudshell_host_ecdsa" {
-  algorithm      = "ECDSA"
-  ecdsa_curve    = "P521"
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P521"
 }
 
 resource "tls_private_key" "cloudshell_host_ed25519" {
@@ -188,12 +188,12 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         VAR_ssh_host_ecdsa_public    = tls_private_key.host_ecdsa.cloudshell_public_key_openssh
         VAR_ssh_host_ed25519_private = tls_private_key.host_ed25519.cloudshell_private_key_pem
         VAR_ssh_host_ed25519_public  = tls_private_key.host_ed25519.cloudshell_public_key_openssh
-        VAR_Directory_tenant_ID   = var.cloudshell_Directory_tenant_ID
-        VAR_Directory_client_ID   = var.cloudshell_Directory_client_ID
-        VAR_Forticnapp_account    = var.Forticnapp_account
-        VAR_Forticnapp_subaccount = var.Forticnapp_subaccount
-        VAR_Forticnapp_api_key    = var.Forticnapp_api_key
-        VAR_Forticnapp_api_secret = var.Forticnapp_api_secret
+        VAR_Directory_tenant_ID      = var.cloudshell_Directory_tenant_ID
+        VAR_Directory_client_ID      = var.cloudshell_Directory_client_ID
+        VAR_Forticnapp_account       = var.Forticnapp_account
+        VAR_Forticnapp_subaccount    = var.Forticnapp_subaccount
+        VAR_Forticnapp_api_key       = var.Forticnapp_api_key
+        VAR_Forticnapp_api_secret    = var.Forticnapp_api_secret
       }
     )
   )
@@ -212,7 +212,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   computer_name  = "CLOUDSHELL"
   admin_username = "ubuntu"
   admin_ssh_key {
-    username   = "ubuntu"
+    username = "ubuntu"
     public_key = jsondecode(
       azapi_resource_action.cloudshell_ssh_public_key_gen[count.index].output
     ).publicKey
