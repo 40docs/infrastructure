@@ -69,6 +69,11 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
+  resource_provider_registrations = {
+    "Microsoft.Compute" = true
+    "Microsoft.Storage" = true
+    "Microsoft.Network" = true
+  }
 }
 
 provider "random" {}
