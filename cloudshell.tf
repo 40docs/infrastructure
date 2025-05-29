@@ -176,6 +176,16 @@ resource "azurerm_managed_disk" "cloudshell_docker" {
   disk_size_gb         = 512
 }
 
+resource "random_password" "cloudshell_admin_password" {
+  count       = var.CLOUDSHELL ? 1 : 0
+  length      = 16
+  special     = true
+  override_special = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`"
+  keepers = {
+    resource_group = azurerm_resource_group.azure_resource_group.name
+  }
+}
+
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   count                 = var.CLOUDSHELL ? 1 : 0
   name                  = "CLOUDSHELL"
@@ -220,6 +230,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   computer_name  = "CLOUDSHELL"
   admin_username = "ubuntu"
   disable_password_authentication = false
+  admin_password = random_password.cloudshell_admin_password[count.index].result
   admin_ssh_key {
     username = "ubuntu"
     public_key = jsondecode(
