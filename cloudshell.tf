@@ -23,19 +23,19 @@ resource "azapi_resource" "cloudshell_ssh_public_key" {
 }
 
 resource "tls_private_key" "cloudshell_host_rsa" {
-#  count     = var.CLOUDSHELL ? 1 : 0
+  #  count     = var.CLOUDSHELL ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
 resource "tls_private_key" "cloudshell_host_ecdsa" {
-#  count     = var.CLOUDSHELL ? 1 : 0
+  #  count     = var.CLOUDSHELL ? 1 : 0
   algorithm   = "ECDSA"
   ecdsa_curve = "P521"
 }
 
 resource "tls_private_key" "cloudshell_host_ed25519" {
-#  count     = var.CLOUDSHELL ? 1 : 0
+  #  count     = var.CLOUDSHELL ? 1 : 0
   algorithm = "ED25519"
 }
 
