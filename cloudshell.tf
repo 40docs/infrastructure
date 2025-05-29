@@ -158,6 +158,12 @@ resource "azurerm_managed_disk" "cloudshell_home" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 1024
+  tags = {
+    "cloudshell" = "home"
+  }
+  lifecycle {
+    replace_triggered_by = [azurerm_linux_virtual_machine.cloudshell_vm]
+  }
 }
 
 resource "azurerm_managed_disk" "cloudshell_docker" {
