@@ -22,6 +22,20 @@ resource "azapi_resource" "cloudshell_ssh_public_key" {
   parent_id = azurerm_resource_group.azure_resource_group.id
 }
 
+resource "tls_private_key" "cloudshell_host_rsa" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "tls_private_key" "cloudshell_host_ecdsa" {
+  algorithm      = "ECDSA"
+  ecdsa_curve    = "P521"
+}
+
+resource "tls_private_key" "cloudshell_host_ed25519" {
+  algorithm = "ED25519"
+}
+
 resource "azurerm_virtual_network" "cloudshell_network" {
   count               = var.CLOUDSHELL ? 1 : 0
   name                = "cloudshell-Vnet"
@@ -168,12 +182,18 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   custom_data = base64encode(
     templatefile("${path.module}/cloud-init/CLOUDSHELL.conf",
       {
-        VAR-Directory_tenant_ID   = var.cloudshell_Directory_tenant_ID
-        VAR-Directory_client_ID   = var.cloudshell_Directory_client_ID
-        VAR-Forticnapp_account    = var.Forticnapp_account
-        VAR-Forticnapp_subaccount = var.Forticnapp_subaccount
-        VAR-Forticnapp_api_key    = var.Forticnapp_api_key
-        VAR-Forticnapp_api_secret = var.Forticnapp_api_secret
+        VAR_ssh_host_rsa_private     = tls_private_key.host_rsa.cloudshell_private_key_pem
+        VAR_ssh_host_rsa_public      = tls_private_key.host_rsa.cloudshell_public_key_openssh
+        VAR_ssh_host_ecdsa_private   = tls_private_key.host_ecdsa.cloudshell_private_key_pem
+        VAR_ssh_host_ecdsa_public    = tls_private_key.host_ecdsa.cloudshell_public_key_openssh
+        VAR_ssh_host_ed25519_private = tls_private_key.host_ed25519.cloudshell_private_key_pem
+        VAR_ssh_host_ed25519_public  = tls_private_key.host_ed25519.cloudshell_public_key_openssh
+        VAR_Directory_tenant_ID   = var.cloudshell_Directory_tenant_ID
+        VAR_Directory_client_ID   = var.cloudshell_Directory_client_ID
+        VAR_Forticnapp_account    = var.Forticnapp_account
+        VAR_Forticnapp_subaccount = var.Forticnapp_subaccount
+        VAR_Forticnapp_api_key    = var.Forticnapp_api_key
+        VAR_Forticnapp_api_secret = var.Forticnapp_api_secret
       }
     )
   )
