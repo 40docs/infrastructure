@@ -229,8 +229,8 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   }
   computer_name  = "CLOUDSHELL"
   admin_username = "ubuntu"
-  disable_password_authentication = false
-  admin_password = random_password.cloudshell_admin_password[count.index].result
+  #disable_password_authentication = false
+  #admin_password = random_password.cloudshell_admin_password[count.index].result
   admin_ssh_key {
     username = "ubuntu"
     public_key = jsondecode(
