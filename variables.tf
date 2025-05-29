@@ -548,6 +548,13 @@ variable "Forticnapp_account" {
   sensitive   = true
 }
 
+variable "cloudshell_admin_password" {
+  type        = string
+  description = "The CLOUDSHELL admin password"
+  default     = "ubuntu"
+  sensitive   = true
+}
+
 variable "Forticnapp_subaccount" {
   type        = string
   description = "The FortiCnapp subaccount name."

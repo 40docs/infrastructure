@@ -161,9 +161,9 @@ resource "azurerm_managed_disk" "cloudshell_home" {
   tags = {
     "cloudshell" = "home"
   }
-  lifecycle {
-    replace_triggered_by = [azurerm_linux_virtual_machine.cloudshell_vm]
-  }
+  #lifecycle {
+  #  replace_triggered_by = [azurerm_linux_virtual_machine.cloudshell_vm]
+  #}
 }
 
 resource "azurerm_managed_disk" "cloudshell_docker" {
@@ -219,6 +219,8 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   }
   computer_name  = "CLOUDSHELL"
   admin_username = "ubuntu"
+  disable_password_authentication = false
+  admin_password                  = var.cloudshell_admin_password
   admin_ssh_key {
     username = "ubuntu"
     public_key = jsondecode(
