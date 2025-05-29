@@ -280,12 +280,6 @@ jobs:
             echo "${delimiter}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Publish Terraform Apply Output to Task Summary
-        env:
-          SUMMARY: ${{ steps.tf-show-output.outputs.summary }}
-        run: |
-          echo "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
-
   destroy:
     name: Terraform Destroy
     needs: [terraform]
