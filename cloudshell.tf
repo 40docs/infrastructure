@@ -10,7 +10,6 @@ resource "azapi_resource_action" "cloudshell_ssh_public_key_gen" {
   resource_id = azapi_resource.cloudshell_ssh_public_key[count.index].id
   action      = "generateKeyPair"
   method      = "POST"
-
   response_export_values = ["publicKey", "privateKey"]
 }
 
@@ -185,12 +184,6 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   custom_data = base64encode(
     templatefile("${path.module}/cloud-init/CLOUDSHELL.conf",
       {
-        VAR_ssh_host_rsa_private     = tls_private_key.cloudshell_host_rsa.private_key_pem
-        VAR_ssh_host_rsa_public      = tls_private_key.cloudshell_host_rsa.public_key_openssh
-        VAR_ssh_host_ecdsa_private   = tls_private_key.cloudshell_host_ecdsa.private_key_pem
-        VAR_ssh_host_ecdsa_public    = tls_private_key.cloudshell_host_ecdsa.public_key_openssh
-        VAR_ssh_host_ed25519_private = tls_private_key.cloudshell_host_ed25519.private_key_pem
-        VAR_ssh_host_ed25519_public  = tls_private_key.cloudshell_host_ed25519.public_key_openssh
         VAR_Directory_tenant_ID      = var.cloudshell_Directory_tenant_ID
         VAR_Directory_client_ID      = var.cloudshell_Directory_client_ID
         VAR_Forticnapp_account       = var.Forticnapp_account
