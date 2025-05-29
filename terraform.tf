@@ -70,9 +70,9 @@ provider "azurerm" {
     }
   }
   resource_provider_registrations = [
-    "Microsoft.Compute" = true,
-    "Microsoft.Storage" = true,
-    "Microsoft.Network" = true,
+    "Microsoft.Compute",
+    "Microsoft.Storage",
+    "Microsoft.Network"
   ]
 }
 
