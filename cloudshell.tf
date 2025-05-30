@@ -161,9 +161,9 @@ resource "azurerm_managed_disk" "cloudshell_home" {
   tags = {
     "cloudshell" = "home"
   }
-  #lifecycle {
-  #  replace_triggered_by = [azurerm_linux_virtual_machine.cloudshell_vm]
-  #}
+  lifecycle {
+    replace_triggered_by = [azurerm_linux_virtual_machine.cloudshell_vm]
+  }
 }
 
 resource "azurerm_managed_disk" "cloudshell_docker" {
