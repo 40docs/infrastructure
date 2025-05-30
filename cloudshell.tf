@@ -233,9 +233,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   #admin_password = random_password.cloudshell_admin_password[count.index].result
   admin_ssh_key {
     username = "ubuntu"
-    public_key = jsondecode(
-      azapi_resource_action.cloudshell_ssh_public_key_gen[count.index].output
-    ).publicKey
+    public_key = azapi_resource_action.cloudshell_ssh_public_key_gen[count.index].output.publicKey
   }
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.cloudshell_storage_account[count.index].primary_blob_endpoint
