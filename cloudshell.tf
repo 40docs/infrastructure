@@ -65,14 +65,14 @@ resource "azurerm_public_ip" "cloudshell_public_ip" {
   domain_name_label   = "cloudshell-${azurerm_resource_group.azure_resource_group.name}"
 }
 
-#resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
-#  count               = var.CLOUDSHELL ? 1 : 0
-#  name                = "cloudshell"
-#  zone_name           = azurerm_dns_zone.dns_zone.name
-#  resource_group_name = azurerm_resource_group.azure_resource_group.name
-#  ttl                 = 300
-#  record              = data.azurerm_public_ip.cloudshell_public_ip[0].fqdn
-#}
+resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
+  count               = var.CLOUDSHELL ? 1 : 0
+  name                = "cloudshell"
+  zone_name           = azurerm_dns_zone.dns_zone.name
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  ttl                 = 300
+  record              = data.azurerm_public_ip.cloudshell_public_ip[0].fqdn
+}
 
 resource "azurerm_network_security_group" "cloudshell_nsg" {
   count               = var.CLOUDSHELL ? 1 : 0
