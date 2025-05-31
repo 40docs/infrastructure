@@ -119,7 +119,6 @@ resource "azurerm_network_interface" "cloudshell_nic" {
   name                = "cloudshell-NIC"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-
   ip_configuration {
     name                          = "cloudshell_nic_configuration"
     subnet_id                     = azurerm_subnet.cloudshell_subnet[count.index].id
@@ -187,6 +186,18 @@ resource "azurerm_managed_disk" "cloudshell_docker" {
   }
 }
 
+resource "azurerm_managed_disk" "cloudshell_ollama" {
+  count                = var.CLOUDSHELL ? 1 : 0
+  name                 = "CLOUDSHELL-ollama-disk"
+  location             = azurerm_resource_group.azure_resource_group.location
+  resource_group_name  = azurerm_resource_group.azure_resource_group.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1024
+  lifecycle {
+    prevent_destroy = true
+  }
+}
 
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   count                 = var.CLOUDSHELL ? 1 : 0
@@ -263,6 +274,16 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker" {
   managed_disk_id           = azurerm_managed_disk.cloudshell_docker[count.index].id
   virtual_machine_id        = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                       = 2
+  caching                   = "None"
+  write_accelerator_enabled = true
+  create_option             = "Attach"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama" {
+  count                     = var.CLOUDSHELL ? 1 : 0
+  managed_disk_id           = azurerm_managed_disk.cloudshell_ollama[count.index].id
+  virtual_machine_id        = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
+  lun                       = 3
   caching                   = "None"
   write_accelerator_enabled = true
   create_option             = "Attach"
