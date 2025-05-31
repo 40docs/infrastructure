@@ -260,7 +260,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_home" {
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 0
   caching            = "ReadWrite"
-  create_option      = "Empty"
+  create_option      = "Attach"
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
