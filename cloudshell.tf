@@ -10,6 +10,7 @@ resource "azapi_resource_action" "cloudshell_ssh_public_key_gen" {
   resource_id = azapi_resource.cloudshell_ssh_public_key[count.index].id
   action      = "generateKeyPair"
   method      = "POST"
+
   response_export_values = ["publicKey", "privateKey"]
 }
 
@@ -64,14 +65,14 @@ resource "azurerm_public_ip" "cloudshell_public_ip" {
   domain_name_label   = "cloudshell-${azurerm_resource_group.azure_resource_group.name}"
 }
 
-resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
-  count               = var.CLOUDSHELL ? 1 : 0
-  name                = "cloudshell"
-  zone_name           = azurerm_dns_zone.dns_zone.name
-  resource_group_name = azurerm_resource_group.azure_resource_group.name
-  ttl                 = 300
-  record              = data.azurerm_public_ip.cloudshell_public_ip[0].fqdn
-}
+#resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
+#  count               = var.CLOUDSHELL ? 1 : 0
+#  name                = "cloudshell"
+#  zone_name           = azurerm_dns_zone.dns_zone.name
+#  resource_group_name = azurerm_resource_group.azure_resource_group.name
+#  ttl                 = 300
+#  record              = data.azurerm_public_ip.cloudshell_public_ip[0].fqdn
+#}
 
 resource "azurerm_network_security_group" "cloudshell_nsg" {
   count               = var.CLOUDSHELL ? 1 : 0
@@ -158,11 +159,18 @@ resource "azurerm_managed_disk" "cloudshell_home" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 1024
-  tags = {
-    "cloudshell" = "home"
-  }
+}
+
+resource "azurerm_managed_disk" "cloudshell_authd" {
+  count                = var.CLOUDSHELL ? 1 : 0
+  name                 = "CLOUDSHELL-authd"
+  location             = azurerm_resource_group.azure_resource_group.location
+  resource_group_name  = azurerm_resource_group.azure_resource_group.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 5
   lifecycle {
-    replace_triggered_by = [azurerm_linux_virtual_machine.cloudshell_vm]
+    prevent_destroy = true
   }
 }
 
@@ -174,17 +182,11 @@ resource "azurerm_managed_disk" "cloudshell_docker" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 512
-}
-
-resource "random_password" "cloudshell_admin_password" {
-  count       = var.CLOUDSHELL ? 1 : 0
-  length      = 16
-  special     = true
-  override_special = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`"
-  keepers = {
-    resource_group = azurerm_resource_group.azure_resource_group.name
+  lifecycle {
+    prevent_destroy = true
   }
 }
+
 
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   count                 = var.CLOUDSHELL ? 1 : 0
@@ -208,6 +210,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         VAR_ssh_host_ed25519_public  = tls_private_key.cloudshell_host_ed25519.public_key_openssh
         VAR_Directory_tenant_ID      = var.cloudshell_Directory_tenant_ID
         VAR_Directory_client_ID      = var.cloudshell_Directory_client_ID
+        VAR_admin_username           = var.cloudshell_admin_username
         VAR_Forticnapp_account       = var.Forticnapp_account
         VAR_Forticnapp_subaccount    = var.Forticnapp_subaccount
         VAR_Forticnapp_api_key       = var.Forticnapp_api_key
@@ -228,11 +231,9 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
     version   = "latest"
   }
   computer_name  = "CLOUDSHELL"
-  admin_username = "ubuntu"
-  #disable_password_authentication = false
-  #admin_password = random_password.cloudshell_admin_password[count.index].result
+  admin_username = var.cloudshell_admin_username
   admin_ssh_key {
-    username = "ubuntu"
+    username   = var.cloudshell_admin_username
     public_key = azapi_resource_action.cloudshell_ssh_public_key_gen[count.index].output.publicKey
   }
   boot_diagnostics {
@@ -248,11 +249,21 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_home" {
   caching            = "ReadOnly"
 }
 
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
+  count              = var.CLOUDSHELL ? 1 : 0
+  managed_disk_id    = azurerm_managed_disk.cloudshell_authd[count.index].id
+  virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
+  lun                = 1
+  caching            = "ReadOnly"
+  create_option      = "Attach"
+}
+
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker" {
   count                     = var.CLOUDSHELL ? 1 : 0
   managed_disk_id           = azurerm_managed_disk.cloudshell_docker[count.index].id
   virtual_machine_id        = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
-  lun                       = 1
+  lun                       = 2
   caching                   = "None"
   write_accelerator_enabled = true
+  create_option             = "Attach"
 }
