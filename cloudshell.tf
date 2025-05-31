@@ -259,7 +259,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_home" {
   managed_disk_id    = azurerm_managed_disk.cloudshell_home[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 0
-  caching            = "ReadOnly"
+  caching            = "ReadWrite"
   create_option      = "Empty"
 }
 
@@ -268,7 +268,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
   managed_disk_id    = azurerm_managed_disk.cloudshell_authd[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 1
-  caching            = "ReadOnly"
+  caching            = "ReadWrite"
   create_option      = "Attach"
 }
 
@@ -277,9 +277,9 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker" {
   managed_disk_id    = azurerm_managed_disk.cloudshell_docker[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 2
-  #caching                   = "None"
+  create_option      = "Attach"
+  caching            = "ReadWrite"
   #write_accelerator_enabled = true
-  create_option = "Attach"
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama" {
@@ -288,6 +288,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama" {
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 3
   caching            = "ReadOnly"
+  create_option      = "Attach"
   #write_accelerator_enabled = true
-  create_option = "Attach"
 }
