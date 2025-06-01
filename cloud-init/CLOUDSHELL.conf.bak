@@ -3,23 +3,21 @@
 package_update: true
 package_upgrade: true
 package_reboot_if_required: true
+
 ssh_deletekeys: false
-
 ssh_keys:
-  # RSA host key
   rsa_private: |
-${VAR_ssh_host_rsa_private}
-  rsa_public: ${VAR_ssh_host_rsa_public}
-
-  # ECDSA host key
+    ${indent(4, VAR_ssh_host_rsa_private)}
+  rsa_public: |
+    ${indent(4, VAR_ssh_host_rsa_public)}
   ecdsa_private: |
-${VAR_ssh_host_ecdsa_private}
-  ecdsa_public: ${VAR_ssh_host_ecdsa_public}
-
-  # ED25519 host key
+    ${indent(4, VAR_ssh_host_ecdsa_private)}
+  ecdsa_public: |
+    ${indent(4, VAR_ssh_host_ecdsa_public)}
   ed25519_private: |
-${VAR_ssh_host_ed25519_private}
-  ed25519_public: ${VAR_ssh_host_ed25519_public}
+    ${indent(4, VAR_ssh_host_ed25519_private)}
+  ed25519_public: |
+    ${indent(4, VAR_ssh_host_ed25519_public)}
 
 apt:
   sources:
@@ -56,11 +54,6 @@ apt:
       keyserver: https://download.docker.com/linux/ubuntu/gpg
       keyid: 8D81803C0EBFCD88
 
-debconf_selections:
-  mscorefonts-eula: |
-    ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true
-    ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula seen true
-
 packages:
   - alsa-utils
   - ansible
@@ -68,7 +61,6 @@ packages:
   - apparmor
   - apt-transport-https
   - asciidoctor
-  - authd
   - autoconf
   - azure-cli
   - bash-completion
@@ -77,12 +69,6 @@ packages:
   - cockpit
   - cmake
   - curl
-  - docker-ce
-  - docker-ce-cli
-  - containerd.io
-  - docker-compose-plugin
-  - docker-ce-rootless-extras
-  - docker-buildx-plugin
   - dos2unix
   - dpkg
   - dpkg-dev
@@ -119,7 +105,6 @@ packages:
   - libfftw3-long3
   - libfftw3-quad3
   - libfftw3-single3
-  - libfuse2
   - libfuse2t64
   - libgavl2
   - libgl1-mesa-dri
@@ -155,6 +140,7 @@ packages:
   - php-pgsql
   - python3-full
   - python3-pip
+  - python3-venv
   - skopeo
   - snapd
   - software-properties-common
@@ -167,7 +153,6 @@ packages:
   - tesseract-ocr
   - tcpdump
   - tofrodos
-  - ubuntu-restricted-extras
   - ubuntu-drivers-common
   - unzip
   - vlc
@@ -178,32 +163,7 @@ packages:
 
 snap:
   commands:
-    01: ['install', 'authd-msentraid']
     02: ['install', 'shfmt']
-
-disk_setup:
-  /dev/disk/azure/scsi1/lun0:
-    table_type: gpt
-    layout: true
-    overwrite: false
-  /dev/disk/azure/scsi1/lun1:
-    table_type: gpt
-    layout: true
-    overwrite: false
-
-fs_setup:
-  - label: home
-    filesystem: ext4
-    device: /dev/disk/azure/scsi1/lun0
-    partition: auto
-  - label: docker
-    filesystem: ext4
-    device: /dev/disk/azure/scsi1/lun1
-    partition: auto
-
-mounts:
-  - ["/dev/disk/azure/scsi1/lun0", "/home", "ext4", "defaults,nofail", "0", "2"]
-  - ["/dev/disk/azure/scsi1/lun1", "/var/lib/docker", "ext4", "defaults", "0", "2"]
 
 write_files:
   - path: /root/.tmux.conf
@@ -212,7 +172,6 @@ write_files:
       set -g @plugin 'khanghh/tmux-dark-plus-theme'
       set -g @plugin 'tmux-plugins/tpm'
       set -g @plugin 'tmux-plugins/tmux-sensible'
-      # VSCode colors for tmux
       set -g window-active-style 'bg=colour235,fg=colour253'
       set -g window-style 'bg=colour235,fg=colour253'
       set -g pane-border-style 'bg=colour235, fg=colour59'
@@ -220,7 +179,6 @@ write_files:
       set -g status-style 'bg=colour32, fg=colour15'
       set -g window-status-style 'bg=default, fg=default'
       set -g window-status-current-style 'bg=colour39, fg=default'
-      # Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
       run '~/.tmux/plugins/tpm/tpm'
   - path: /etc/ssh/sshd_config.d/custom.conf
     content: |
@@ -254,22 +212,22 @@ write_files:
 
 runcmd:
   - |
-    curl https://raw.githubusercontent.com/chenkaie/DotFiles/refs/heads/master/.screenrc -o /etc/skel/.screenrc
-    echo 'hardstatus alwayslastline "%%{= kr}%%C %%D/%%d %%{= bw} %%-w%%{rw}%%n %%t%%{= bw}%%+w"' >> /etc/skel/.screenrc
-    echo 'bind \' \' windowlist -b' >> /etc/skel/.screenrc
+    DEV=/dev/disk/azure/scsi1/lun0
+    if ! blkid -s TYPE "$DEV" >/dev/null 2>&1; then
+      mkfs.ext4 -F "$DEV"
+    fi
+  - echo '/dev/disk/azure/scsi1/lun0 /home       ext4 defaults,nofail 0 2' >> /etc/fstab
+  - 'mountpoint -q /home || mount /dev/disk/azure/scsi1/lun0 /home'
+  - '[ -d /var/lib/authd ] || mkdir -p /var/lib/authd'
   - |
-    ARCH=$(dpkg-architecture -q DEB_BUILD_ARCH)
-    download_url=$(curl --silent "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest" | jq -r --arg ARCH "$ARCH" '.assets[] | select(.name | contains("deb") and contains($ARCH)) | .browser_download_url')
-    curl -s -L "$${download_url}" -o "drawio.deb"
-    dpkg -i drawio.deb
-    rm drawio.deb
-  - |
-    LACEWORK_VERSION=$(curl -s "https://api.github.com/repos/lacework/extensible-reporting/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-    curl -L -o lw_report_gen "https://github.com/lacework/extensible-reporting/releases/download/v$${LACEWORK_VERSION}/lw_report_gen_linux_x86_64"
-    install lw_report_gen /usr/local/bin
-    rm lw_report_gen
-  - useradd -D -s "$(which zsh)"
-  - sed -i -E 's|^#?DSHELL=.*|DSHELL=/usr/bin/zsh|' /etc/adduser.conf
+    DEV=/dev/disk/azure/scsi1/lun1
+    if ! blkid -s TYPE "$DEV" >/dev/null 2>&1; then
+      mkfs.ext4 -F "$DEV"
+    fi
+  - echo '/dev/disk/azure/scsi1/lun1 /var/lib/authd       ext4 defaults,nofail 0 2' >> /etc/fstab
+  - 'mountpoint -q /var/lib/authd || mount /dev/disk/azure/scsi1/lun1 /var/lib/authd'
+  - 'DEBIAN_FRONTEND=noninteractive apt-get install -y authd'
+  - snap install authd-msentraid
   - |
     sed -i \
     -e 's|issuer = https://login.microsoftonline.com/<ISSUER_ID>/v2.0|issuer = "https://login.microsoftonline.com/${VAR_Directory_tenant_ID}/v2.0"|' \
@@ -281,18 +239,44 @@ runcmd:
   - mkdir -p /etc/authd/brokers.d/
   - cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/brokers.d/msentraid.conf
   - snap restart authd-msentraid
+  - |
+    mkdir -p /etc/systemd/system/authd.socket.d
+    cat <<EOF >/etc/systemd/system/authd.socket.d/override.conf
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  - systemctl daemon-reload
+  - systemctl enable --now authd.socket
   - systemctl restart authd
   - systemctl restart ssh
+  - |
+    ARCH=$(dpkg-architecture -q DEB_BUILD_ARCH)
+    download_url=$$(curl --silent "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest" | jq -r --arg ARCH "$ARCH" '.assets[] | select(.name | contains("deb") and contains($ARCH)) | .browser_download_url')
+    curl -s -L "$${download_url}" -o "drawio.deb"
+    dpkg -i drawio.deb
+    rm drawio.deb
+  - |
+    LACEWORK_VERSION=$$(curl -s "https://api.github.com/repos/lacework/extensible-reporting/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    curl -L -o lw_report_gen "https://github.com/lacework/extensible-reporting/releases/download/v$${LACEWORK_VERSION}/lw_report_gen_linux_x86_64"
+    install lw_report_gen /usr/local/bin
+    rm lw_report_gen
+  - useradd -D -s "$(which zsh)"
+  - sed -i -E 's|^#?DSHELL=.*|DSHELL=/usr/bin/zsh|' /etc/adduser.conf
+  - [ sh, -xc, "echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | debconf-set-selections" ]
+  - [ sh, -xc, "DEBIAN_FRONTEND=noninteractive apt-get update -qq" ]
+  - [ sh, -xc, "DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer ubuntu-restricted-extras" ]
   - mkdir -p /root/.tmux/plugins && git clone https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm && cp -a /root/.tmux /etc/skel/.tmux && cp /root/.tmux.conf /etc/skel/.tmux.conf
-  - python3 -m pip install --break-system-packages --ignore-installed aider-chat ansible ansible-creator ansible-dev-environment azure-cognitiveservices-speech docs-chat-bot fastapi git-filter-repo google-api-python-client markitdown mkdocs-add-teaser mkdocs-awesome-pages-plugin mkdocs-childpages-card-grid-plugin mkdocs-enumerate-headings-plugin mkdocs-exclude mkdocs-git-authors-plugin mkdocs-git-committers-plugin-2 mkdocs-github-admonitions-plugin mkdocs-git-revision-date-localized-plugin mkdocs-glightbox mkdocs-literate-nav mkdocs-material 'mkdocs-material[imaging]' mkdocs-minify-plugin mkdocs-monorepo-plugin mkdocs-pdf-export-plugin mkdocs-same-dir mkdocs-section-index mkdocs-table-reader-plugin mkdocs-with-pdf 'mkdocstrings[crystal]' 'mkdocstrings[python]' oauth2client oterm playwright progressbar2 pydantic pytest-playwright uvicorn powerline-shell
+  - python3 -m pip install --break-system-packages --ignore-installed aider-install ansible ansible-creator ansible-dev-environment azure-cognitiveservices-speech docs-chat-bot fastapi git-filter-repo google-api-python-client markitdown mkdocs-add-teaser mkdocs-awesome-pages-plugin mkdocs-childpages-card-grid-plugin mkdocs-enumerate-headings-plugin mkdocs-exclude mkdocs-git-authors-plugin mkdocs-git-committers-plugin-2 mkdocs-github-admonitions-plugin mkdocs-git-revision-date-localized-plugin mkdocs-glightbox mkdocs-literate-nav mkdocs-material 'mkdocs-material[imaging]' mkdocs-minify-plugin mkdocs-monorepo-plugin mkdocs-pdf-export-plugin mkdocs-same-dir mkdocs-section-index mkdocs-table-reader-plugin mkdocs-with-pdf 'mkdocstrings[crystal]' 'mkdocstrings[python]' oauth2client oterm playwright progressbar2 pydantic pytest-playwright uvicorn powerline-shell
   - mkdir -p "/usr/share/fonts/powerline" && curl -L https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf -o /usr/share/fonts/powerline/PowerlineSymbols.otf && mkdir -p /etc/fonts/conf.avail && curl -L https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf -o /etc/fonts/conf.avail/10-powerline-symbols.conf && fc-cache -f /usr/share/fonts
+  - mkdir -p /etc/skel/.cache/
+  - playwright install --with-deps chromium && cp -a /root/.cache/ms-playwright /etc/skel/.cache/ms-playwright
   - curl -s https://ohmyposh.dev/install.sh | bash -s -- -d /usr/local/bin -t /usr/local/share/oh-my-posh && curl -L -o /usr/local/share/oh-my-posh/powerlevel10k.omp.json https://raw.githubusercontent.com/amerintxperts/dotfiles/main/powerlevel10k.omp.json && oh-my-posh disable notice
   - mkdir -p /root/.oh-my-posh/themes/
   - curl https://raw.githubusercontent.com/amerintlxperts/dotfiles/refs/heads/main/powerlevel10k.omp.json -o /root/.oh-my-posh/themes/powerlevel10k.omp.json
   - oh-my-posh font install Meslo
   - cp -a /root/.oh-my-posh /etc/skel/.oh-my-posh
-  # - bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" --unattended
-  - cp -a /root/.oh-my-bash /etc/skel/.oh-my-bash
+  #- bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" --unattended
+  #- cp -a /root/.oh-my-bash /etc/skel/.oh-my-bash
   - echo 'eval "$(oh-my-posh init bash --config $HOME/.oh-my-posh/themes/powerlevel10k.omp.json)"' >> /root/.bashrc
   - export HOME=/root && curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s --
   - echo 'source <(lacework completion bash)' >> /root/.bashrc
@@ -300,6 +284,7 @@ runcmd:
   - sed -i "s#^export OSH='/root/\.oh-my-bash'#export OSH=\"\$HOME/.oh-my-bash\"#" /etc/skel/.bashrc
   - echo 'export OLLAMA_API_BASE=http://127.0.0.1:11434' >> /root/.bashrc
   - cp /root/.bashrc /etc/skel/.bashrc
+  #- sed -i '/^export OSH=/c\export OSH=~/.oh-my-bash' /etc/skel/.bashrc
   - lacework component install sca
   - lacework component install iac
   - lacework component install remediate
@@ -315,6 +300,13 @@ runcmd:
     /root/.tfenv/bin/tfenv install
     /root/.tfenv/bin/tfenv use
     cp -a /root/.tfenv /etc/skel/.tfenv
+  - |
+    DEV=/dev/disk/azure/scsi1/lun3
+    if ! blkid -s TYPE "$DEV" >/dev/null 2>&1; then
+      mkfs.ext4 -F "$DEV"
+    fi
+  - echo '/dev/disk/azure/scsi1/lun3 /root/.ollama       ext4 defaults,nofail 0 2' >> /etc/fstab
+  - 'mountpoint -q /root/.ollama || mount /dev/disk/azure/scsi1/lun3 /root/.ollama'
   - export HOME=/root/.ollama && curl -fsSL https://ollama.com/install.sh | sh
   - systemctl start ollama.service
   - systemctl enable ollama.service
@@ -346,7 +338,6 @@ runcmd:
   - /tmp/aws/install
   - rm -rf /tmp/aws /tmp/awscliv2.zip
   - ansible-galaxy collection install fortinet.console fortinet.fortiadc fortinet.fortianalyzer fortinet.fortiflexvm fortinet.fortimanager fortinet.fortios fortinet.fortiswitch fortinet.fortiweb
-  - cp -a /root/.ansible /etc/skel/.ansible
   - export NVM_DIR="/usr/bin/nvm" && git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR" && \. "$NVM_DIR/nvm.sh" && nvm install node
   - npm install -g '@devcontainers/cli'
   - npm install -g bash-language-server cwebp dockerfile-language-server-nodejs eslint eslint-config-prettier gatsby-cli javascript-typescript-langserver jsonlint newman prettier puppeteer setup-eslint-config sql-language-server stylelint-config-prettier svgo unified-language-server vscode-css-languageserver-bin vscode-html-languageserver-bin vscode-json-languageserver-bin yaml-language-server
@@ -386,10 +377,20 @@ runcmd:
   - git clone https://github.com/tomasiser/vim-code-dark /root/.vim/pack/themes/start/vim-code-dark
   - cp -a /root/.vim /etc/skel
   - curl -L https://raw.githubusercontent.com/rupa/z/master/z.sh -o /root/.z && cp /root/.z /etc/skel/.z
-  - usermod -aG docker vscode
+  - '[ -d /var/lib/docker ] || mkdir -p /var/lib/docker'
+  - |
+    DEV=/dev/disk/azure/scsi1/lun2
+    if ! blkid -s TYPE "$DEV" >/dev/null 2>&1; then
+      mkfs.ext4 -F "$DEV"
+    fi
+  - echo '/dev/disk/azure/scsi1/lun1 /var/lib/authd ext4 defaults,nofail 0 2' >> /etc/fstab
+  - 'mountpoint -q /var/lib/docker || mount /dev/disk/azure/scsi1/lun2 /var/lib/docker'
+  - 'DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-ce-rootless-extras docker-buildx-plugin'
+  - docker pull ghcr.io/amerintlxperts/devcontainer:latest
+  - usermod -aG docker ${VAR_admin_username}
   - service apache2 stop
   - systemctl disable apache2
-  - export HOME="/home/coder" && curl -fsSL https://coder.com/install.sh | sh -s -- && usermod -aG docker coder && echo 'CODER_HTTP_ADDRESS=0.0.0.0:80' > /etc/coder.d/coder.env && systemctl enable --now coder && journalctl -u coder.service -b && rm -rf "/home/coder/.cache/coder/"
+  - export HOME="/root" && curl -fsSL https://coder.com/install.sh | sh -s -- && usermod -aG docker coder && echo 'CODER_HTTP_ADDRESS=0.0.0.0:80' > /etc/coder.d/coder.env && systemctl enable --now coder && journalctl -u coder.service -b && rm -rf "/root/.cache/coder/"
   - fwupdmgr update -y --no-reboot-check
   - |
     echo "Checking if reboot is required..."
