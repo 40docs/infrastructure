@@ -27,7 +27,7 @@ terraform {
     }
     local = {
       source  = "hashicorp/local"
-      version = "2.5.2"
+      version = "2.5.3"
     }
     github = {
       source  = "integrations/github"
@@ -47,7 +47,7 @@ terraform {
     }
     flux = {
       source  = "fluxcd/flux"
-      version = "1.6.0"
+      version = "1.6.1"
     }
   }
   backend "azurerm" {}
