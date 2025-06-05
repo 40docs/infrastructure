@@ -235,7 +235,6 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
     name                 = "CLOUDSHELL-osdisk"
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
-    create_option        = "Attach"
     disk_size_gb         = 256
   }
   source_image_reference {
