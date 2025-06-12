@@ -173,6 +173,19 @@ resource "azurerm_managed_disk" "cloudshell_authd" {
   }
 }
 
+resource "azurerm_managed_disk" "cloudshell_authd-msentraid" {
+  count                = var.CLOUDSHELL ? 1 : 0
+  name                 = "CLOUDSHELL-authd-msentraid"
+  location             = azurerm_resource_group.azure_resource_group.location
+  resource_group_name  = azurerm_resource_group.azure_resource_group.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 5
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "azurerm_managed_disk" "cloudshell_docker" {
   count                = var.CLOUDSHELL ? 1 : 0
   name                 = "CLOUDSHELL-docker-disk"
@@ -272,11 +285,20 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
   create_option      = "Attach"
 }
 
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd-msentraid" {
+  count              = var.CLOUDSHELL ? 1 : 0
+  managed_disk_id    = azurerm_managed_disk.cloudshell_authd[count.index].id
+  virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
+  lun                = 2
+  caching            = "ReadWrite"
+  create_option      = "Attach"
+}
+
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker" {
   count              = var.CLOUDSHELL ? 1 : 0
   managed_disk_id    = azurerm_managed_disk.cloudshell_docker[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
-  lun                = 2
+  lun                = 3
   create_option      = "Attach"
   caching            = "ReadWrite"
   #write_accelerator_enabled = true
@@ -286,7 +308,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama" {
   count              = var.CLOUDSHELL ? 1 : 0
   managed_disk_id    = azurerm_managed_disk.cloudshell_ollama[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
-  lun                = 3
+  lun                = 4
   caching            = "ReadOnly"
   create_option      = "Attach"
   #write_accelerator_enabled = true
