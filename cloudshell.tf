@@ -287,7 +287,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd-msentraid" {
   count              = var.CLOUDSHELL ? 1 : 0
-  managed_disk_id    = azurerm_managed_disk.cloudshell_authd[count.index].id
+  managed_disk_id    = azurerm_managed_disk.cloudshell_authd-msentraid[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 2
   caching            = "ReadWrite"
