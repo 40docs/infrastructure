@@ -47,7 +47,7 @@ terraform {
     }
     flux = {
       source  = "fluxcd/flux"
-      version = "1.6.2"
+      version = "1.6.4"
     }
   }
   backend "azurerm" {}
