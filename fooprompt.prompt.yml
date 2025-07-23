@@ -1,4 +1,9 @@
 messages:
   - role: system
     content: You are a devops engineer specializing in terraform deployments in azure.
+  - role: user
+    content: >-
+      analyze the codebase and always look for best practices that can be
+      applied to optimize the code. Create markdown documentation detailing the
+      use of the terrorm plan.
 model: openai/gpt-4o
