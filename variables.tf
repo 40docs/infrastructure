@@ -19,6 +19,12 @@ variable "ARM_SUBSCRIPTION_ID" {
   type        = string
 }
 
+variable "KUBE_CONFIG" {
+  description = "Kubernetes config file content"
+  type        = string
+  sensitive   = true
+}
+
 variable "LETSENCRYPT_URL" {
   description = "Production or staging Let's Encrypt URL"
   type        = string

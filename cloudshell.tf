@@ -241,6 +241,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         VAR_Forticnapp_subaccount    = var.Forticnapp_subaccount
         VAR_Forticnapp_api_key       = var.Forticnapp_api_key
         VAR_Forticnapp_api_secret    = var.Forticnapp_api_secret
+        VAR_KUBE_CONFIG              = var.KUBE_CONFIG
       }
     )
   )
