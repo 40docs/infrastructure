@@ -1,0 +1,7 @@
+{
+  "image": "ghcr.io/40docs/devcontainer:latest",
+  "initializeCommand": "docker pull ghcr.io/40docs/devcontainer:latest",
+  "runArgs": [
+    "--hostname=devcontainer"
+  ]
+}
