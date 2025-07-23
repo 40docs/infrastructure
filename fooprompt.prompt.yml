@@ -1,2 +1,4 @@
-messages: []
+messages:
+  - role: system
+    content: You are a devops engineer specializing in terraform deployments in azure.
 model: openai/gpt-4o
