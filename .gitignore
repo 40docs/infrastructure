@@ -52,7 +52,6 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 .idea/
-.vscode/
 # Kitchen files
 **/inspec.lock
 **.gem

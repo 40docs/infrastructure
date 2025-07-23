@@ -1,0 +1,78 @@
+{
+  "chat.modeFilesLocations": {
+    "chatmodes": true
+  },
+  "chat.promptFilesLocations": {
+    "prompts": true
+  },
+  "chat.instructionsFilesLocations": {
+    "instructions": true
+  },
+  "chat.tools.autoApprove": true,
+  "chat.mcp.serverSampling": {
+    "40docs/.vscode/mcp.json: github": {
+      "allowedModels": [
+        "github.copilot-chat/gpt-4.1",
+        "github.copilot-chat/claude-3.5-sonnet"
+      ]
+    }
+  },
+  "dotnetAcquisitionExtension.existingDotnetPath": [
+    {
+      "extensionId": "MS-CST-E.vscode-devskim",
+      "path": "/usr/lib/dotnet/dotnet"
+    },
+    {
+      "extensionId": "ms-azuretools.vscode-azure-github-copilot",
+      "path": "/usr/lib/dotnet/dotnet"
+    }
+  ],
+  "dotnetAcquisitionExtension.sharedExistingDotnetPath": "/usr/lib/dotnet",
+  "workbench.colorTheme": "Visual Studio Dark",
+  "workbench.editor.enablePreview": false,
+  "workbench.startupEditor": "none",
+  "workbench.tips.enabled": false,
+  "workbench.welcomePage.walkthroughs.openOnInstall": false,
+  "workbench.welcomePage.enabled": false,
+  "files.autoSave": "onWindowChange",
+  "extensions.ignoreRecommendations": false,
+  "extensions.showRecommendationsOnlyOnDemand": false,
+  "extensions.autoUpdate": true,
+  "update.showReleaseNotes": false,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": true,
+    "editor.formatOnSave": true
+  },
+  "files.associations": {
+    "*.chatmode.md": "markdown",
+    "*.instructions.md": "markdown",
+    "*.prompt.md": "markdown"
+  },
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "/bin/bash"
+    },
+    "pwsh": {
+      "path": "/opt/microsoft/powershell/7/pwsh"
+    },
+    "tmux": {
+      "path": "/usr/bin/tmux",
+      "args": [
+        "new-session",
+        "-A",
+        "-s",
+        "vscode:${workspaceFolder}"
+      ]
+    },
+    "zsh": {
+      "path": "/usr/bin/zsh"
+    }
+  },
+  "remote.portForwarding.useLocalServer": true,
+  "remote.autoForwardPorts": true,
+  "remote.autoForwardPortsSource": "output"
+}
