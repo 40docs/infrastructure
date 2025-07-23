@@ -111,3 +111,4 @@ applyTo: '**/*.tf'
   - Use the `.tftest.hcl` extension for test files.
   - Write tests to cover both positive and negative scenarios.
   - Ensure tests are idempotent and can be run multiple times without side effects.
+- A github action runs the workflow file .github/workflows/infrastructure.yml which runs terraform using secrets from the Github repository to populate the TF_VAR environment variables
