@@ -22,6 +22,18 @@
       ],
       "gallery": true
     },
+    "kubernetes": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "kubernetes-mcp-server@latest",
+        "server",
+        "start"
+      ],
+      "gallery": true
+    },
+    "microsoft-docs": {
     "azure": {
       "type": "stdio",
       "command": "npx",
