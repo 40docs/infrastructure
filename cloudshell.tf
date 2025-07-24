@@ -221,7 +221,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   #size                  = "Standard_NC4as_T4_v3"
   #size = "Standard_NC24s_v3"
   #size                  = "Standard_M16ms"
-  size                  = "Standard_D4s_v3"
+  size = "Standard_D4s_v3"
   identity {
     type = "SystemAssigned"
   }
@@ -241,7 +241,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         VAR_Forticnapp_subaccount    = var.Forticnapp_subaccount
         VAR_Forticnapp_api_key       = var.Forticnapp_api_key
         VAR_Forticnapp_api_secret    = var.Forticnapp_api_secret
-        VAR_KUBE_CONFIG              = var.KUBE_CONFIG
+        VAR_KUBECONFIG               = var.KUBECONFIG
       }
     )
   )
