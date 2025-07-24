@@ -19,7 +19,7 @@ variable "ARM_SUBSCRIPTION_ID" {
   type        = string
 }
 
-variable "KUBE_CONFIG" {
+variable "KUBECONFIG" {
   description = "Base64 Kubernetes config file content"
   type        = string
   sensitive   = true
