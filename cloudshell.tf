@@ -212,6 +212,10 @@ resource "azurerm_managed_disk" "cloudshell_ollama" {
   }
 }
 
+locals {
+  kubeconfig = base64encode(azurerm_kubernetes_cluster.kubernetes_cluster[0].kube_config_raw)
+}
+
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   count                 = var.CLOUDSHELL ? 1 : 0
   name                  = "CLOUDSHELL"
@@ -241,7 +245,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         VAR_Forticnapp_subaccount    = var.Forticnapp_subaccount
         VAR_Forticnapp_api_key       = var.Forticnapp_api_key
         VAR_Forticnapp_api_secret    = var.Forticnapp_api_secret
-        VAR_KUBECONFIG               = var.KUBECONFIG
+        VAR_KUBECONFIG               = local.kubeconfig
       }
     )
   )

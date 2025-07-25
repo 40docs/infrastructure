@@ -19,12 +19,6 @@ variable "ARM_SUBSCRIPTION_ID" {
   type        = string
 }
 
-variable "KUBECONFIG" {
-  description = "Base64 Kubernetes config file content"
-  type        = string
-  sensitive   = true
-}
-
 variable "LETSENCRYPT_URL" {
   description = "Production or staging Let's Encrypt URL"
   type        = string
