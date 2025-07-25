@@ -69,8 +69,9 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
-  resource_provider_registrations = "core"
-  resource_providers_to_register  = []
+  resource_provider_registration {
+    enabled = true
+  }
 }
 
 provider "random" {}
