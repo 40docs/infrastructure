@@ -1,52 +1,128 @@
 {
-	"inputs": [],
-	"servers": {
-		"github": {
-			"type": "http",
-			"url": "https://api.githubcopilot.com/mcp/",
-			"gallery": true
-		},
-		"playwright": {
-			"command": "npx",
-			"args": [
-				"@playwright/mcp@latest"
-			],
-			"type": "stdio"
-		},
-		"terraform": {
-			"type": "stdio",
-			"command": "docker",
-			"args": [
-				"run",
-				"-i",
-				"--rm",
-				"hashicorp/terraform-mcp-server:latest"
-			],
-			"gallery": true
-		},
-		"azure": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"-y",
-				"@azure/mcp@latest",
-				"server",
-				"start"
-			],
-			"gallery": true
-		},
-		"microsoft-docs": {
-			"type": "http",
-			"url": "https://learn.microsoft.com/api/mcp",
-			"gallery": true
-		},
-		"markitdown": {
-			"type": "stdio",
-			"command": "uvx",
-			"args": [
-				"markitdown-mcp"
-			],
-			"gallery": true
-		}
-	}
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "gallery": true
+    },
+    "Perplexity": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["perplexity-mcp"],
+      "env": {
+        "PERPLEXITY_API_KEY": "${input:perplexity-api-key}",
+        "PERPLEXITY_MODEL": "sonar"
+      }
+    },
+    "git": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--mount", "type=bind,src=${workspaceFolder},dst=/workspace",
+        "mcp/git"
+      ]
+    },
+    "time": {
+      "command": "docker",
+      "args": [
+          "run",
+          "--rm",
+          "-i",
+          "mcp/time"
+      ]
+    },
+    "memory": {
+        "command": "docker",
+        "args": [
+          "run",
+          "-i",
+          "-v",
+          "claude-memory:/app/dist",
+          "--rm",
+          "mcp/memory"
+        ]
+    },
+    "sequential-thinking": {
+       "command": "docker",
+       "args": [
+         "run",
+         "--rm",
+         "-i",
+         "mcp/sequentialthinking"
+       ]
+     },
+    "filesystem": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--mount", "type=bind,src=${workspaceFolder},dst=/projects/workspace",
+        "mcp/filesystem",
+        "/projects"
+      ]
+    },
+    "kubernetes": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "kubernetes-mcp-server@latest"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    },
+    "terraform": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "hashicorp/terraform-mcp-server:latest"
+      ],
+      "gallery": true
+    },
+    "azure": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "node:20-bookworm",
+        "sh",
+        "-c",
+        "apt-get update && apt-get install -y libicu-dev && npx -y @azure/mcp@latest server start"
+      ],
+      "gallery": true
+    },
+    "microsoft-docs": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp",
+      "gallery": true
+    },
+    "markitdown": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "markitdown-mcp"
+      ],
+      "gallery": true
+    }
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "perplexity-api-key",
+      "description": "Perplexity API Key",
+      "password": true
+    }
+  ],
 }
