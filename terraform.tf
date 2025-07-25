@@ -67,6 +67,8 @@ terraform {
     # key                  = "infrastructure.terraform.tfstate"
     # resource_group_name  = "<your_resource_group>"
   }
+}
+
 ###############################################################
 # Standard resource tags for traceability and cost management
 ###############################################################
@@ -77,7 +79,6 @@ locals {
     OwnerEmail  = var.OWNER_EMAIL
     Environment = var.PRODUCTION_ENVIRONMENT ? "production" : "non-production"
   }
-}
 }
 
 data "azurerm_subscription" "current" {
