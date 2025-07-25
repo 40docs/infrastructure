@@ -213,7 +213,7 @@ resource "azurerm_managed_disk" "cloudshell_ollama" {
 }
 
 locals {
-  kubeconfig = base64encode(azurerm_kubernetes_cluster.kubernetes_cluster[0].kube_config_raw)
+  kubeconfig = base64encode(azurerm_kubernetes_cluster.kubernetes_cluster.kube_config_raw)
 }
 
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
