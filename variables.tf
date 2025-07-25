@@ -1,5 +1,16 @@
+###############################################################
+# Terraform Variables
+#
+# This file defines all input variables for the infrastructure.
+# Ensure every variable has a description and sensitive variables
+# are marked as such. See .github/instructions/terraform.instructions.md
+#
+# Reminder: Run `terraform fmt` and `terraform validate` before commit.
+###############################################################
+
 variable "PROJECT_NAME" {
-  type = string
+  description = "Project name for tagging and resource naming."
+  type        = string
 }
 
 variable "APPLICATION_DOCS" {
@@ -81,15 +92,21 @@ variable "PRODUCTION_ENVIRONMENT" {
 }
 
 variable "HUB_NVA_USERNAME" {
-  type = string
+  description = "Username for Hub NVA device."
+  type        = string
+  sensitive   = true
 }
 
 variable "HUB_NVA_PASSWORD" {
-  type = string
+  description = "Password for Hub NVA device."
+  type        = string
+  sensitive   = true
 }
 
 variable "LW_AGENT_TOKEN" {
-  type = string
+  description = "Lacework agent token."
+  type        = string
+  sensitive   = true
 }
 
 variable "OWNER_EMAIL" {

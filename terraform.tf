@@ -1,3 +1,13 @@
+###############################################################
+# Terraform Root Configuration
+#
+# This file defines provider requirements, backend, and global
+# settings for the infrastructure. Follows best practices for
+# versioning, backend, and provider configuration.
+#
+# See .github/instructions/terraform.instructions.md for details.
+###############################################################
+
 terraform {
   required_version = ">=1.6"
   required_providers {
@@ -50,7 +60,24 @@ terraform {
       version = "1.6.4"
     }
   }
-  backend "azurerm" {}
+  # Recommended: configure remote backend for state management
+  backend "azurerm" {
+    # storage_account_name = "<your_storage_account>"
+    # container_name       = "tfstate"
+    # key                  = "infrastructure.terraform.tfstate"
+    # resource_group_name  = "<your_resource_group>"
+  }
+###############################################################
+# Standard resource tags for traceability and cost management
+###############################################################
+locals {
+  standard_tags = {
+    Project     = var.PROJECT_NAME
+    Owner       = var.NAME
+    OwnerEmail  = var.OWNER_EMAIL
+    Environment = var.PRODUCTION_ENVIRONMENT ? "production" : "non-production"
+  }
+}
 }
 
 data "azurerm_subscription" "current" {
