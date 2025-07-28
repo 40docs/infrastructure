@@ -9,14 +9,6 @@
     "instructions": true
   },
   "chat.tools.autoApprove": true,
-  "chat.mcp.serverSampling": {
-    "40docs/.vscode/mcp.json: github": {
-      "allowedModels": [
-        "github.copilot-chat/gpt-4.1",
-        "github.copilot-chat/claude-3.5-sonnet"
-      ]
-    }
-  },
   "dotnetAcquisitionExtension.existingDotnetPath": [
     {
       "extensionId": "MS-CST-E.vscode-devskim",
@@ -36,7 +28,6 @@
   "workbench.welcomePage.enabled": false,
   "files.autoSave": "onWindowChange",
   "extensions.ignoreRecommendations": false,
-  "extensions.showRecommendationsOnlyOnDemand": false,
   "extensions.autoUpdate": true,
   "update.showReleaseNotes": false,
   "files.eol": "\n",
@@ -74,5 +65,55 @@
   },
   "remote.portForwarding.useLocalServer": true,
   "remote.autoForwardPorts": true,
-  "remote.autoForwardPortsSource": "output"
+  "remote.autoForwardPortsSource": "output",
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Use the Conventional Commits format: <type>[optional scope]: <gitmoji> <imperative description>"
+    },
+    {
+      "text": "Allowed types: feat, fix, docs, style, refactor, perf, test, chore, ci"
+    },
+    {
+      "text": "Common scopes: api, ui, auth, config, deps, tests, ci, docs, core, utils"
+    },
+    {
+      "text": "Use imperative mood in the subject line: 'Add feature' not 'Added feature'"
+    },
+    {
+      "text": "Keep subject line concise: under 50 characters, no trailing period"
+    },
+    {
+      "text": "Use an appropriate gitmoji to enhance readability (e.g., ✨, 🐛, 🔧, 📝)"
+    },
+    {
+      "text": "Include a scope in parentheses if relevant (e.g., api, ui, auth)"
+    },
+    {
+      "text": "For breaking changes: Add '!' after type/scope and 'BREAKING CHANGE:' in body"
+    },
+    {
+      "text": "Add an optional body with bullet points for context or motivation"
+    },
+    {
+      "text": "Reference issues using syntax like: Refs #123 or Closes #456"
+    },
+    {
+      "text": "Example: feat(api): ✨ Add JWT token authentication"
+    },
+    {
+      "text": "Example: fix(ui): 🐛 Fix button alignment on mobile"
+    },
+    {
+      "text": "Example: docs(readme): 📝 Update installation instructions"
+    },
+    {
+      "text": "Example: refactor(auth): 🔨 Simplify token refresh logic"
+    },
+    {
+      "text": "Example: feat(api)!: ✨ Change authentication method"
+    },
+    {
+      "text": "Example with body: feat(auth): ✨ Add OAuth2 support\\n\\n- Implement Google OAuth2 provider\\n- Add user session management\\n- Update security policies\\n\\nCloses #123"
+    }
+  ]
 }

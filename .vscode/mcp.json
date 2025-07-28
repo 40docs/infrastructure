@@ -2,8 +2,7 @@
   "servers": {
     "github": {
       "type": "http",
-      "url": "https://api.githubcopilot.com/mcp/",
-      "gallery": true
+      "url": "https://api.githubcopilot.com/mcp/"
     },
     "Perplexity": {
       "type": "stdio",
@@ -87,7 +86,6 @@
         "--rm",
         "hashicorp/terraform-mcp-server:latest"
       ],
-      "gallery": true
     },
     "azure": {
       "type": "stdio",
@@ -101,20 +99,17 @@
         "-c",
         "apt-get update && apt-get install -y libicu-dev && npx -y @azure/mcp@latest server start"
       ],
-      "gallery": true
     },
     "microsoft-docs": {
       "type": "http",
-      "url": "https://learn.microsoft.com/api/mcp",
-      "gallery": true
+      "url": "https://learn.microsoft.com/api/mcp"
     },
     "markitdown": {
       "type": "stdio",
       "command": "uvx",
       "args": [
         "markitdown-mcp"
-      ],
-      "gallery": true
+      ]
     }
   },
   "inputs": [
