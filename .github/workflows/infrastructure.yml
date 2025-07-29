@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   terraform:
-    name: Terraform Init
+    name: Init
     runs-on: ubuntu-latest
     outputs:
       action: ${{ steps.terraform.outputs.action }}
