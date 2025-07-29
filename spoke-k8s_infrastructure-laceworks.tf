@@ -18,7 +18,7 @@ resource "kubernetes_secret" "lacework_agent_token" {
   data = {
     "config.json" = jsonencode({
       tokens = {
-        AccessToken = var.LW_AGENT_TOKEN
+        AccessToken = var.lw_agent_token
       },
       serverurl = "https://api.lacework.net",
       tags = {

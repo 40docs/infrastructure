@@ -55,19 +55,19 @@ resource "kubernetes_secret" "clusterissuer" {
     namespace = kubernetes_namespace.cert-manager.metadata[0].name
   }
   data = {
-    server            = var.LETSENCRYPT_URL
-    email             = var.OWNER_EMAIL
+    server            = var.letsencrypt_url
+    email             = var.owner_email
     resourceGroupName = azurerm_resource_group.azure_resource_group.name
-    subscriptionID    = var.ARM_SUBSCRIPTION_ID
-    hostedZoneName    = var.DNS_ZONE
+    subscriptionID    = var.arm_subscription_id
+    hostedZoneName    = var.dns_zone
     clientID          = data.azurerm_user_assigned_identity.cert_manager_data.client_id
     checksum = md5(
       jsonencode({
-        server            = var.LETSENCRYPT_URL
-        email             = var.OWNER_EMAIL
+        server            = var.letsencrypt_url
+        email             = var.owner_email
         resourceGroupName = azurerm_resource_group.azure_resource_group.name
-        subscriptionID    = var.ARM_SUBSCRIPTION_ID
-        hostedZoneName    = var.DNS_ZONE
+        subscriptionID    = var.arm_subscription_id
+        hostedZoneName    = var.dns_zone
         clientID          = data.azurerm_user_assigned_identity.cert_manager_data.client_id
       })
     )

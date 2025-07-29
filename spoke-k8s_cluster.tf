@@ -166,14 +166,14 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
 #  provisioner "local-exec" {
 #    command = <<EOT
 #      az login --service-principal \
-#        --username "${var.ARM_CLIENT_ID}" \
-#        --password "${var.ARM_CLIENT_SECRET}" \
-#        --tenant "${var.ARM_TENANT_ID}" >/dev/null 2>&1
+#        --username "${var.arm_client_id}" \
+#        --password "${var.arm_client_secret}" \
+#        --tenant "${var.arm_tenant_id}" >/dev/null 2>&1
 #
-#      az account set --subscription "${var.ARM_SUBSCRIPTION_ID}"
+#      az account set --subscription "${var.arm_subscription_id}"
 #      az group update \
 #        --name ${azurerm_kubernetes_cluster.kubernetes_cluster.node_resource_group} \
-#        --set tags."Username"="${var.OWNER_EMAIL}" tags."Name"="${var.NAME}"
+#        --set tags."Username"="${var.owner_email}" tags."Name"="${var.name}"
 #    EOT
 #  }
 #}
