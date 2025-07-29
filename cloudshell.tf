@@ -222,10 +222,10 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   location              = azurerm_resource_group.azure_resource_group.location
   resource_group_name   = azurerm_resource_group.azure_resource_group.name
   network_interface_ids = [azurerm_network_interface.cloudshell_nic[count.index].id]
-  size                  = "Standard_NC6s_v3" # 6 vCPU, 112 GB RAM, 1 GPU
+  #size                  = "Standard_NC6s_v3" # 6 vCPU, 112 GB RAM, 1 GPU
   #size = "Standard_NC24s_v3" # 24 vCPU, 448 GB RAM
   #size                  = "Standard_M16ms" # 16 vCPU, 384 GB RAM
-  #size = "Standard_D4s_v3" # 4 vCPU, 16 GB RAM
+  size = "Standard_D4s_v3" # 4 vCPU, 16 GB RAM
   identity {
     type = "SystemAssigned"
   }
@@ -255,10 +255,15 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
     storage_account_type = "Premium_LRS"
     disk_size_gb         = 256
   }
+  plan {
+    name      = local.vm-image[cloudshell].sku
+    product   = local.vm-image[cloudshell].offer
+    publisher = local.vm-image[cloudshell].publisher
+  }
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "ubuntu-24_04-lts"
-    sku       = "server"
+    offer     = local.vm-image[cloudshell].offer
+    publisher = local.vm-image[cloudshell].publisher
+    sku       = local.vm-image[cloudshell].sku
     version   = "latest"
   }
   computer_name  = "CLOUDSHELL"

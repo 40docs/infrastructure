@@ -44,3 +44,11 @@ This repository automates the deployment and management of Azure infrastructure 
 2. Define resources using existing patterns.
 3. Update variables and outputs as needed.
 4. Commit and push to `main` to trigger deployment.
+
+## Cloud-Init Troubleshooting
+
+### CLOUDSHELL
+
+```bash
+sudo sudo cloud-init schema --system
+```

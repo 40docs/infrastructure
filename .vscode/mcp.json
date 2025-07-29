@@ -17,7 +17,6 @@
       "command": "docker",
       "args": [
         "run",
-        "--rm",
         "-i",
         "--mount", "type=bind,src=${workspaceFolder},dst=/workspace",
         "mcp/git"
@@ -27,7 +26,6 @@
       "command": "docker",
       "args": [
           "run",
-          "--rm",
           "-i",
           "mcp/time"
       ]
@@ -39,7 +37,6 @@
           "-i",
           "-v",
           "claude-memory:/app/dist",
-          "--rm",
           "mcp/memory"
         ]
     },
@@ -47,7 +44,6 @@
        "command": "docker",
        "args": [
          "run",
-         "--rm",
          "-i",
          "mcp/sequentialthinking"
        ]
@@ -57,7 +53,6 @@
       "args": [
         "run",
         "-i",
-        "--rm",
         "--mount", "type=bind,src=${workspaceFolder},dst=/projects/workspace",
         "mcp/filesystem",
         "/projects"
@@ -83,9 +78,8 @@
       "args": [
         "run",
         "-i",
-        "--rm",
         "hashicorp/terraform-mcp-server:latest"
-      ],
+      ]
     },
     "azure": {
       "type": "stdio",
@@ -93,12 +87,11 @@
       "args": [
         "run",
         "-i",
-        "--rm",
         "node:20-bookworm",
         "sh",
         "-c",
-        "apt-get update && apt-get install -y libicu-dev && npx -y @azure/mcp@latest server start"
-      ],
+        "npx -y @azure/mcp@latest server start"
+      ]
     },
     "microsoft-docs": {
       "type": "http",
@@ -119,5 +112,5 @@
       "description": "Perplexity API Key",
       "password": true
     }
-  ],
+  ]
 }
