@@ -246,13 +246,13 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         VAR_ssh_host_ecdsa_public    = tls_private_key.cloudshell_host_ecdsa.public_key_openssh
         VAR_ssh_host_ed25519_private = tls_private_key.cloudshell_host_ed25519.private_key_pem
         VAR_ssh_host_ed25519_public  = tls_private_key.cloudshell_host_ed25519.public_key_openssh
-        VAR_Directory_tenant_ID      = var.cloudshell_Directory_tenant_ID
-        VAR_Directory_client_ID      = var.cloudshell_Directory_client_ID
+        VAR_Directory_tenant_ID      = var.cloudshell_directory_tenant_id
+        VAR_Directory_client_ID      = var.cloudshell_directory_client_id
         VAR_admin_username           = var.cloudshell_admin_username
-        VAR_Forticnapp_account       = var.Forticnapp_account
-        VAR_Forticnapp_subaccount    = var.Forticnapp_subaccount
-        VAR_Forticnapp_api_key       = var.Forticnapp_api_key
-        VAR_Forticnapp_api_secret    = var.Forticnapp_api_secret
+        VAR_Forticnapp_account       = var.forticnapp_account
+        VAR_Forticnapp_subaccount    = var.forticnapp_subaccount
+        VAR_Forticnapp_api_key       = var.forticnapp_api_key
+        VAR_Forticnapp_api_secret    = var.forticnapp_api_secret
         VAR_KUBECONFIG               = local.kubeconfig
       }
     )
