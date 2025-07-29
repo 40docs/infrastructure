@@ -30,25 +30,6 @@ variable "arm_subscription_id" {
   type        = string
 }
 
-variable "arm_client_id" {
-  description = "Azure Service Principal Client ID"
-  type        = string
-  default     = ""
-}
-
-variable "arm_client_secret" {
-  description = "Azure Service Principal Client Secret"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "arm_tenant_id" {
-  description = "Azure Tenant ID"
-  type        = string
-  default     = ""
-}
-
 variable "letsencrypt_url" {
   description = "Production or staging Let's Encrypt URL"
   type        = string
