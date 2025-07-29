@@ -263,11 +263,6 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
     storage_account_type = "Premium_LRS"
     disk_size_gb         = 256
   }
-  plan {
-    name      = local.vm_image["cloudshell"].sku
-    product   = local.vm_image["cloudshell"].offer
-    publisher = local.vm_image["cloudshell"].publisher
-  }
   source_image_reference {
     offer     = local.vm_image["cloudshell"].offer
     publisher = local.vm_image["cloudshell"].publisher

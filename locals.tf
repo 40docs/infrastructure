@@ -39,7 +39,7 @@ locals {
       gpu-size-dev = "Standard_NC4as_T4_v3"
     },
     "cloudshell" = {
-      terms     = true
+      terms     = false
       offer     = "ubuntu-24_04-lts"
       sku       = "server"
       publisher = "Canonical"
