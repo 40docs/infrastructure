@@ -1,11 +1,11 @@
 data "azurerm_public_ip" "hub-nva-vip_artifacts_public_ip" {
-  count               = var.APPLICATION_ARTIFACTS ? 1 : 0
+  count               = var.application_artifacts ? 1 : 0
   name                = azurerm_public_ip.hub-nva-vip_artifacts_public_ip[0].name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
 
 resource "azurerm_dns_cname_record" "artifacts" {
-  count               = var.APPLICATION_ARTIFACTS ? 1 : 0
+  count               = var.application_artifacts ? 1 : 0
   name                = "artifacts"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -14,7 +14,7 @@ resource "azurerm_dns_cname_record" "artifacts" {
 }
 
 resource "azurerm_public_ip" "hub-nva-vip_artifacts_public_ip" {
-  count               = var.APPLICATION_ARTIFACTS ? 1 : 0
+  count               = var.application_artifacts ? 1 : 0
   name                = "hub-nva-vip_artifacts_public_ip"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -24,7 +24,7 @@ resource "azurerm_public_ip" "hub-nva-vip_artifacts_public_ip" {
 }
 
 resource "kubernetes_namespace" "artifacts" {
-  count = var.APPLICATION_ARTIFACTS ? 1 : 0
+  count = var.application_artifacts ? 1 : 0
   depends_on = [
     azurerm_kubernetes_cluster.kubernetes_cluster
   ]
@@ -37,14 +37,14 @@ resource "kubernetes_namespace" "artifacts" {
 }
 
 resource "kubernetes_secret" "artifacts_fortiweb_login_secret" {
-  count = var.APPLICATION_ARTIFACTS ? 1 : 0
+  count = var.application_artifacts ? 1 : 0
   metadata {
     name      = "fortiweb-login-secret"
     namespace = kubernetes_namespace.artifacts[0].metadata[0].name
   }
   data = {
-    username = var.HUB_NVA_USERNAME
-    password = var.HUB_NVA_PASSWORD
+    username = var.hub_nva_username
+    password = var.hub_nva_password
   }
   type = "Opaque"
 }
@@ -54,7 +54,7 @@ locals {
 }
 
 resource "azurerm_kubernetes_flux_configuration" "artifacts" {
-  count                             = var.APPLICATION_ARTIFACTS ? 1 : 0
+  count                             = var.application_artifacts ? 1 : 0
   name                              = "artifacts"
   cluster_id                        = azurerm_kubernetes_cluster.kubernetes_cluster.id
   namespace                         = "cluster-config"
@@ -96,7 +96,7 @@ resource "azurerm_kubernetes_flux_configuration" "artifacts" {
 }
 
 resource "null_resource" "trigger_artifacts-version_workflow" {
-  count = var.APPLICATION_ARTIFACTS ? 1 : 0
+  count = var.application_artifacts ? 1 : 0
   provisioner "local-exec" {
     command = "gh workflow run artifacts-version --repo ${var.GITHUB_ORG}/${var.MANIFESTS_APPLICATIONS_REPO_NAME} --ref main"
   }

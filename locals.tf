@@ -24,12 +24,12 @@ locals {
       gpu-size-dev = "Standard_NC4as_T4_v3"
     },
     "cloudshell" = {
-      terms        = true
-      offer        = "ubuntu-24_04-lts"
-      sku          = "server"
-      publisher    = "Canonical"
-      size         = "Standard_E4s_v3"
-      size-dev     = "Standard_B8ms"
+      terms     = true
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
+      publisher = "Canonical"
+      size      = "Standard_E4s_v3"
+      size-dev  = "Standard_B8ms"
     }
   }
 }

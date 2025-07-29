@@ -1,6 +1,6 @@
 locals {
-  #infrastructure_repo_fqdn = "git@github.com:${var.GITHUB_ORG}/${var.MANIFESTS_INFRASTRUCTURE_REPO_NAME}.git"
-  infrastructure_repo_fqdn = "https://github.com/${var.GITHUB_ORG}/${var.MANIFESTS_INFRASTRUCTURE_REPO_NAME}.git"
+  #infrastructure_repo_fqdn = "git@github.com:${var.github_org}/${var.manifests_infrastructure_repo_name}.git"
+  infrastructure_repo_fqdn = "https://github.com/${var.github_org}/${var.manifests_infrastructure_repo_name}.git"
 }
 
 resource "azurerm_kubernetes_flux_configuration" "infrastructure" {
@@ -14,7 +14,7 @@ resource "azurerm_kubernetes_flux_configuration" "infrastructure" {
     reference_type           = "branch"
     reference_value          = "main"
     sync_interval_in_seconds = 60
-    #ssh_private_key_base64   = base64encode(var.MANIFESTS_INFRASTRUCTURE_SSH_PRIVATE_KEY)
+    #ssh_private_key_base64   = base64encode(var.manifests_infrastructure_ssh_private_key)
   }
   kustomizations {
     name                       = "infrastructure"

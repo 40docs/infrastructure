@@ -91,71 +91,71 @@ variable "production_environment" {
   default     = true
 }
 
-variable "HUB_NVA_USERNAME" {
+variable "hub_nva_username" {
   description = "Username for Hub NVA device."
   type        = string
   sensitive   = true
 }
 
-variable "HUB_NVA_PASSWORD" {
+variable "hub_nva_password" {
   description = "Password for Hub NVA device."
   type        = string
   sensitive   = true
 }
 
-variable "LW_AGENT_TOKEN" {
+variable "lw_agent_token" {
   description = "Lacework agent token."
   type        = string
   sensitive   = true
 }
 
-variable "OWNER_EMAIL" {
+variable "owner_email" {
   description = "Email address for use with Owner tag."
   type        = string
   validation {
-    condition     = can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.OWNER_EMAIL))
-    error_message = "The OWNER_EMAIL must be a valid email address."
+    condition     = can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.owner_email))
+    error_message = "The owner_email must be a valid email address."
   }
 }
 
-variable "NAME" {
+variable "name" {
   description = "Fullname of the owner for resource tagging"
   type        = string
 }
 
-variable "GITHUB_TOKEN" {
+variable "github_token" {
   type        = string
   description = "GitHub token for authenticating to the repository"
 }
 
-variable "GITHUB_ORG" {
+variable "github_org" {
   type = string
 }
 
-variable "MANIFESTS_INFRASTRUCTURE_SSH_PRIVATE_KEY" {
+variable "manifests_infrastructure_ssh_private_key" {
   type        = string
   description = "GitHub deploy-key for authenticating to the repository"
 }
 
-variable "MANIFESTS_APPLICATIONS_SSH_PRIVATE_KEY" {
+variable "manifests_applications_ssh_private_key" {
   type        = string
   description = "GitHub deploy-key for authenticating to the repository"
 }
 
-variable "MANIFESTS_INFRASTRUCTURE_REPO_NAME" {
+variable "manifests_infrastructure_repo_name" {
   type = string
 }
 
-variable "MANIFESTS_APPLICATIONS_REPO_NAME" {
+variable "manifests_applications_repo_name" {
   type = string
 }
 
-variable "DOCS_BUILDER_REPO_NAME" {
+variable "docs_builder_repo_name" {
   type    = string
   default = "docs-builder"
 }
 
-variable "LOCATION" {
+variable "location" {
   default     = "eastus"
   description = "Azure region for resource group."
   type        = string
@@ -248,8 +248,8 @@ variable "LOCATION" {
         "westus2",
         "westus2stage",
         "westusstage"
-    ], var.LOCATION)
-    error_message = "The Azure LOCATION must be one of the allowed Azure regions."
+    ], var.location)
+    error_message = "The Azure location must be one of the allowed Azure regions."
   }
 }
 
@@ -403,7 +403,7 @@ variable "hub-nva-vip-extractor" {
   }
 }
 
-variable "MANAGEMENT_PUBLIC_IP" {
+variable "management_public_ip" {
   default     = "false"
   description = "Create management IP"
   type        = bool
@@ -415,7 +415,7 @@ variable "spoke-aks-node-image" {
   type        = string
 }
 
-variable "GPU_NODE_POOL" {
+variable "gpu_node_pool" {
   default     = false
   description = "Set to true to enable GPU workloads"
   type        = bool
@@ -538,7 +538,7 @@ variable "spoke-aks-node-ollama-webui-port" {
   type        = string
 }
 
-variable "CLOUDSHELL" {
+variable "cloudshell" {
   type        = bool
   description = "Enable or disable the creation of the Azure Cloud Shell VM."
   default     = true

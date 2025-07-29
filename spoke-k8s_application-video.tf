@@ -1,11 +1,11 @@
 data "azurerm_public_ip" "hub-nva-vip_video_public_ip" {
-  count               = var.APPLICATION_VIDEO ? 1 : 0
+  count               = var.application_video ? 1 : 0
   name                = azurerm_public_ip.hub-nva-vip_video_public_ip[0].name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
 
 resource "azurerm_public_ip" "hub-nva-vip_video_public_ip" {
-  count               = var.APPLICATION_VIDEO ? 1 : 0
+  count               = var.application_video ? 1 : 0
   name                = "hub-nva-vip_video_public_ip"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -15,7 +15,7 @@ resource "azurerm_public_ip" "hub-nva-vip_video_public_ip" {
 }
 
 resource "kubernetes_namespace" "video" {
-  count = var.APPLICATION_VIDEO ? 1 : 0
+  count = var.application_video ? 1 : 0
   depends_on = [
     azurerm_kubernetes_cluster.kubernetes_cluster
   ]
@@ -28,14 +28,14 @@ resource "kubernetes_namespace" "video" {
 }
 
 resource "kubernetes_secret" "video_fortiweb_login_secret" {
-  count = var.APPLICATION_VIDEO ? 1 : 0
+  count = var.application_video ? 1 : 0
   metadata {
     name      = "fortiweb-login-secret"
     namespace = kubernetes_namespace.video[0].metadata[0].name
   }
   data = {
-    username = var.HUB_NVA_USERNAME
-    password = var.HUB_NVA_PASSWORD
+    username = var.hub_nva_username
+    password = var.hub_nva_password
   }
   type = "Opaque"
 }
@@ -45,7 +45,7 @@ locals {
 }
 
 resource "azurerm_kubernetes_flux_configuration" "video" {
-  count                             = var.APPLICATION_VIDEO ? 1 : 0
+  count                             = var.application_video ? 1 : 0
   name                              = "video"
   cluster_id                        = azurerm_kubernetes_cluster.kubernetes_cluster.id
   namespace                         = "cluster-config"

@@ -1,5 +1,5 @@
 resource "azurerm_public_ip" "hub-nva-management_public_ip" {
-  count               = var.MANAGEMENT_PUBLIC_IP ? 1 : 0
+  count               = var.management_public_ip ? 1 : 0
   name                = "hub-nva-management_public_ip"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -9,7 +9,7 @@ resource "azurerm_public_ip" "hub-nva-management_public_ip" {
 }
 
 resource "azurerm_dns_cname_record" "hub-nva" {
-  count               = var.MANAGEMENT_PUBLIC_IP ? 1 : 0
+  count               = var.management_public_ip ? 1 : 0
   name                = "hub-nva"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -33,7 +33,7 @@ locals {
       private_ip_address_allocation = "Static"
       private_ip_address            = var.hub-nva-management-ip
       subnet_id                     = azurerm_subnet.hub-external_subnet.id
-      public_ip_address_id          = var.MANAGEMENT_PUBLIC_IP ? (length(azurerm_public_ip.hub-nva-management_public_ip) > 0 ? azurerm_public_ip.hub-nva-management_public_ip[0].id : null) : null
+      public_ip_address_id          = var.management_public_ip ? (length(azurerm_public_ip.hub-nva-management_public_ip) > 0 ? azurerm_public_ip.hub-nva-management_public_ip[0].id : null) : null
       condition                     = true
     },
     {
@@ -43,7 +43,7 @@ locals {
       private_ip_address            = var.hub-nva-vip-docs
       subnet_id                     = azurerm_subnet.hub-external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_docs_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_docs_public_ip[0].id : null
-      condition                     = var.APPLICATION_DOCS
+      condition                     = var.application_docs
     },
     {
       name                          = "hub-nva-external-vip-dvwa_configuration"
@@ -52,7 +52,7 @@ locals {
       private_ip_address            = var.hub-nva-vip-dvwa
       subnet_id                     = azurerm_subnet.hub-external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_dvwa_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].id : null
-      condition                     = var.APPLICATION_DVWA
+      condition                     = var.application_dvwa
     },
     {
       name                          = "hub-nva-external-vip-ollama_configuration"
@@ -61,7 +61,7 @@ locals {
       private_ip_address            = var.hub-nva-vip-ollama
       subnet_id                     = azurerm_subnet.hub-external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_ollama_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_ollama_public_ip[0].id : null
-      condition                     = var.APPLICATION_OLLAMA
+      condition                     = var.application_ollama
     },
     {
       name                          = "hub-nva-external-vip-video_configuration"
@@ -70,7 +70,7 @@ locals {
       private_ip_address            = var.hub-nva-vip-video
       subnet_id                     = azurerm_subnet.hub-external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_video_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_video_public_ip[0].id : null
-      condition                     = var.APPLICATION_VIDEO
+      condition                     = var.application_video
     },
     {
       name                          = "hub-nva-external-vip-extractor_configuration"
@@ -79,7 +79,7 @@ locals {
       private_ip_address            = var.hub-nva-vip-extractor
       subnet_id                     = azurerm_subnet.hub-external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_extractor_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_extractor_public_ip[0].id : null
-      condition                     = var.APPLICATION_EXTRACTOR
+      condition                     = var.application_extractor
     }
   ]
 }
@@ -128,13 +128,13 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
   name                            = "hub-nva_virtual_machine"
   computer_name                   = "hub-nva"
   availability_set_id             = azurerm_availability_set.hub-nva_availability_set.id
-  admin_username                  = var.HUB_NVA_USERNAME
+  admin_username                  = var.hub_nva_username
   disable_password_authentication = false #tfsec:ignore:AVD-AZU-0039
-  admin_password                  = var.HUB_NVA_PASSWORD
+  admin_password                  = var.hub_nva_password
   location                        = azurerm_resource_group.azure_resource_group.location
   resource_group_name             = azurerm_resource_group.azure_resource_group.name
   network_interface_ids           = [azurerm_network_interface.hub-nva-external_network_interface.id, azurerm_network_interface.hub-nva-internal_network_interface.id]
-  size                            = var.PRODUCTION_ENVIRONMENT ? local.vm_image[var.hub-nva-image].size : local.vm_image[var.hub-nva-image].size-dev
+  size                            = var.production_environment ? local.vm_image[var.hub-nva-image].size : local.vm_image[var.hub-nva-image].size-dev
   allow_extension_operations      = false
 
   identity {
@@ -142,8 +142,8 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
   }
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = var.PRODUCTION_ENVIRONMENT ? "Premium_LRS" : "Standard_LRS"
-    #disk_size_gb = var.PRODUCTION_ENVIRONMENT ? 256 : 128
+    storage_account_type = var.production_environment ? "Premium_LRS" : "Standard_LRS"
+    #disk_size_gb = var.production_environment ? 256 : 128
   }
   plan {
     name      = local.vm_image[var.hub-nva-image].sku
@@ -173,7 +173,7 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
         VAR-hub-nva-vip-dvwa                     = var.hub-nva-vip-dvwa
         VAR-hub-nva-vip-artifacts                = var.hub-nva-vip-artifacts
         VAR-hub-nva-vip-extractor                = var.hub-nva-vip-extractor
-        VAR-HUB_NVA_USERNAME                     = var.HUB_NVA_USERNAME
+        VAR-HUB_NVA_USERNAME                     = var.hub_nva_username
         VAR-CERTIFICATE                          = tls_self_signed_cert.self_signed_cert.cert_pem
         VAR-PRIVATEKEY                           = tls_private_key.private_key.private_key_pem
         VAR-fwb_license_file                     = ""
@@ -190,7 +190,7 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
 #  resource_group_name  = azurerm_resource_group.azure_resource_group.name
 #  storage_account_type = "Standard_LRS"
 #  create_option        = "Empty"
-#  disk_size_gb         = var.PRODUCTION_ENVIRONMENT ? 128 : 36
+#  disk_size_gb         = var.production_environment ? 128 : 36
 #}
 
 #resource "azurerm_virtual_machine_data_disk_attachment" "log_disk" {

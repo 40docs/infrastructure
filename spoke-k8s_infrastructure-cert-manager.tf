@@ -43,8 +43,8 @@ resource "kubernetes_secret" "cert-manager_fortiweb_login_secret" {
     namespace = kubernetes_namespace.cert-manager.metadata[0].name
   }
   data = {
-    username = var.HUB_NVA_USERNAME
-    password = var.HUB_NVA_PASSWORD
+    username = var.hub_nva_username
+    password = var.hub_nva_password
   }
   type = "Opaque"
 }

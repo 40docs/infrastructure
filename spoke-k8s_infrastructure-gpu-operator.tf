@@ -3,7 +3,7 @@ locals {
 }
 
 resource "azurerm_kubernetes_flux_configuration" "gpu-operator" {
-  count                             = var.GPU_NODE_POOL ? 1 : 0
+  count                             = var.gpu_node_pool ? 1 : 0
   name                              = "gpu-operator"
   cluster_id                        = azurerm_kubernetes_cluster.kubernetes_cluster.id
   namespace                         = "cluster-config"

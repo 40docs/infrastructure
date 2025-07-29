@@ -1,11 +1,11 @@
 data "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
 
 resource "azurerm_dns_cname_record" "dvwa" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "dvwa"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -14,7 +14,7 @@ resource "azurerm_dns_cname_record" "dvwa" {
 }
 
 resource "azurerm_dns_cname_record" "app1" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "app1"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -23,7 +23,7 @@ resource "azurerm_dns_cname_record" "app1" {
 }
 
 resource "azurerm_dns_cname_record" "app2" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "app2"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -32,7 +32,7 @@ resource "azurerm_dns_cname_record" "app2" {
 }
 
 resource "azurerm_dns_cname_record" "app3" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "app3"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -41,7 +41,7 @@ resource "azurerm_dns_cname_record" "app3" {
 }
 
 resource "azurerm_dns_cname_record" "app4" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "app4"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -50,7 +50,7 @@ resource "azurerm_dns_cname_record" "app4" {
 }
 
 resource "azurerm_dns_cname_record" "app5" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "app5"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -59,7 +59,7 @@ resource "azurerm_dns_cname_record" "app5" {
 }
 
 resource "azurerm_dns_cname_record" "app6" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "app6"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -68,7 +68,7 @@ resource "azurerm_dns_cname_record" "app6" {
 }
 
 resource "azurerm_dns_cname_record" "app7" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "app7"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -77,7 +77,7 @@ resource "azurerm_dns_cname_record" "app7" {
 }
 
 resource "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
-  count               = var.APPLICATION_DVWA ? 1 : 0
+  count               = var.application_dvwa ? 1 : 0
   name                = "hub-nva-vip_dvwa_public_ip"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -87,7 +87,7 @@ resource "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
 }
 
 resource "kubernetes_namespace" "dvwa" {
-  count = var.APPLICATION_DVWA ? 1 : 0
+  count = var.application_dvwa ? 1 : 0
   depends_on = [
     azurerm_kubernetes_cluster.kubernetes_cluster
   ]
@@ -100,25 +100,25 @@ resource "kubernetes_namespace" "dvwa" {
 }
 
 resource "kubernetes_secret" "dvwa_fortiweb_login_secret" {
-  count = var.APPLICATION_DVWA ? 1 : 0
+  count = var.application_dvwa ? 1 : 0
   metadata {
     name      = "fortiweb-login-secret"
     namespace = kubernetes_namespace.dvwa[0].metadata[0].name
   }
   data = {
-    username = var.HUB_NVA_USERNAME
-    password = var.HUB_NVA_PASSWORD
+    username = var.hub_nva_username
+    password = var.hub_nva_password
   }
   type = "Opaque"
 }
 
 locals {
-  #dvwa_manifest_repo_fqdn = "git@github.com:${var.GITHUB_ORG}/${var.MANIFESTS_APPLICATIONS_REPO_NAME}.git"
-  dvwa_manifest_repo_fqdn = "https://github.com/${var.GITHUB_ORG}/${var.MANIFESTS_APPLICATIONS_REPO_NAME}.git"
+  #dvwa_manifest_repo_fqdn = "git@github.com:${var.github_org}/${var.manifests_applications_repo_name}.git"
+  dvwa_manifest_repo_fqdn = "https://github.com/${var.github_org}/${var.manifests_applications_repo_name}.git"
 }
 
 resource "azurerm_kubernetes_flux_configuration" "dvwa" {
-  count                             = var.APPLICATION_DVWA ? 1 : 0
+  count                             = var.application_dvwa ? 1 : 0
   name                              = "dvwa"
   cluster_id                        = azurerm_kubernetes_cluster.kubernetes_cluster.id
   namespace                         = "cluster-config"

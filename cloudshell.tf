@@ -1,11 +1,11 @@
 resource "random_pet" "cloudshell_ssh_key_name" {
-  count     = var.CLOUDSHELL ? 1 : 0
+  count     = var.cloudshell ? 1 : 0
   prefix    = "CLOUDSHELL"
   separator = ""
 }
 
 resource "azapi_resource_action" "cloudshell_ssh_public_key_gen" {
-  count       = var.CLOUDSHELL ? 1 : 0
+  count       = var.cloudshell ? 1 : 0
   type        = "Microsoft.Compute/sshPublicKeys@2022-11-01"
   resource_id = azapi_resource.cloudshell_ssh_public_key[count.index].id
   action      = "generateKeyPair"
@@ -15,7 +15,7 @@ resource "azapi_resource_action" "cloudshell_ssh_public_key_gen" {
 }
 
 resource "azapi_resource" "cloudshell_ssh_public_key" {
-  count     = var.CLOUDSHELL ? 1 : 0
+  count     = var.cloudshell ? 1 : 0
   type      = "Microsoft.Compute/sshPublicKeys@2022-11-01"
   name      = random_pet.cloudshell_ssh_key_name[count.index].id
   location  = azurerm_resource_group.azure_resource_group.location
@@ -23,32 +23,40 @@ resource "azapi_resource" "cloudshell_ssh_public_key" {
 }
 
 resource "tls_private_key" "cloudshell_host_rsa" {
-  #  count     = var.CLOUDSHELL ? 1 : 0
+  #  count     = var.cloudshell ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
 resource "tls_private_key" "cloudshell_host_ecdsa" {
-  #  count     = var.CLOUDSHELL ? 1 : 0
+  #  count     = var.cloudshell ? 1 : 0
   algorithm   = "ECDSA"
   ecdsa_curve = "P521"
 }
 
 resource "tls_private_key" "cloudshell_host_ed25519" {
-  #  count     = var.CLOUDSHELL ? 1 : 0
+  #  count     = var.cloudshell ? 1 : 0
   algorithm = "ED25519"
 }
 
-resource "azurerm_virtual_network" "cloudshell_network" {
-  count               = var.CLOUDSHELL ? 1 : 0
-  name                = "cloudshell-Vnet"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.azure_resource_group.location
-  resource_group_name = azurerm_resource_group.azure_resource_group.name
+resource "azurerm_resource_group" "cloudshell" {
+  count    = var.cloudshell ? 1 : 0
+  name     = "${local.CLOUDSHELL_SERVICE_TAG}-${local.common.project_name}"
+  location = local.common.location
+  tags     = local.common.tags
 }
 
-resource "azurerm_subnet" "cloudshell_subnet" {
-  count                = var.CLOUDSHELL ? 1 : 0
+resource "azurerm_virtual_network" "cloudshell_network" {
+  count               = var.cloudshell ? 1 : 0
+  name                = "cloudshell-VirtualNetwork"
+  address_space       = ["10.0.1.0/24"]
+  location            = azurerm_resource_group.azure_resource_group.location
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  tags                = local.common.tags
+}
+
+resource "azurerm_subnet" "cloudshell" {
+  count                = var.cloudshell ? 1 : 0
   name                 = "cloudshell-Subnet"
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   virtual_network_name = azurerm_virtual_network.cloudshell_network[count.index].name
@@ -56,7 +64,7 @@ resource "azurerm_subnet" "cloudshell_subnet" {
 }
 
 resource "azurerm_public_ip" "cloudshell_public_ip" {
-  count               = var.CLOUDSHELL ? 1 : 0
+  count               = var.cloudshell ? 1 : 0
   name                = "cloudshell-PublicIP"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -66,7 +74,7 @@ resource "azurerm_public_ip" "cloudshell_public_ip" {
 }
 
 resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
-  count               = var.CLOUDSHELL ? 1 : 0
+  count               = var.cloudshell ? 1 : 0
   name                = "cloudshell"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -75,7 +83,7 @@ resource "azurerm_dns_cname_record" "cloudshell_public_ip_dns" {
 }
 
 resource "azurerm_network_security_group" "cloudshell_nsg" {
-  count               = var.CLOUDSHELL ? 1 : 0
+  count               = var.cloudshell ? 1 : 0
   name                = "cloudshell-NetworkSecurityGroup"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -115,7 +123,7 @@ resource "azurerm_network_security_group" "cloudshell_nsg" {
 }
 
 resource "azurerm_network_interface" "cloudshell_nic" {
-  count               = var.CLOUDSHELL ? 1 : 0
+  count               = var.cloudshell ? 1 : 0
   name                = "cloudshell-NIC"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -128,13 +136,13 @@ resource "azurerm_network_interface" "cloudshell_nic" {
 }
 
 resource "azurerm_network_interface_security_group_association" "cloudshell_nic_nsg_association" {
-  count                     = var.CLOUDSHELL ? 1 : 0
+  count                     = var.cloudshell ? 1 : 0
   network_interface_id      = azurerm_network_interface.cloudshell_nic[count.index].id
   network_security_group_id = azurerm_network_security_group.cloudshell_nsg[count.index].id
 }
 
 resource "random_id" "random_id" {
-  count = var.CLOUDSHELL ? 1 : 0
+  count = var.cloudshell ? 1 : 0
   keepers = {
     resource_group = azurerm_resource_group.azure_resource_group.name
   }
@@ -142,7 +150,7 @@ resource "random_id" "random_id" {
 }
 
 resource "azurerm_storage_account" "cloudshell_storage_account" {
-  count                    = var.CLOUDSHELL ? 1 : 0
+  count                    = var.cloudshell ? 1 : 0
   name                     = "cldshl${random_id.random_id[count.index].hex}"
   location                 = azurerm_resource_group.azure_resource_group.location
   resource_group_name      = azurerm_resource_group.azure_resource_group.name
@@ -151,7 +159,7 @@ resource "azurerm_storage_account" "cloudshell_storage_account" {
 }
 
 resource "azurerm_managed_disk" "cloudshell_home" {
-  count                = var.CLOUDSHELL ? 1 : 0
+  count                = var.cloudshell ? 1 : 0
   name                 = "CLOUDSHELL-home-disk"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
@@ -161,7 +169,7 @@ resource "azurerm_managed_disk" "cloudshell_home" {
 }
 
 resource "azurerm_managed_disk" "cloudshell_authd" {
-  count                = var.CLOUDSHELL ? 1 : 0
+  count                = var.cloudshell ? 1 : 0
   name                 = "CLOUDSHELL-authd"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
@@ -174,7 +182,7 @@ resource "azurerm_managed_disk" "cloudshell_authd" {
 }
 
 resource "azurerm_managed_disk" "cloudshell_authd-msentraid" {
-  count                = var.CLOUDSHELL ? 1 : 0
+  count                = var.cloudshell ? 1 : 0
   name                 = "CLOUDSHELL-authd-msentraid"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
@@ -187,7 +195,7 @@ resource "azurerm_managed_disk" "cloudshell_authd-msentraid" {
 }
 
 resource "azurerm_managed_disk" "cloudshell_docker" {
-  count                = var.CLOUDSHELL ? 1 : 0
+  count                = var.cloudshell ? 1 : 0
   name                 = "CLOUDSHELL-docker-disk"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
@@ -200,7 +208,7 @@ resource "azurerm_managed_disk" "cloudshell_docker" {
 }
 
 resource "azurerm_managed_disk" "cloudshell_ollama" {
-  count                = var.CLOUDSHELL ? 1 : 0
+  count                = var.cloudshell ? 1 : 0
   name                 = "CLOUDSHELL-ollama-disk"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
@@ -217,7 +225,7 @@ locals {
 }
 
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
-  count                 = var.CLOUDSHELL ? 1 : 0
+  count                 = var.cloudshell ? 1 : 0
   name                  = "CLOUDSHELL"
   location              = azurerm_resource_group.azure_resource_group.location
   resource_group_name   = azurerm_resource_group.azure_resource_group.name
@@ -278,7 +286,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_home" {
-  count              = var.CLOUDSHELL ? 1 : 0
+  count              = var.cloudshell ? 1 : 0
   managed_disk_id    = azurerm_managed_disk.cloudshell_home[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 0
@@ -287,7 +295,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_home" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
-  count              = var.CLOUDSHELL ? 1 : 0
+  count              = var.cloudshell ? 1 : 0
   managed_disk_id    = azurerm_managed_disk.cloudshell_authd[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 1
@@ -296,7 +304,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd-msentraid" {
-  count              = var.CLOUDSHELL ? 1 : 0
+  count              = var.cloudshell ? 1 : 0
   managed_disk_id    = azurerm_managed_disk.cloudshell_authd-msentraid[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 2
@@ -305,7 +313,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd-msentr
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker" {
-  count              = var.CLOUDSHELL ? 1 : 0
+  count              = var.cloudshell ? 1 : 0
   managed_disk_id    = azurerm_managed_disk.cloudshell_docker[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 3
@@ -315,7 +323,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama" {
-  count              = var.CLOUDSHELL ? 1 : 0
+  count              = var.cloudshell ? 1 : 0
   managed_disk_id    = azurerm_managed_disk.cloudshell_ollama[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 4

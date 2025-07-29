@@ -74,10 +74,10 @@ terraform {
 ###############################################################
 locals {
   standard_tags = {
-    Project     = var.PROJECT_NAME
-    Owner       = var.NAME
-    OwnerEmail  = var.OWNER_EMAIL
-    Environment = var.PRODUCTION_ENVIRONMENT ? "production" : "non-production"
+    Project     = var.project_name
+    Owner       = var.name
+    OwnerEmail  = var.owner_email
+    Environment = var.production_environment ? "production" : "non-production"
   }
 }
 
@@ -105,8 +105,8 @@ provider "http" {}
 provider "htpasswd" {}
 provider "local" {}
 provider "github" {
-  owner = var.GITHUB_ORG
-  token = var.GITHUB_TOKEN
+  owner = var.github_org
+  token = var.github_token
 }
 provider "kubernetes" {
   host                   = azurerm_kubernetes_cluster.kubernetes_cluster.kube_config[0].host
