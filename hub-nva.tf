@@ -134,7 +134,7 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
   location                        = azurerm_resource_group.azure_resource_group.location
   resource_group_name             = azurerm_resource_group.azure_resource_group.name
   network_interface_ids           = [azurerm_network_interface.hub-nva-external_network_interface.id, azurerm_network_interface.hub-nva-internal_network_interface.id]
-  size                            = var.PRODUCTION_ENVIRONMENT ? local.vm-image[var.hub-nva-image].size : local.vm-image[var.hub-nva-image].size-dev
+  size                            = var.PRODUCTION_ENVIRONMENT ? local.vm_image[var.hub-nva-image].size : local.vm_image[var.hub-nva-image].size-dev
   allow_extension_operations      = false
 
   identity {
@@ -146,20 +146,20 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
     #disk_size_gb = var.PRODUCTION_ENVIRONMENT ? 256 : 128
   }
   plan {
-    name      = local.vm-image[var.hub-nva-image].sku
-    product   = local.vm-image[var.hub-nva-image].offer
-    publisher = local.vm-image[var.hub-nva-image].publisher
+    name      = local.vm_image[var.hub-nva-image].sku
+    product   = local.vm_image[var.hub-nva-image].offer
+    publisher = local.vm_image[var.hub-nva-image].publisher
   }
   source_image_reference {
-    offer     = local.vm-image[var.hub-nva-image].offer
-    publisher = local.vm-image[var.hub-nva-image].publisher
-    sku       = local.vm-image[var.hub-nva-image].sku
+    offer     = local.vm_image[var.hub-nva-image].offer
+    publisher = local.vm_image[var.hub-nva-image].publisher
+    sku       = local.vm_image[var.hub-nva-image].sku
     version   = "latest"
   }
   custom_data = base64encode(
     templatefile("cloud-init/${var.hub-nva-image}.conf",
       {
-        VAR-config-system-global-admin-sport     = local.vm-image[var.hub-nva-image].management-port
+        VAR-config-system-global-admin-sport     = local.vm_image[var.hub-nva-image].management-port
         VAR-hub-external-subnet-gateway          = var.hub-external-subnet-gateway
         VAR-spoke-check-internet-up-ip           = var.spoke-check-internet-up-ip
         VAR-spoke-default-gateway                = cidrhost(var.hub-internal-subnet_prefix, 1)

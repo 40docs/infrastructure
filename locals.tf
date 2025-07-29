@@ -1,5 +1,5 @@
 locals {
-  vm-image = {
+  vm_image = {
     "fortiweb" = {
       publisher       = "fortinet"
       offer           = "fortinet_fortiweb-vm_v5"

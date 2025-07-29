@@ -110,7 +110,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     node_count                  = var.PRODUCTION_ENVIRONMENT ? 3 : 1
     min_count                   = var.PRODUCTION_ENVIRONMENT ? 3 : null
     max_count                   = var.PRODUCTION_ENVIRONMENT ? 7 : null
-    vm_size                     = var.PRODUCTION_ENVIRONMENT ? local.vm-image["aks"].size : local.vm-image["aks"].size-dev
+    vm_size                     = var.PRODUCTION_ENVIRONMENT ? local.vm_image["aks"].size : local.vm_image["aks"].size-dev
     os_sku                      = "AzureLinux"
     max_pods                    = "75"
     orchestrator_version        = "1.30.6"
@@ -183,7 +183,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "cpu-node-pool" {
   count                 = var.PRODUCTION_ENVIRONMENT ? 1 : 0
   name                  = "cpu"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.kubernetes_cluster.id
-  vm_size               = var.PRODUCTION_ENVIRONMENT ? local.vm-image["aks"].cpu-size : local.vm-image["aks"].cpu-size-dev
+  vm_size               = var.PRODUCTION_ENVIRONMENT ? local.vm_image["aks"].cpu-size : local.vm_image["aks"].cpu-size-dev
   os_sku                = "AzureLinux"
   auto_scaling_enabled  = var.PRODUCTION_ENVIRONMENT
   min_count             = var.PRODUCTION_ENVIRONMENT ? 3 : null
@@ -201,7 +201,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "gpu-node-pool" {
   count                 = var.GPU_NODE_POOL ? 1 : 0
   name                  = "gpu"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.kubernetes_cluster.id
-  vm_size               = var.PRODUCTION_ENVIRONMENT ? local.vm-image["aks"].gpu-size : local.vm-image["aks"].gpu-size-dev
+  vm_size               = var.PRODUCTION_ENVIRONMENT ? local.vm_image["aks"].gpu-size : local.vm_image["aks"].gpu-size-dev
   os_sku                = "AzureLinux"
   auto_scaling_enabled  = var.PRODUCTION_ENVIRONMENT
   min_count             = var.PRODUCTION_ENVIRONMENT ? 3 : null

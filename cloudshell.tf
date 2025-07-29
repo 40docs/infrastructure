@@ -256,14 +256,14 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
     disk_size_gb         = 256
   }
   plan {
-    name      = local.vm-image[cloudshell].sku
-    product   = local.vm-image[cloudshell].offer
-    publisher = local.vm-image[cloudshell].publisher
+    name      = local.vm_image["cloudshell"].sku
+    product   = local.vm_image["cloudshell"].offer
+    publisher = local.vm_image["cloudshell"].publisher
   }
   source_image_reference {
-    offer     = local.vm-image[cloudshell].offer
-    publisher = local.vm-image[cloudshell].publisher
-    sku       = local.vm-image[cloudshell].sku
+    offer     = local.vm_image["cloudshell"].offer
+    publisher = local.vm_image["cloudshell"].publisher
+    sku       = local.vm_image["cloudshell"].sku
     version   = "latest"
   }
   computer_name  = "CLOUDSHELL"
