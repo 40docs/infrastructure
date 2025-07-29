@@ -128,7 +128,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     #network_plugin    = "azure"
     network_plugin = "kubenet"
     #network_plugin = "none"
-    #outbound_type     = "loadBalancer" 
+    #outbound_type     = "loadBalancer"
     #network_policy    = "azure"
     load_balancer_sku = "standard"
     #service_cidr      = var.spoke-aks-subnet_prefix

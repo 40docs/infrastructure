@@ -1,6 +1,6 @@
 locals {
   # Service tags for resource naming
-  CLOUDSHELL_SERVICE_TAG = "cloudshell"
+  cloudshell_service_tag = "cloudshell"
 
   # Common configuration used across resources
   common = {

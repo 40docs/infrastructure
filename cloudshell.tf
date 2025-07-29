@@ -1,6 +1,6 @@
 resource "random_pet" "cloudshell_ssh_key_name" {
   count     = var.cloudshell ? 1 : 0
-  prefix    = "CLOUDSHELL"
+  prefix    = "cloudshell"
   separator = ""
 }
 
@@ -41,7 +41,7 @@ resource "tls_private_key" "cloudshell_host_ed25519" {
 
 resource "azurerm_resource_group" "cloudshell" {
   count    = var.cloudshell ? 1 : 0
-  name     = "${local.CLOUDSHELL_SERVICE_TAG}-${local.common.project_name}"
+  name     = "${local.cloudshell_service_tag}-${local.common.project_name}"
   location = local.common.location
   tags     = local.common.tags
 }
