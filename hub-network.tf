@@ -66,7 +66,7 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = local.vm-image[var.hub-nva-image].management-port
+    destination_port_range     = local.vm_image[var.hub-nva-image].management-port
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-management-ip
   }
