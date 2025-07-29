@@ -8,87 +8,87 @@
 # Reminder: Run `terraform fmt` and `terraform validate` before commit.
 ###############################################################
 
-variable "PROJECT_NAME" {
+variable "project_name" {
   description = "Project name for tagging and resource naming."
   type        = string
 }
 
-variable "APPLICATION_DOCS" {
+variable "application_docs" {
   description = "Deploy Docs Application"
   type        = bool
-  default     = "true"
+  default     = true
 }
 
-variable "APPLICATION_SIGNUP" {
+variable "application_signup" {
   description = "Deploy Signup Application"
   type        = bool
-  default     = "false"
+  default     = false
 }
 
-variable "ARM_SUBSCRIPTION_ID" {
+variable "arm_subscription_id" {
   description = "Azure Subscription ID"
   type        = string
 }
 
-variable "LETSENCRYPT_URL" {
+variable "letsencrypt_url" {
   description = "Production or staging Let's Encrypt URL"
   type        = string
   validation {
-    condition     = var.LETSENCRYPT_URL == "https://acme-staging-v02.api.letsencrypt.org/directory" || var.LETSENCRYPT_URL == "https://acme-v02.api.letsencrypt.org/directory"
-    error_message = "LETSENCRYPT_URL must be either 'https://acme-staging-v02.api.letsencrypt.org/directory' or 'https://acme-v02.api.letsencrypt.org/directory'."
+    condition     = var.letsencrypt_url == "https://acme-staging-v02.api.letsencrypt.org/directory" || var.letsencrypt_url == "https://acme-v02.api.letsencrypt.org/directory"
+    error_message = "letsencrypt_url must be either 'https://acme-staging-v02.api.letsencrypt.org/directory' or 'https://acme-v02.api.letsencrypt.org/directory'."
   }
 }
 
-variable "DNS_ZONE" {
+variable "dns_zone" {
   description = "DNS Zone"
   default     = "example.com"
   type        = string
 }
 
-variable "HTUSERNAME" {
+variable "htusername" {
   description = "Username for Docs"
   type        = string
 }
 
-variable "HTPASSWD" {
+variable "htpasswd" {
   description = "Password for Docs"
   type        = string
 }
 
-variable "APPLICATION_VIDEO" {
+variable "application_video" {
   description = "Deploy Docs Application"
   type        = bool
-  default     = "true"
+  default     = true
 }
 
-variable "APPLICATION_DVWA" {
+variable "application_dvwa" {
   description = "Deploy Docs Application"
   type        = bool
-  default     = "true"
+  default     = true
 }
 
-variable "APPLICATION_OLLAMA" {
+variable "application_ollama" {
   description = "Deploy Docs Application"
   type        = bool
-  default     = "true"
+  default     = true
 }
 
-variable "APPLICATION_ARTIFACTS" {
+variable "application_artifacts" {
   description = "Deploy Artifacts Application"
   type        = bool
-  default     = "true"
+  default     = true
 }
 
-variable "APPLICATION_EXTRACTOR" {
+variable "application_extractor" {
   description = "Deploy Extractor Application"
   type        = bool
-  default     = "true"
+  default     = true
 }
 
-variable "PRODUCTION_ENVIRONMENT" {
+variable "production_environment" {
   description = "The environment for deployment Production=(true|false)"
   type        = bool
-  default     = "true"
+  default     = true
 }
 
 variable "HUB_NVA_USERNAME" {
@@ -544,17 +544,15 @@ variable "CLOUDSHELL" {
   default     = true
 }
 
-variable "cloudshell_Directory_tenant_ID" {
+variable "cloudshell_directory_tenant_id" {
   type        = string
   description = "The tenant ID of the Azure Active Directory."
-  default     = "00000000-0000-0000-0000-000000000000"
   sensitive   = true
 }
 
-variable "cloudshell_Directory_client_ID" {
+variable "cloudshell_directory_client_id" {
   type        = string
   description = "The client ID of the Azure Active Directory application."
-  default     = "00000000-0000-0000-0000-000000000000"
   sensitive   = true
 }
 
@@ -571,30 +569,26 @@ variable "cloudshell_admin_password" {
   sensitive   = true
 }
 
-variable "Forticnapp_account" {
+variable "forticnapp_account" {
   type        = string
   description = "The FortiCnapp account name."
-  default     = "account_name"
   sensitive   = true
 }
 
-variable "Forticnapp_subaccount" {
+variable "forticnapp_subaccount" {
   type        = string
   description = "The FortiCnapp subaccount name."
-  default     = "subaccount_name"
   sensitive   = true
 }
 
-variable "Forticnapp_api_key" {
+variable "forticnapp_api_key" {
   type        = string
   description = "The FortiCnapp api_key."
-  default     = "000a0000-0000-0000-0000-000000000000"
   sensitive   = true
 }
 
-variable "Forticnapp_api_secret" {
+variable "forticnapp_api_secret" {
   type        = string
   description = "The FortiCnapp api_secret."
-  default     = "000a0000-0000-0000-0000-000000000000"
   sensitive   = true
 }
