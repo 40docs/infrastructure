@@ -129,7 +129,7 @@ resource "azurerm_network_interface" "cloudshell_nic" {
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ip_configuration {
     name                          = "cloudshell_nic_configuration"
-    subnet_id                     = azurerm_subnet.cloudshell_subnet[count.index].id
+    subnet_id                     = azurerm_subnet.cloudshell[count.index].id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.cloudshell_public_ip[count.index].id
   }
