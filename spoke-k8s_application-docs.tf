@@ -43,8 +43,7 @@ resource "random_password" "salt" {
 }
 
 resource "htpasswd_password" "hash" {
-  password = var.HTPASSWD
-  salt     = random_password.salt.result
+  password = var.htpasswd
 }
 
 resource "kubernetes_secret" "htpasswd_secret" {
@@ -54,7 +53,7 @@ resource "kubernetes_secret" "htpasswd_secret" {
     namespace = kubernetes_namespace.docs[0].metadata[0].name
   }
   data = {
-    htpasswd = "${var.HTUSERNAME}:${htpasswd_password.hash.apr1}"
+    htpasswd = "${var.htusername}:${htpasswd_password.hash.apr1}"
   }
   type = "Opaque"
 }
@@ -73,7 +72,7 @@ resource "kubernetes_secret" "docs_fortiweb_login_secret" {
 }
 
 locals {
-  docs_manifest_repo_fqdn = "https://github.com/${var.GITHUB_ORG}/${var.MANIFESTS_APPLICATIONS_REPO_NAME}.git"
+  docs_manifest_repo_fqdn = "https://github.com/${var.github_org}/${var.manifests_applications_repo_name}.git"
 }
 
 resource "azurerm_kubernetes_flux_configuration" "docs" {
@@ -119,14 +118,14 @@ resource "azurerm_kubernetes_flux_configuration" "docs" {
 
 resource "github_actions_secret" "DOCS_BUILDER_ACR_LOGIN_SERVER" {
   count           = var.application_docs ? 1 : 0
-  repository      = var.DOCS_BUILDER_REPO_NAME
+  repository      = var.docs_builder_repo_name
   secret_name     = "ACR_LOGIN_SERVER"
   plaintext_value = azurerm_container_registry.container_registry.login_server
 }
 
 resource "github_actions_secret" "MANIFESTS_APPLICATIONS_ACR_LOGIN_SERVER" {
   count           = var.application_docs ? 1 : 0
-  repository      = var.MANIFESTS_APPLICATIONS_REPO_NAME
+  repository      = var.manifests_applications_repo_name
   secret_name     = "ACR_LOGIN_SERVER"
   plaintext_value = azurerm_container_registry.container_registry.login_server
 }
@@ -140,7 +139,7 @@ resource "null_resource" "trigger_docs_builder_workflow" {
     acr_login_server = azurerm_container_registry.container_registry.login_server
   }
   provisioner "local-exec" {
-    command = "gh workflow run docs-builder --repo ${var.GITHUB_ORG}/${var.DOCS_BUILDER_REPO_NAME} --ref main"
+    command = "gh workflow run docs-builder --repo ${var.github_org}/${var.docs_builder_repo_name} --ref main"
   }
 }
 

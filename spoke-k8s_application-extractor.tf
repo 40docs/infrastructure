@@ -50,7 +50,7 @@ resource "kubernetes_secret" "extractor_fortiweb_login_secret" {
 }
 
 locals {
-  extractor_manifest_repo_fqdn = "https://github.com/${var.GITHUB_ORG}/${var.MANIFESTS_APPLICATIONS_REPO_NAME}.git"
+  extractor_manifest_repo_fqdn = "https://github.com/${var.github_org}/${var.manifests_applications_repo_name}.git"
 }
 
 resource "azurerm_kubernetes_flux_configuration" "extractor" {

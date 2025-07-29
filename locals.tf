@@ -1,4 +1,19 @@
 locals {
+  # Service tags for resource naming
+  CLOUDSHELL_SERVICE_TAG = "cloudshell"
+
+  # Common configuration used across resources
+  common = {
+    project_name = var.project_name
+    location     = var.location
+    tags = {
+      Environment = var.production_environment ? "production" : "development"
+      Project     = var.project_name
+      Username    = var.owner_email
+      Name        = var.name
+    }
+  }
+
   vm_image = {
     "fortiweb" = {
       publisher       = "fortinet"

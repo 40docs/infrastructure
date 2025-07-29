@@ -50,7 +50,7 @@ resource "kubernetes_secret" "ollama_fortiweb_login_secret" {
 }
 
 locals {
-  ollama_manifest_repo_fqdn = "git@github.com:${var.GITHUB_ORG}/${var.MANIFESTS_APPLICATIONS_REPO_NAME}.git"
+  ollama_manifest_repo_fqdn = "git@github.com:${var.github_org}/${var.manifests_applications_repo_name}.git"
 }
 
 resource "azurerm_kubernetes_flux_configuration" "ollama" {
@@ -65,7 +65,7 @@ resource "azurerm_kubernetes_flux_configuration" "ollama" {
     reference_type           = "branch"
     reference_value          = "ollama-version"
     sync_interval_in_seconds = 60
-    ssh_private_key_base64   = base64encode(var.MANIFESTS_APPLICATIONS_SSH_PRIVATE_KEY)
+    ssh_private_key_base64   = base64encode(var.manifests_applications_ssh_private_key)
   }
   kustomizations {
     name                       = "ollama-dependencies"
@@ -98,6 +98,6 @@ resource "azurerm_kubernetes_flux_configuration" "ollama" {
 resource "null_resource" "trigger_ollama-version_workflow" {
   count = var.application_ollama ? 1 : 0
   provisioner "local-exec" {
-    command = "gh workflow run ollama-version --repo ${var.GITHUB_ORG}/${var.MANIFESTS_APPLICATIONS_REPO_NAME} --ref main"
+    command = "gh workflow run ollama-version --repo ${var.github_org}/${var.manifests_applications_repo_name} --ref main"
   }
 }
