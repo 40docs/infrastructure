@@ -18,42 +18,30 @@
       "args": [
         "run",
         "-i",
-        "--mount", "type=bind,src=${workspaceFolder},dst=/workspace",
+        "--mount",
+        "type=bind,src=${workspaceFolder},dst=/workspace",
         "mcp/git"
       ]
     },
     "time": {
       "command": "docker",
-      "args": [
-          "run",
-          "-i",
-          "mcp/time"
-      ]
+      "args": ["run", "-i", "mcp/time"]
     },
     "memory": {
-        "command": "docker",
-        "args": [
-          "run",
-          "-i",
-          "-v",
-          "claude-memory:/app/dist",
-          "mcp/memory"
-        ]
+      "command": "docker",
+      "args": ["run", "-i", "-v", "claude-memory:/app/dist", "mcp/memory"]
     },
     "sequential-thinking": {
-       "command": "docker",
-       "args": [
-         "run",
-         "-i",
-         "mcp/sequentialthinking"
-       ]
-     },
+      "command": "docker",
+      "args": ["run", "-i", "mcp/sequentialthinking"]
+    },
     "filesystem": {
       "command": "docker",
       "args": [
         "run",
         "-i",
-        "--mount", "type=bind,src=${workspaceFolder},dst=/projects/workspace",
+        "--mount",
+        "type=bind,src=${workspaceFolder},dst=/projects/workspace",
         "mcp/filesystem",
         "/projects"
       ]
@@ -61,25 +49,16 @@
     "kubernetes": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "-y",
-        "kubernetes-mcp-server@latest"
-      ]
+      "args": ["-y", "kubernetes-mcp-server@latest"]
     },
     "playwright": {
       "command": "npx",
-      "args": [
-        "@playwright/mcp@latest"
-      ]
+      "args": ["@playwright/mcp@latest"]
     },
     "terraform": {
       "type": "stdio",
       "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "hashicorp/terraform-mcp-server:latest"
-      ]
+      "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server:latest"]
     },
     "azure": {
       "type": "stdio",
@@ -90,7 +69,7 @@
         "node:20-bookworm",
         "sh",
         "-c",
-        "npx -y @azure/mcp@latest server start"
+        "apt-get update && apt-get install -y libicu-dev && npx -y @azure/mcp@latest server start"
       ]
     },
     "microsoft-docs": {
@@ -100,9 +79,7 @@
     "markitdown": {
       "type": "stdio",
       "command": "uvx",
-      "args": [
-        "markitdown-mcp"
-      ]
+      "args": ["markitdown-mcp"]
     }
   },
   "inputs": [

@@ -8,6 +8,9 @@
   "chat.instructionsFilesLocations": {
     "instructions": true
   },
+  "editor.rulers": [
+    100
+  ],
   "github.copilot.chat.agent.thinkingTool": true,
   "chat.tools.autoApprove": true,
   "dotnetAcquisitionExtension.existingDotnetPath": [
@@ -60,6 +63,7 @@
       "path": "/usr/bin/zsh"
     }
   },
+  "terminal.integrated.suggest.enabled": true,
   "remote.autoForwardPorts": true,
   "remote.autoForwardPortsSource": "output",
   "github.copilot.chat.commitMessageGeneration.instructions": [
