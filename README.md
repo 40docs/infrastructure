@@ -117,6 +117,41 @@ terraform apply tfplan
 4. **Deployment**: Automated apply with state management
 5. **Verification**: Post-deployment health checks
 
+## 🤖 Automated Workflows
+
+### Auto-Approval for Documentation PRs
+
+The repository includes an automated workflow that handles documentation-only pull requests:
+
+**Workflow Features:**
+- ✅ **Automatic Approval**: PRs containing only documentation changes are auto-approved
+- ✅ **Security Restrictions**: Only works for repository owner's PRs
+- ✅ **Status Check Integration**: Waits for all required checks to pass
+- ✅ **Auto-Merge Ready**: Combines with GitHub's auto-merge feature
+- ✅ **Clear Labeling**: Adds "auto-approved" and "documentation" labels
+
+**Workflow Triggers:**
+```yaml
+# Activates on changes to:
+- '**.md'                    # All Markdown files
+- 'docs/**'                  # Documentation directory
+- '.github/copilot-instructions.md'  # Copilot configuration
+```
+
+**Validation Process:**
+1. Verifies PR author is repository owner
+2. Confirms PR contains only documentation files
+3. Waits for all status checks (CodeQL, Lacework) to pass
+4. Auto-approves with explanatory message
+5. Enables auto-merge functionality
+
+**Testing the Workflow:**
+To validate the auto-approval workflow:
+1. Create a feature branch with documentation changes
+2. Create a pull request to main branch
+3. Monitor for automatic approval after status checks pass
+4. Verify auto-merge proceeds successfully
+
 ## 📁 File Structure
 
 ```text
@@ -129,6 +164,9 @@ terraform apply tfplan
 ├── variables.tf                         # Input variables
 ├── terraform.tf                         # Provider configuration
 ├── locals.tf                           # Local values and VM images
+├── .github/workflows/
+│   ├── infrastructure.yml              # Main CI/CD pipeline
+│   └── auto-approve-docs.yml           # Documentation PR auto-approval
 └── cloud-init/                         # VM initialization scripts
     ├── fortiweb.conf                   # FortiWeb configuration template
     └── CLOUDSHELL.conf                 # Cloud shell configuration
@@ -440,6 +478,157 @@ fortiweb_integration = {
 - ✅ **Resource Tagging**: Consistent tagging strategy
 - ✅ **State Management**: Remote backend configuration ready
 
+## 🔍 Troubleshooting Guide
+
+### Common Issues and Solutions
+
+#### Infrastructure Deployment Issues
+
+**Issue**: Terraform plan fails with provider authentication errors
+```bash
+# Solution: Ensure Azure CLI is authenticated
+az login
+az account set --subscription "your-subscription-id"
+```
+
+**Issue**: NVA deployment fails due to marketplace agreement
+```bash
+# Solution: Accept marketplace terms
+az vm image terms accept --urn "fortinet:fortinet_fortiweb-vm_v5:fortinet_fw-vm:latest"
+```
+
+**Issue**: AKS cluster creation timeout
+```bash
+# Check resource provider registration
+az provider register --namespace Microsoft.ContainerService
+az provider register --namespace Microsoft.OperationalInsights
+```
+
+#### Kubernetes/GitOps Issues
+
+**Issue**: Flux GitOps synchronization failures
+```bash
+# Check Flux system status
+kubectl get pods -n flux-system
+kubectl logs -n flux-system -l app=source-controller
+
+# Force reconciliation
+flux reconcile source git infrastructure
+```
+
+**Issue**: Certificate Manager fails to issue certificates
+```bash
+# Check cert-manager status
+kubectl get clusterissuer
+kubectl describe certificaterequest -n cert-manager
+
+# Verify Azure DNS permissions
+kubectl logs -n cert-manager deploy/cert-manager
+```
+
+**Issue**: Application pods in CrashLoopBackOff
+```bash
+# Check pod logs and events
+kubectl logs -n <namespace> <pod-name> -f
+kubectl describe pod -n <namespace> <pod-name>
+
+# Check resource limits and requests
+kubectl top pods -n <namespace>
+```
+
+#### Network Connectivity Issues
+
+**Issue**: FortiWeb VIP not accessible from internet
+```bash
+# Check Network Security Group rules
+az network nsg rule list --resource-group <rg> --nsg-name <nsg>
+
+# Verify public IP association
+az network public-ip show --resource-group <rg> --name <pip-name>
+```
+
+**Issue**: Pod-to-pod communication failures
+```bash
+# Check network policies
+kubectl get networkpolicies -A
+kubectl describe networkpolicy -n <namespace> <policy-name>
+
+# Test connectivity from within cluster
+kubectl run test-pod --image=busybox -it --rm -- /bin/sh
+```
+
+#### Security and Monitoring
+
+**Issue**: Lacework agent not reporting data
+```bash
+# Check agent deployment status
+kubectl get pods -n lacework-agent
+kubectl logs -n lacework-agent daemonset/lacework-agent
+
+# Verify Lacework configuration
+kubectl get secret -n lacework-agent lacework-agent-config -o yaml
+```
+
+**Issue**: GitHub Actions workflow failures
+```bash
+# Check workflow logs in GitHub Actions tab
+# Common solutions:
+# 1. Verify AZURE_CREDENTIALS secret is valid
+# 2. Check Terraform state file access
+# 3. Validate Azure resource permissions
+```
+
+### Performance Optimization
+
+#### Resource Right-Sizing
+
+```bash
+# Monitor resource usage
+kubectl top nodes
+kubectl top pods -A --sort-by=cpu
+kubectl top pods -A --sort-by=memory
+
+# Check resource requests vs usage
+kubectl describe nodes | grep -A 5 "Allocated resources"
+```
+
+#### Storage Optimization
+
+```bash
+# Check persistent volume usage
+kubectl get pv,pvc -A
+df -h # On cluster nodes
+
+# Clean up unused images (on nodes)
+crictl images
+crictl rmi <unused-image-id>
+```
+
+### Disaster Recovery Testing
+
+#### Backup Verification
+
+```bash
+# Test AKS cluster backup (if enabled)
+az aks show --resource-group <rg> --name <cluster-name> --query backupConfig
+
+# Verify critical application data backups
+kubectl exec -n <namespace> <pod-name> -- backup-command
+```
+
+#### Failover Testing
+
+```bash
+# Test NVA failover (when HA is implemented)
+# 1. Stop primary NVA instance
+# 2. Verify traffic fails over to secondary
+# 3. Monitor application availability
+
+# Test application pod failover
+kubectl delete pod -n <namespace> <pod-name>
+kubectl get pods -n <namespace> -w
+```
+
 ## 🚨 Action Required
 
 **Immediate Priority**: Address the single point of failure in the NVA deployment by implementing the high availability recommendations outlined above. This is critical for production workloads.
@@ -457,6 +646,8 @@ fortiweb_integration = {
 - [FortiWeb Azure Deployment Guide](https://docs.fortinet.com/document/fortiweb-public-cloud)
 - [AKS Best Practices](https://learn.microsoft.com/en-us/azure/aks/best-practices)
 - [Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+- [Flux GitOps Documentation](https://fluxcd.io/flux/concepts/)
+- [Lacework Kubernetes Monitoring](https://docs.lacework.com/onboarding/kubernetes)
 - **External Tools**: Security scanning tools (`tfsec`, `trivy`, `checkov`) recommended.
 
 ## Key Files
