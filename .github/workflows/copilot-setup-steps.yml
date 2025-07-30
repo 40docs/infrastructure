@@ -368,7 +368,7 @@ jobs:
           fi
 
           # Check for certificate management
-          if grep -l "cert-manager" spoke-k8s_infrastructure-*.tf \
+          if find . -name "spoke-k8s_infrastructure-*.tf" -exec grep -l "cert-manager" {} + \
               > /dev/null 2>&1; then
             echo "✅ Certificate management detected"
           else
