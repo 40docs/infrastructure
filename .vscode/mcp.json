@@ -69,7 +69,7 @@
         "node:20-bookworm",
         "sh",
         "-c",
-        "apt-get update && apt-get install -y libicu-dev && npx -y @azure/mcp@latest server start"
+        "npx -y @azure/mcp@latest server start"
       ]
     },
     "microsoft-docs": {
