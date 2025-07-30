@@ -184,17 +184,253 @@ spoke-aks-subnet_prefix             = "10.1.1.0/24"
 - **Key Vault Integration**: Secure certificate and secret storage
 - **Monitoring**: Comprehensive logging and alerting
 
-## 🚀 Current Applications
+## ☸️ Azure Kubernetes Service (AKS) Environment
 
-| Application | Purpose | Namespace | Status |
-|-------------|---------|-----------|--------|
-| **docs** | Documentation hosting | `docs` | ✅ Running |
-| **dvwa** | Security testing | `dvwa` | ✅ Running |
-| **extractor** | Data processing | `extractor` | ✅ Running |
-| **ollama** | AI/ML workloads | Not deployed | ⏸️ Disabled |
-| **artifacts** | Build artifacts | Not deployed | ⏸️ Disabled |
-| **video** | Media streaming | Not deployed | ⏸️ Disabled |
-| **pretix** | Event management | Not deployed | ⏸️ Disabled |
+### Cluster Configuration
+
+The AKS cluster is deployed with enterprise-grade configuration optimized for production workloads:
+
+**Cluster Specifications:**
+
+- **Kubernetes Version**: 1.31.8 (latest stable)
+- **SKU Tier**: Standard (production) / Free (development)
+- **Network Plugin**: Kubenet with custom pod CIDR
+- **Load Balancer**: Azure Standard Load Balancer
+- **Container Runtime**: Azure Linux OS with containerd
+- **RBAC**: Enabled with Azure AD integration
+- **Workload Identity**: Enabled for secure pod-to-Azure service authentication
+- **OIDC Issuer**: Enabled for external identity federation
+
+**Node Pool Architecture:**
+
+1. **System Node Pool** (`system`):
+   - **Purpose**: Runs critical Kubernetes system components
+   - **VM Size**: Production: Standard_D4s_v3 | Dev: Standard_B2s
+   - **Auto-scaling**: Production: 3-7 nodes | Dev: 1 node fixed
+   - **OS**: Azure Linux with 75 max pods per node
+   - **Taints**: Critical addons only in production
+
+2. **CPU Node Pool** (`cpu`):
+   - **Purpose**: General-purpose application workloads
+   - **VM Size**: Production optimized for CPU-intensive tasks
+   - **Auto-scaling**: 3-5 nodes in production
+   - **Storage**: Managed disks (256GB) with ultra SSD option
+   - **Zones**: Deployed in Availability Zone 1
+
+3. **GPU Node Pool** (`gpu`):
+   - **Purpose**: AI/ML workloads requiring GPU acceleration
+   - **VM Size**: GPU-enabled instances for CUDA workloads
+   - **Node Taints**: `nvidia.com/gpu=true:NoSchedule`
+   - **Labels**: `nvidia.com/gpu.present=true`
+   - **Conditional**: Deployed only when `gpu_node_pool` variable is enabled
+
+### Container Registry Integration
+
+- **Azure Container Registry**: Integrated for secure image storage
+- **Pull Permissions**: AKS cluster has `AcrPull` role assignment
+- **Security**: Admin access disabled, anonymous pull disabled
+- **SKU**: Standard (production) / Basic (development)
+
+### Monitoring & Observability
+
+- **Azure Monitor**: Integrated with Log Analytics workspace
+- **Container Insights**: Real-time monitoring of cluster and workloads
+- **Retention**: 30-day log retention policy
+- **Streams**: Comprehensive logging including:
+  - Container logs (V1 and V2)
+  - Kubernetes events and inventory
+  - Performance metrics and insights
+
+## � GitOps Implementation with Flux
+
+### Flux Configuration
+
+The cluster implements a sophisticated GitOps workflow using **Flux v2** for automated application and infrastructure management:
+
+**Flux Extension Configuration:**
+
+```hcl
+flux_extension = {
+  name              = "flux-extension"
+  extension_type    = "microsoft.flux"
+  release_namespace = "flux-system"
+  features = {
+    image-automation-controller = enabled
+    image-reflector-controller  = enabled
+    helm-controller.detectDrift = enabled
+    notification-controller     = enabled
+  }
+}
+```
+
+### Infrastructure Manifests Breakdown
+
+#### 1. Infrastructure Configuration (`infrastructure`)
+
+- **Repository**: `https://github.com/${github_org}/${manifests_infrastructure_repo_name}.git`
+- **Sync Interval**: 60 seconds
+- **Scope**: Cluster-wide infrastructure components
+- **Namespace**: `cluster-config`
+- **Components**:
+  - Core infrastructure services
+  - Base networking and security policies
+  - Foundational monitoring and logging
+
+#### 2. Certificate Manager (`cert-manager-clusterissuer`)
+
+- **Purpose**: Automated TLS certificate management
+- **Path**: `./cert-manager-clusterissuer`
+- **Dependencies**: Infrastructure deployment
+- **Features**:
+  - **Let's Encrypt Integration**: Automated SSL/TLS certificate provisioning
+  - **Azure DNS Integration**: DNS-01 challenge resolution via Azure DNS
+  - **Workload Identity**: Secure Azure authentication using federated credentials
+  - **ClusterIssuer**: Cluster-wide certificate issuer for all applications
+
+**Certificate Manager Architecture:**
+
+```hcl
+cert_manager_identity = {
+  name = "cert-manager"
+  role = "DNS Zone Contributor"
+  federated_credential = "system:serviceaccount:cert-manager:cert-manager"
+}
+```
+
+#### 3. Application Deployments
+
+Each application follows the GitOps pattern with separate configurations:
+
+**Application Structure:**
+
+```text
+├── docs-dependencies/          # Base dependencies (ingress, RBAC)
+├── docs/                      # Main application manifests
+├── dvwa-dependencies/         # DVWA security testing dependencies  
+├── dvwa/                      # DVWA application manifests
+└── extractor/                 # Data processing application
+```
+
+### Infrastructure Components Deep Dive
+
+#### 🛡️ Lacework Security Agent
+
+**Deployment Configuration:**
+
+- **Namespace**: `lacework-agent`
+- **Purpose**: Runtime security monitoring and threat detection
+- **Integration**: Direct integration with Lacework cloud platform
+- **Configuration**:
+
+  ```json
+  {
+    "tokens": { "AccessToken": "${lw_agent_token}" },
+    "serverurl": "https://api.lacework.net",
+    "tags": {
+      "Env": "k8s",
+      "KubernetesCluster": "${cluster_name}"
+    }
+  }
+  ```
+
+**Security Features:**
+
+- **Runtime Protection**: Continuous monitoring of container behavior
+- **Vulnerability Assessment**: Image and runtime vulnerability scanning
+- **Compliance Monitoring**: CIS benchmarks and compliance checks
+- **Threat Detection**: Anomaly detection and security event correlation
+
+#### 🌐 FortiWeb Ingress Integration
+
+**Architecture Overview:**
+
+- **Public IP Assignment**: Each application gets dedicated public IP via FortiWeb VIP
+- **DNS Integration**: Automatic CNAME record creation pointing to FortiWeb FQDN
+- **Traffic Flow**: Internet → FortiWeb NVA → AKS Services → Pods
+
+**Per-Application Configuration:**
+
+```hcl
+fortiweb_integration = {
+  public_ip     = "hub-nva-vip_${app}_public_ip"
+  dns_record    = "${app}.${dns_zone}"
+  vip_config    = "Managed via FortiWeb API"
+  ssl_offload   = "Handled by FortiWeb"
+}
+```
+
+**Security Benefits:**
+
+- **Web Application Firewall**: Layer 7 attack protection
+- **SSL/TLS Termination**: Centralized certificate management
+- **Traffic Inspection**: Deep packet inspection and content filtering
+- **DDoS Protection**: Application-layer DDoS mitigation
+
+#### 🔐 Ingress Helper Services
+
+**Purpose**: Automated FortiWeb configuration management
+
+- **Namespace**: `ingress-helper`
+- **Credentials**: Secure storage of FortiWeb admin credentials
+- **Automation**: API-driven VIP and policy configuration
+- **Integration**: Webhook-based configuration updates
+
+### Application Deployment Patterns
+
+#### GitOps Workflow per Application
+
+1. **Repository Structure**:
+
+   ```text
+   manifests-applications/
+   ├── branch: docs-version
+   ├── branch: dvwa-version  
+   ├── branch: extractor-version
+   └── branch: main (infrastructure)
+   ```
+
+2. **Deployment Dependencies**:
+
+   ```mermaid
+   graph TD
+     A[Infrastructure] --> B[cert-manager-clusterissuer]
+     B --> C[Application Dependencies]
+     C --> D[Application Deployment]
+     D --> E[Post-Deployment Config]
+   ```
+
+3. **Flux Kustomizations**:
+   - **Dependencies**: Base infrastructure (ingress, RBAC, secrets)
+   - **Application**: Main application manifests
+   - **Post-Config**: Optional post-deployment configuration
+
+## �🚀 Current Applications
+
+| Application | Purpose | Namespace | Status | GitOps Branch |
+|-------------|---------|-----------|--------|---------------|
+| **docs** | Documentation hosting | `docs` | ✅ Running | `docs-version` |
+| **dvwa** | Security testing | `dvwa` | ✅ Running | `dvwa-version` |
+| **extractor** | Data processing | `extractor` | ✅ Running | `extractor-version` |
+| **ollama** | AI/ML workloads | Not deployed | ⏸️ Disabled | `ollama-version` |
+| **artifacts** | Build artifacts | Not deployed | ⏸️ Disabled | `artifacts-version` |
+| **video** | Media streaming | Not deployed | ⏸️ Disabled | `video-version` |
+| **pretix** | Event management | Not deployed | ⏸️ Disabled | `pretix-version` |
+
+### Application Integration Features
+
+**CI/CD Integration:**
+
+- **GitHub Actions Secrets**: Automatic ACR credentials injection
+- **Workflow Triggers**: Automated builds on application changes
+- **Image Updates**: Flux image automation for latest image deployment
+
+**Common Application Features:**
+
+- **FortiWeb VIP**: Dedicated public IP and WAF protection
+- **TLS Certificates**: Automated cert-manager integration
+- **Authentication**: htpasswd-based basic authentication where applicable
+- **Monitoring**: Lacework security monitoring
+- **DNS**: Automatic CNAME record management
 
 ## 🔧 Terraform Best Practices Implemented
 
