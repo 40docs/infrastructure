@@ -306,7 +306,7 @@ Each application follows the GitOps pattern with separate configurations:
 ```text
 ├── docs-dependencies/          # Base dependencies (ingress, RBAC)
 ├── docs/                      # Main application manifests
-├── dvwa-dependencies/         # DVWA security testing dependencies  
+├── dvwa-dependencies/         # DVWA security testing dependencies
 ├── dvwa/                      # DVWA application manifests
 └── extractor/                 # Data processing application
 ```
@@ -384,7 +384,7 @@ fortiweb_integration = {
    ```text
    manifests-applications/
    ├── branch: docs-version
-   ├── branch: dvwa-version  
+   ├── branch: dvwa-version
    ├── branch: extractor-version
    └── branch: main (infrastructure)
    ```
