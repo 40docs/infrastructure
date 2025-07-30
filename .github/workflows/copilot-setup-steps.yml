@@ -492,7 +492,7 @@ jobs:
           EOF
 
           # Generate markdown report
-          cat > reports/copilot-setup-report.md << 'EOF'
+          cat > reports/copilot-setup-report.md << EOF
           # Copilot Setup & Validation Report
 
           **Generated:** $TIMESTAMP
