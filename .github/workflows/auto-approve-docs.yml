@@ -1,0 +1,306 @@
+---
+name: "Auto-approve Documentation PRs"
+
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-documentation-only:
+    name: "Check if PR contains only documentation changes"
+    runs-on: ubuntu-latest
+    outputs:
+      docs-only: ${{ steps.check-files.outputs.docs-only }}
+      is-owner: ${{ steps.check-owner.outputs.is-owner }}
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Get changed files"
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.md
+            docs/**
+            .github/copilot-instructions.md
+            .github/instructions/**/*.md
+            .github/prompts/**/*.md
+            .github/chatmodes/**/*.md
+
+      - name: "Check if only documentation files changed"
+        id: check-files
+        run: |
+          echo "Debug: All changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+          echo "Debug: Documentation files changed:"
+          docs_out="${{ steps.changed-files.outputs.added_files }}"
+          docs_out="$docs_out ${{ steps.changed-files.outputs.modified_files }}"
+          docs_out="$docs_out ${{ steps.changed-files.outputs.deleted_files }}"
+          echo "$docs_out"
+
+          # Get all changed files (including added, modified, deleted)
+          all_files="${{ steps.changed-files.outputs.all_changed_files }}"
+
+          # Check if we have any changed files
+          if [ -z "$all_files" ]; then
+            echo "No changed files detected"
+            echo "docs-only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if any files changed that are NOT documentation
+          docs_only=true
+          for file in $all_files; do
+            case "$file" in
+              *.md) ;;
+              docs/*) ;;
+              .github/copilot-instructions.md) ;;
+              .github/instructions/*.md) ;;
+              .github/instructions/**/*.md) ;;
+              .github/prompts/*.md) ;;
+              .github/prompts/**/*.md) ;;
+              .github/chatmodes/*.md) ;;
+              .github/chatmodes/**/*.md) ;;
+              *)
+                echo "Non-documentation file found: $file"
+                docs_only=false
+                break
+                ;;
+            esac
+          done
+
+          echo "docs-only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "Documentation-only PR: $docs_only"
+
+      - name: "Check if PR author is repository owner"
+        id: check-owner
+        run: |
+          pr_author="${{ github.event.pull_request.user.login }}"
+          repo_owner="${{ github.repository_owner }}"
+
+          echo "PR Author: $pr_author"
+          echo "Repository Owner: $repo_owner"
+
+          # Check if the PR author is the repository owner or a member
+          if [ "$pr_author" = "$repo_owner" ]; then
+            echo "is-owner=true" >> "$GITHUB_OUTPUT"
+            echo "PR author is the repository owner"
+          else
+            # Check if user is a member of the organization using GitHub API
+            auth_header="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
+            api_url="https://api.github.com/orgs/$repo_owner/members/"
+            api_url="${api_url}$pr_author"
+            response=$(curl -s -H "$auth_header" "$api_url")
+
+            if echo "$response" | grep -q '"login"'; then
+              echo "is-owner=true" >> "$GITHUB_OUTPUT"
+              echo "PR author is a member of the repository owner organization"
+            else
+              echo "is-owner=false" >> "$GITHUB_OUTPUT"
+              echo "PR author is not the repository owner or" \
+                   "organization member"
+            fi
+          fi
+
+  wait-for-checks:
+    name: "Wait for required status checks"
+    runs-on: ubuntu-latest
+    needs: check-documentation-only
+    if: >
+      needs.check-documentation-only.outputs.docs-only == 'true' &&
+      needs.check-documentation-only.outputs.is-owner == 'true'
+    steps:
+      - name: "Wait for status checks to complete"
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const ref = context.payload.pull_request.head.sha;
+            
+            console.log(`Waiting for status checks on ${ref}`);
+            
+            // Wait for checks to complete (with timeout)
+            const maxWaitTime = 30 * 60 * 1000; // 30 minutes
+            const pollInterval = 30 * 1000; // 30 seconds
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < maxWaitTime) {
+              try {
+                // Get all check runs for the commit
+                const checkRuns = await github.rest.checks.listForRef({
+                  owner,
+                  repo,
+                  ref
+                });
+                
+                // Get combined status for the commit
+                const combinedStatus = await github.rest.repos.getCombinedStatusForRef({
+                  owner,
+                  repo,
+                  ref
+                });
+                
+                console.log(`Combined status: ${combinedStatus.data.state}`);
+                console.log(`Check runs: ${checkRuns.data.total_count}`);
+                
+                // If we have pending checks, continue waiting
+                const pendingChecks = checkRuns.data.check_runs.filter(
+                  check => check.status === 'in_progress' || check.status === 'queued'
+                );
+                
+                if (pendingChecks.length > 0) {
+                  console.log(`Waiting for ${pendingChecks.length} pending checks...`);
+                  await new Promise(resolve => setTimeout(resolve, pollInterval));
+                  continue;
+                }
+                
+                // Check if we have any failed checks
+                const failedChecks = checkRuns.data.check_runs.filter(
+                  check => check.conclusion === 'failure' || check.conclusion === 'timed_out'
+                );
+                
+                if (failedChecks.length > 0) {
+                  console.log(`${failedChecks.length} checks failed`);
+                  core.setFailed('Required status checks failed');
+                  return;
+                }
+                
+                // If combined status is success or no status checks, we're good
+                if (combinedStatus.data.state === 'success' || 
+                    (combinedStatus.data.statuses.length === 0 && checkRuns.data.total_count === 0)) {
+                  console.log('All status checks passed or no checks required');
+                  return;
+                }
+                
+                // If status is failure, fail the job
+                if (combinedStatus.data.state === 'failure') {
+                  console.log('Combined status check failed');
+                  core.setFailed('Required status checks failed');
+                  return;
+                }
+                
+                // Continue waiting if status is pending
+                console.log('Status checks still pending, continuing to wait...');
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                
+              } catch (error) {
+                console.log(`Error checking status: ${error.message}`);
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+              }
+            }
+            
+            // Timeout reached
+            console.log('Timeout waiting for status checks');
+            core.setFailed('Timeout waiting for required status checks');
+
+  auto-approve:
+    name: "Auto-approve documentation PR"
+    runs-on: ubuntu-latest
+    needs: [check-documentation-only, wait-for-checks]
+    if: >
+      needs.check-documentation-only.outputs.docs-only == 'true' &&
+      needs.check-documentation-only.outputs.is-owner == 'true'
+    steps:
+      - name: "Add labels to PR"
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['auto-approved', 'documentation']
+              });
+              console.log('Labels added successfully');
+            } catch (error) {
+              console.log('Error adding labels:', error.message);
+              // Continue execution even if labeling fails
+            }
+
+      - name: "Approve PR"
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.issue.number;
+
+            try {
+              await github.rest.pulls.createReview({
+                owner,
+                repo,
+                pull_number,
+                event: 'APPROVE',
+                body: `🤖 **Auto-approved by GitHub Actions**
+
+                This pull request has been automatically approved because:
+
+                ✅ **Documentation-only changes**: All modified files are
+                documentation files (*.md, docs/*, 
+                .github/copilot-instructions.md)
+                ✅ **Repository owner**: PR submitted by repository owner or
+                organization member
+                ✅ **Status checks passed**: All required status checks have
+                completed successfully
+
+                The following documentation files were modified:
+                ${context.payload.pull_request.changed_files} files changed
+
+                This PR is ready for merge! 🚀`
+              });
+
+              console.log('PR approved successfully');
+            } catch (error) {
+              console.error('Error approving PR:', error.message);
+              throw error;
+            }
+
+  log-skip-reason:
+    name: "Log why PR was not auto-approved"
+    runs-on: ubuntu-latest
+    needs: check-documentation-only
+    if: >
+      needs.check-documentation-only.outputs.docs-only != 'true' ||
+      needs.check-documentation-only.outputs.is-owner != 'true'
+    steps:
+      - name: "Log skip reason"
+        run: |
+          echo "PR not auto-approved for the following reasons:"
+          docs_only="${{ needs.check-documentation-only.outputs.docs-only }}"
+          is_owner="${{ needs.check-documentation-only.outputs.is-owner }}"
+
+          if [ "$docs_only" != "true" ]; then
+            echo "❌ Contains non-documentation files"
+          else
+            echo "✅ Contains only documentation files"
+          fi
+
+          if [ "$is_owner" != "true" ]; then
+            echo "❌ PR author is not repository owner or organization member"
+          else
+            echo "✅ PR author is repository owner or organization member"
+          fi
+
+          echo ""
+          echo "Auto-approval requires:"
+          echo "1. Only documentation files (*.md, docs/*, "
+          echo "   .github/copilot-instructions.md, .github/instructions/*, "
+          echo "   .github/prompts/*, .github/chatmodes/*)"
+          echo "2. PR author must be repository owner or organization member"
+          echo "3. All required status checks must pass"
