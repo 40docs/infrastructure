@@ -224,5 +224,5 @@ spoke-aks-subnet_prefix             = "10.1.1.0/24"
 ### CLOUDSHELL
 
 ```bash
-sudo sudo cloud-init schema --system
+sudo cloud-init schema --system
 ```
