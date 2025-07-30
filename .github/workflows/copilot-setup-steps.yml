@@ -272,8 +272,7 @@ jobs:
             echo "✅ Found infrastructure.yml workflow"
 
             # Check for required workflow elements
-            if ! grep -q "permissions:" \
-                .github/workflows/infrastructure.yml; then
+            if ! grep -q "permissions:" .github/workflows/infrastructure.yml; then
               ISSUES+="⚠️  infrastructure.yml missing explicit permissions\n"
             fi
 
