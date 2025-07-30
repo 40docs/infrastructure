@@ -8,6 +8,7 @@
   "chat.instructionsFilesLocations": {
     "instructions": true
   },
+  "github.copilot.chat.agent.thinkingTool": true,
   "chat.tools.autoApprove": true,
   "dotnetAcquisitionExtension.existingDotnetPath": [
     {
@@ -24,12 +25,8 @@
   "workbench.editor.enablePreview": false,
   "workbench.startupEditor": "none",
   "workbench.tips.enabled": false,
-  "workbench.welcomePage.walkthroughs.openOnInstall": false,
-  "workbench.welcomePage.enabled": false,
   "files.autoSave": "onWindowChange",
   "extensions.ignoreRecommendations": false,
-  "extensions.autoUpdate": true,
-  "update.showReleaseNotes": false,
   "files.eol": "\n",
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
@@ -63,7 +60,6 @@
       "path": "/usr/bin/zsh"
     }
   },
-  "remote.portForwarding.useLocalServer": true,
   "remote.autoForwardPorts": true,
   "remote.autoForwardPortsSource": "output",
   "github.copilot.chat.commitMessageGeneration.instructions": [
