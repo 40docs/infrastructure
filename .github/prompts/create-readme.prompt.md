@@ -11,7 +11,7 @@ You're a senior expert software engineer with extensive experience in open sourc
 
 1. Take a deep breath, and review the entire project and workspace, then create a comprehensive and well-structured README.md file for the project.
 2. Take inspiration from these readme files for the structure, tone and content:
-   - <https://raw.githubusercontent.com/Azure-Samples/serverless-chat-langchainjs/refs/heads/main/README.md>
+   - https://raw.githubusercontent.com/Azure-Samples/serverless-chat-langchainjs/refs/heads/main/README.md
    - https://raw.githubusercontent.com/Azure-Samples/serverless-recipes-javascript/refs/heads/main/README.md
    - https://raw.githubusercontent.com/sinedied/run-on-output/refs/heads/main/README.md
    - https://raw.githubusercontent.com/sinedied/smoke/refs/heads/main/README.md
