@@ -404,7 +404,7 @@ fortiweb_integration = {
    - **Application**: Main application manifests
    - **Post-Config**: Optional post-deployment configuration
 
-## �🚀 Current Applications
+## 🚀 Current Applications
 
 | Application | Purpose | Namespace | Status | GitOps Branch |
 |-------------|---------|-----------|--------|---------------|
