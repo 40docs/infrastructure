@@ -5,12 +5,14 @@ This repository automates the deployment and management of Azure infrastructure 
 ## 🏗️ Architecture Overview
 
 ### Network Topology
+
 - **Hub-Spoke Design**: Centralized security and connectivity through FortiWeb NVA
 - **Network Segmentation**: Isolated subnets for management, external, and internal traffic
 - **Traffic Inspection**: All spoke traffic routed through FortiWeb for security inspection
 - **DNS Integration**: Azure DNS zones with CNAME records for application access
 
 ### Components
+
 - **Hub Network**: Contains FortiWeb NVA with multiple VIPs for different applications
 - **Spoke Network**: Houses AKS cluster with proper subnet delegation
 - **Applications**: Containerized apps (docs, dvwa, ollama, extractor, artifacts, video, pretix)
@@ -23,6 +25,7 @@ This repository automates the deployment and management of Azure infrastructure 
 > **⚠️ CRITICAL**: The current NVA deployment is NOT highly available and represents a single point of failure.
 
 **Issues Identified:**
+
 1. **Single FortiWeb Instance**: Only one NVA deployed, creating availability risk
 2. **Availability Sets vs Zones**: Using legacy availability sets instead of availability zones
 3. **No Load Balancing**: Missing Azure Load Balancer for traffic distribution
@@ -31,6 +34,7 @@ This repository automates the deployment and management of Azure infrastructure 
 ### 🔧 Infrastructure Assessment
 
 **Strengths:**
+
 - ✅ **GitOps Ready**: Flux GitOps implementation for automated deployments
 - ✅ **Security Monitoring**: Lacework agent deployed across cluster
 - ✅ **Certificate Management**: Automated TLS with cert-manager and Azure DNS
@@ -38,6 +42,7 @@ This repository automates the deployment and management of Azure infrastructure 
 - ✅ **Application Isolation**: Each app deployed in separate namespaces
 
 **Areas for Improvement:**
+
 - ⚠️ **Resource Limits**: Some applications lack proper resource constraints
 - ⚠️ **Security Contexts**: Missing security contexts in some deployments
 - ⚠️ **Terraform Structure**: Monolithic structure could benefit from modules
@@ -45,7 +50,9 @@ This repository automates the deployment and management of Azure infrastructure 
 ## 🎯 High Availability Recommendations
 
 ### Phase 1: Immediate Actions (Critical)
+
 1. **Deploy Multiple NVA Instances**
+
    ```hcl
    # Recommended: 2+ FortiWeb instances across availability zones
    zones = ["1", "2", "3"]
@@ -53,6 +60,7 @@ This repository automates the deployment and management of Azure infrastructure 
    ```
 
 2. **Implement Azure Standard Load Balancer**
+
    ```hcl
    resource "azurerm_lb" "nva_lb" {
      name     = "nva-load-balancer"
@@ -62,18 +70,21 @@ This repository automates the deployment and management of Azure infrastructure 
    ```
 
 3. **Migrate to Availability Zones**
+
    ```hcl
    # Replace availability_set with:
    availability_zone = var.zone_number
    ```
 
 ### Phase 2: Enhanced Resilience
+
 1. **Implement Health Probes**: Configure proper health monitoring for NVA instances
 2. **Shared Configuration**: Use Azure Storage Account for NVA configuration synchronization
 3. **BGP Routing**: Consider implementing BGP for dynamic route updates
 4. **Disaster Recovery**: Multi-region deployment strategy
 
 ### Phase 3: Operational Excellence
+
 1. **Infrastructure Modules**: Refactor into reusable Terraform modules
 2. **Automated Testing**: Implement infrastructure testing with Terratest
 3. **Monitoring & Alerting**: Enhanced observability for NVA health
@@ -82,6 +93,7 @@ This repository automates the deployment and management of Azure infrastructure 
 ## 🛠️ Developer Workflow
 
 ### Local Development
+
 ```bash
 # Initialize Terraform
 terraform init
@@ -98,6 +110,7 @@ terraform apply tfplan
 ```
 
 ### CI/CD Pipeline
+
 1. **Trigger**: Changes to `*.tf` or `cloud-init/*` files
 2. **Validation**: Format checking, validation, and security scanning
 3. **Planning**: Terraform plan with approval gates
@@ -106,7 +119,7 @@ terraform apply tfplan
 
 ## 📁 File Structure
 
-```
+```text
 ├── hub-nva.tf                           # FortiWeb NVA configuration
 ├── hub-network.tf                       # Hub network resources
 ├── spoke-network.tf                     # Spoke network resources
@@ -124,6 +137,7 @@ terraform apply tfplan
 ## ⚙️ Configuration
 
 ### Key Variables
+
 ```hcl
 # Environment configuration
 production_environment = true          # Production vs development sizing
@@ -136,6 +150,7 @@ application_ollama     = true          # Deploy AI/ML workloads
 ```
 
 ### Network Configuration
+
 ```hcl
 # Hub network (contains NVA)
 hub-virtual-network_address_prefix = "10.0.0.0/16"
@@ -150,18 +165,21 @@ spoke-aks-subnet_prefix             = "10.1.1.0/24"
 ## 🔒 Security Features
 
 ### Network Security
+
 - **Traffic Inspection**: All traffic flows through FortiWeb NVA
 - **Subnet Isolation**: Dedicated subnets for different tiers
 - **Network Security Groups**: Granular traffic controls
 - **Private Endpoints**: Secure access to Azure services
 
 ### Kubernetes Security
+
 - **RBAC**: Role-based access control enabled
 - **Network Policies**: Pod-to-pod communication controls
 - **Security Monitoring**: Lacework agent for runtime protection
 - **Secret Management**: Kubernetes secrets for sensitive data
 
 ### Infrastructure Security
+
 - **Managed Identity**: Azure AD integration for service authentication
 - **Key Vault Integration**: Secure certificate and secret storage
 - **Monitoring**: Comprehensive logging and alerting
@@ -191,6 +209,7 @@ spoke-aks-subnet_prefix             = "10.1.1.0/24"
 **Immediate Priority**: Address the single point of failure in the NVA deployment by implementing the high availability recommendations outlined above. This is critical for production workloads.
 
 **Next Steps**:
+
 1. Review and approve HA implementation plan
 2. Plan maintenance window for NVA upgrades
 3. Implement monitoring and alerting for new HA setup
