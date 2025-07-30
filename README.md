@@ -481,3 +481,47 @@ fortiweb_integration = {
 ```bash
 sudo cloud-init schema --system
 ```
+
+## 🤖 Auto-Approval Workflow
+
+This repository includes an automated workflow for approving documentation-only pull requests to streamline the documentation update process.
+
+### How It Works
+
+The **Auto-approve Documentation PRs** workflow automatically approves pull requests that meet these criteria:
+
+1. **Documentation-only changes**: All modified files must be documentation files:
+   - `*.md` files (README, guides, etc.)
+   - Files in `docs/` directory
+   - `.github/copilot-instructions.md`
+   - Files in `.github/instructions/`
+   - Files in `.github/prompts/`  
+   - Files in `.github/chatmodes/`
+
+2. **Repository owner**: PR must be submitted by the repository owner or organization member
+
+3. **Status checks pass**: All required status checks must complete successfully
+
+### Benefits
+
+- ✅ **Faster documentation updates**: No manual approval needed for docs-only changes
+- ✅ **Maintains security**: Only repository owners can trigger auto-approval
+- ✅ **Quality assurance**: Still waits for all status checks to pass
+- ✅ **Clear labeling**: Auto-approved PRs are labeled for easy identification
+
+### Labels Applied
+
+Auto-approved PRs receive these labels:
+- `auto-approved` - Indicates the PR was automatically approved
+- `documentation` - Indicates the PR contains documentation changes
+
+### Usage
+
+Simply create a pull request with only documentation changes, and the workflow will:
+1. Verify all changes are documentation files
+2. Confirm you are the repository owner/organization member  
+3. Wait for all status checks to complete
+4. Automatically approve the PR with a detailed message
+5. Apply appropriate labels
+
+This enables auto-merge functionality while maintaining security and quality standards.
