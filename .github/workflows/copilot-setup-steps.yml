@@ -1,0 +1,717 @@
+---
+name: "Copilot Setup & Validation"
+
+"on":  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+    inputs:
+      setup_mode:
+        description: 'Setup mode to run'
+        required: true
+        default: 'validate'
+        type: choice
+        options:
+          - validate
+          - configure
+          - full-setup
+      skip_pr_comment:
+        description: 'Skip PR comment (for testing)'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # Weekly validation on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  push:
+    paths:
+      - '.github/copilot-instructions.md'
+      - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/instructions/**'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/copilot-instructions.md'
+      - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/instructions/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SETUP_MODE: ${{ github.event.inputs.setup_mode || 'validate' }}
+
+jobs:
+  # Job 1: Validate Copilot Instructions
+  validate-copilot-instructions:
+    name: "Validate Copilot Instructions"
+    runs-on: ubuntu-latest
+    outputs:
+      instructions_valid: ${{ steps.validate.outputs.valid }}
+      instructions_issues: ${{ steps.validate.outputs.issues }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Copilot Instructions File
+        id: validate
+        run: |
+          set -e
+          echo "=== Validating Copilot Instructions ==="
+
+          ISSUES=""
+          VALID="true"
+
+          # Check if copilot-instructions.md exists
+          if [[ ! -f ".github/copilot-instructions.md" ]]; then
+            ISSUES+="❌ Missing .github/copilot-instructions.md file\n"
+            VALID="false"
+          else
+            echo "✅ Found .github/copilot-instructions.md"
+
+            # Check file structure and required sections
+            REQUIRED_SECTIONS=(
+              "Project Overview"
+              "Architecture & Patterns"
+              "Developer Workflow"
+              "Integration Points"
+              "Project-Specific Conventions"
+            )
+
+            for section in "${REQUIRED_SECTIONS[@]}"; do
+              if ! grep -q "## $section" .github/copilot-instructions.md; then
+                ISSUES+="⚠️  Missing required section: ## $section\n"
+              else
+                echo "✅ Found section: $section"
+              fi
+            done
+
+            # Check file size (should have meaningful content)
+            FILE_SIZE=$(wc -c < .github/copilot-instructions.md)
+            if [[ $FILE_SIZE -lt 500 ]]; then
+              ISSUES+="⚠️  Copilot instructions file is very small ($FILE_SIZE bytes)\n"
+            fi
+
+            # Check for terraform-specific guidance
+            if ! grep -qi "terraform" .github/copilot-instructions.md; then
+              ISSUES+="⚠️  No Terraform-specific guidance found\n"
+            fi
+
+            # Check for CI/CD guidance
+            if ! grep -qi "GitHub Actions\|CI/CD" .github/copilot-instructions.md; then
+              ISSUES+="⚠️  No CI/CD guidance found\n"
+            fi
+          fi
+
+          # Validate instruction files directory
+          if [[ ! -d ".github/instructions" ]]; then
+            ISSUES+="❌ Missing .github/instructions directory\n"
+            VALID="false"
+          else
+            echo "✅ Found .github/instructions directory"
+
+            INSTRUCTION_COUNT=$(find .github/instructions -name "*.md" | wc -l)
+            if [[ $INSTRUCTION_COUNT -eq 0 ]]; then
+              ISSUES+="⚠️  No instruction files found in .github/instructions\n"
+            else
+              echo "✅ Found $INSTRUCTION_COUNT instruction files"
+            fi
+          fi
+
+          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
+          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+  # Job 2: Validate Repository Structure
+  validate-repository-structure:
+    name: "Validate Repository Structure"
+    runs-on: ubuntu-latest
+    outputs:
+      structure_valid: ${{ steps.validate.outputs.valid }}
+      structure_issues: ${{ steps.validate.outputs.issues }}
+      terraform_files: ${{ steps.validate.outputs.terraform_files }}
+      k8s_applications: ${{ steps.validate.outputs.k8s_applications }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Repository Structure
+        id: validate
+        run: |
+          set -e
+          echo "=== Validating Repository Structure ==="
+
+          ISSUES=""
+          VALID="true"
+
+          # Check for required files
+          REQUIRED_FILES=(
+            "README.md"
+            "variables.tf"
+            "terraform.tf"
+          )
+
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              ISSUES+="❌ Missing required file: $file\n"
+              VALID="false"
+            else
+              echo "✅ Found required file: $file"
+            fi
+          done
+
+          # Check for terraform files and patterns
+          TERRAFORM_FILES=$(find . -name "*.tf" -not -path "./.git/*" | wc -l)
+          if [[ $TERRAFORM_FILES -eq 0 ]]; then
+            ISSUES+="❌ No Terraform files found\n"
+            VALID="false"
+          else
+            echo "✅ Found $TERRAFORM_FILES Terraform files"
+          fi
+
+          # Analyze K8s application files
+          K8S_APP_FILES=$(find . -name "spoke-k8s_application-*.tf" | wc -l)
+          if [[ $K8S_APP_FILES -gt 0 ]]; then
+            echo "✅ Found $K8S_APP_FILES Kubernetes application files"
+            K8S_APPS=$(find . -name "spoke-k8s_application-*.tf" -exec basename {} \; | sed 's/spoke-k8s_application-//g' | sed 's/.tf//g' | tr '\n' ',' | sed 's/,$//')
+          else
+            K8S_APPS=""
+            ISSUES+="⚠️  No Kubernetes application files found\n"
+          fi
+
+          # Check cloud-init directory
+          if [[ ! -d "cloud-init" ]]; then
+            ISSUES+="⚠️  Missing cloud-init directory\n"
+          else
+            echo "✅ Found cloud-init directory"
+            CLOUD_INIT_FILES=$(find cloud-init -name "*.conf" | wc -l)
+            echo "✅ Found $CLOUD_INIT_FILES cloud-init configuration files"
+          fi
+
+          # Check GitHub workflows
+          if [[ ! -d ".github/workflows" ]]; then
+            ISSUES+="❌ Missing .github/workflows directory\n"
+            VALID="false"
+          else
+            WORKFLOW_COUNT=$(find .github/workflows -name "*.yml" -o -name "*.yaml" | wc -l)
+            if [[ $WORKFLOW_COUNT -eq 0 ]]; then
+              ISSUES+="❌ No workflow files found\n"
+              VALID="false"
+            else
+              echo "✅ Found $WORKFLOW_COUNT workflow files"
+            fi
+          fi
+
+          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
+          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "terraform_files=$TERRAFORM_FILES" >> "$GITHUB_OUTPUT"
+          echo "k8s_applications=$K8S_APPS" >> "$GITHUB_OUTPUT"
+
+  # Job 3: Validate YAML Syntax and Workflows
+  validate-yaml-syntax:
+    name: "Validate YAML Syntax"
+    runs-on: ubuntu-latest
+    outputs:
+      yaml_valid: ${{ steps.validate.outputs.valid }}
+      yaml_issues: ${{ steps.validate.outputs.issues }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: |
+          pip install yamllint
+
+      - name: Validate YAML Syntax
+        id: validate
+        run: |
+          set -e
+          echo "=== Validating YAML Syntax ==="
+
+          ISSUES=""
+          VALID="true"
+
+          # Find all YAML files
+          YAML_FILES=$(find . -name "*.yml" -o -name "*.yaml" | grep -v .git | sort)
+
+          if [[ -z "$YAML_FILES" ]]; then
+            ISSUES+="⚠️  No YAML files found\n"
+          else
+            echo "Found YAML files:"
+            echo "$YAML_FILES"
+
+            # Validate each YAML file
+            for file in $YAML_FILES; do
+              echo "Validating $file..."
+              if yamllint "$file" > /tmp/yamllint_output 2>&1; then
+                echo "✅ $file is valid"
+              else
+                echo "❌ $file has issues:"
+                cat /tmp/yamllint_output
+                ISSUES+="❌ YAML syntax issues in $file:\n"
+                ISSUES+="$(cat /tmp/yamllint_output | head -5)\n"
+                # Don't fail for yamllint warnings, only errors
+                if grep -q "error" /tmp/yamllint_output; then
+                  VALID="false"
+                fi
+              fi
+            done
+          fi
+
+          # Specific validation for GitHub Actions workflows
+          if [[ -f ".github/workflows/infrastructure.yml" ]]; then
+            echo "✅ Found infrastructure.yml workflow"
+
+            # Check for required workflow elements
+            if ! grep -q "permissions:" .github/workflows/infrastructure.yml; then
+              ISSUES+="⚠️  infrastructure.yml missing explicit permissions\n"
+            fi
+
+            if grep -q "concurrency:" .github/workflows/infrastructure.yml; then
+              echo "✅ infrastructure.yml has concurrency control"
+            fi
+          else
+            ISSUES+="❌ Missing infrastructure.yml workflow\n"
+            VALID="false"
+          fi
+
+          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
+          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+  # Job 4: Analyze Project Patterns
+  analyze-project-patterns:
+    name: "Analyze Project Patterns"
+    runs-on: ubuntu-latest
+    outputs:
+      patterns_valid: ${{ steps.analyze.outputs.valid }}
+      patterns_issues: ${{ steps.analyze.outputs.issues }}
+      security_scanning: ${{ steps.analyze.outputs.security_scanning }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Analyze Project Patterns
+        id: analyze
+        run: |
+          set -e
+          echo "=== Analyzing Project Patterns ==="
+
+          ISSUES=""
+          VALID="true"
+          SECURITY_SCANNING="false"
+
+          # Analyze Terraform patterns
+          echo "Analyzing Terraform patterns..."
+
+          # Check for hub-spoke pattern
+          if [[ -f "hub-network.tf" && -f "spoke-network.tf" ]]; then
+            echo "✅ Hub-spoke network pattern detected"
+          else
+            ISSUES+="⚠️  Hub-spoke network pattern not fully implemented\n"
+          fi
+
+          # Check for K8s cluster configuration
+          if [[ -f "spoke-k8s_cluster.tf" ]]; then
+            echo "✅ Kubernetes cluster configuration found"
+          else
+            ISSUES+="⚠️  No Kubernetes cluster configuration found\n"
+          fi
+
+          # Analyze application patterns
+          APP_FILES=$(find . -name "spoke-k8s_application-*.tf" | sort)
+          if [[ -n "$APP_FILES" ]]; then
+            echo "✅ Found Kubernetes application patterns:"
+            for app in $APP_FILES; do
+              APP_NAME=$(basename "$app" | sed 's/spoke-k8s_application-//g' | sed 's/.tf//g')
+              echo "  - $APP_NAME"
+            done
+          fi
+
+          # Check for infrastructure services
+          INFRA_FILES=$(find . -name "spoke-k8s_infrastructure-*.tf" | sort)
+          if [[ -n "$INFRA_FILES" ]]; then
+            echo "✅ Found infrastructure service patterns:"
+            for infra in $INFRA_FILES; do
+              INFRA_NAME=$(basename "$infra" | sed 's/spoke-k8s_infrastructure-//g' | sed 's/.tf//g')
+              echo "  - $INFRA_NAME"
+
+              # Check for security scanning (Laceworks)
+              if [[ "$INFRA_NAME" == "laceworks" ]]; then
+                SECURITY_SCANNING="true"
+              fi
+            done
+          fi
+
+          # Check for security patterns
+          if [[ "$SECURITY_SCANNING" == "true" ]]; then
+            echo "✅ Security scanning (Laceworks) detected"
+          else
+            ISSUES+="⚠️  No security scanning patterns detected\n"
+          fi
+
+          # Check for NVA (Network Virtual Appliance)
+          if [[ -f "hub-nva.tf" ]]; then
+            echo "✅ Network Virtual Appliance configuration found"
+          else
+            ISSUES+="⚠️  No NVA configuration found\n"
+          fi
+
+          # Check for certificate management
+          if find . -name "spoke-k8s_infrastructure-*.tf" -exec grep -l "cert-manager" {} + \
+              > /dev/null 2>&1; then
+            echo "✅ Certificate management detected"
+          else
+            ISSUES+="⚠️  No certificate management detected\n"
+          fi
+
+          # Analyze cloud-init patterns
+          if [[ -d "cloud-init" ]]; then
+            CLOUD_CONFIGS=$(find cloud-init -name "*.conf" | wc -l)
+            if [[ $CLOUD_CONFIGS -gt 0 ]]; then
+              echo "✅ Found $CLOUD_CONFIGS cloud-init configurations"
+            else
+              ISSUES+="⚠️  cloud-init directory exists but no configurations found\n"
+            fi
+          fi
+
+          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
+          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "security_scanning=$SECURITY_SCANNING" >> "$GITHUB_OUTPUT"
+
+  # Job 5: Repository Configuration (only in configure/full-setup modes)
+  configure-repository:
+    name: "Configure Repository Settings"
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.setup_mode == 'configure' ||
+      github.event.inputs.setup_mode == 'full-setup'
+    outputs:
+      config_applied: ${{ steps.configure.outputs.applied }}
+      config_issues: ${{ steps.configure.outputs.issues }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Repository for Copilot
+        id: configure
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          echo "=== Configuring Repository for Copilot ==="
+
+          ISSUES=""
+          APPLIED="true"
+
+          # Repository settings that can be configured via API
+          echo "📝 Repository configuration recommendations:"
+          echo "  - Enable GitHub Copilot for the repository"
+          echo "  - Configure branch protection rules for main branch"
+          echo "  - Enable security alerts and dependency scanning"
+          echo "  - Configure auto-merge for dependabot PRs"
+
+          # Note: Actual repository configuration would require admin permissions
+          # and should be done carefully. For now, we just provide recommendations.
+
+          echo "⚠️  Repository configuration requires admin permissions"
+          echo "    Please apply these settings manually in repository settings"
+
+          echo "applied=$APPLIED" >> "$GITHUB_OUTPUT"
+          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+  # Job 6: Generate Comprehensive Report
+  generate-report:
+    name: "Generate Setup Report"
+    runs-on: ubuntu-latest
+    needs: [
+      validate-copilot-instructions,
+      validate-repository-structure,
+      validate-yaml-syntax,
+      analyze-project-patterns
+    ]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate Comprehensive Report
+        run: |
+          set -e
+          echo "=== Generating Copilot Setup Report ==="
+
+          # Create report directory
+          mkdir -p reports
+
+          # Generate timestamp
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          # Start JSON report
+          cat > reports/copilot-setup-report.json << EOF
+          {
+            "timestamp": "$TIMESTAMP",
+            "setup_mode": "${{ env.SETUP_MODE }}",
+            "repository": "${{ github.repository }}",
+            "commit": "${{ github.sha }}",
+            "validation_results": {
+              "copilot_instructions": {
+                "valid": ${{ needs.validate-copilot-instructions.outputs.instructions_valid }},
+                "issues": "${{ needs.validate-copilot-instructions.outputs.instructions_issues }}"
+              },
+              "repository_structure": {
+                "valid": ${{ needs.validate-repository-structure.outputs.structure_valid }},
+                "issues": "${{ needs.validate-repository-structure.outputs.structure_issues }}",
+                "terraform_files": ${{ needs.validate-repository-structure.outputs.terraform_files }},
+                "k8s_applications": "${{ needs.validate-repository-structure.outputs.k8s_applications }}"
+              },
+              "yaml_syntax": {
+                "valid": ${{ needs.validate-yaml-syntax.outputs.yaml_valid }},
+                "issues": "${{ needs.validate-yaml-syntax.outputs.yaml_issues }}"
+              },
+              "project_patterns": {
+                "valid": ${{ needs.analyze-project-patterns.outputs.patterns_valid }},
+                "issues": "${{ needs.analyze-project-patterns.outputs.patterns_issues }}",
+                "security_scanning": ${{ needs.analyze-project-patterns.outputs.security_scanning }}
+              }
+            }
+          }
+          EOF
+
+          # Generate markdown report
+          cat > reports/copilot-setup-report.md << EOF
+          # Copilot Setup & Validation Report
+
+          **Generated:** $TIMESTAMP
+          **Repository:** ${{ github.repository }}
+          **Setup Mode:** ${{ env.SETUP_MODE }}
+          **Commit:** ${{ github.sha }}
+
+          ## 📋 Validation Summary
+
+          | Component | Status | Issues |
+          |-----------|--------|--------|
+          | Copilot Instructions | ${{ needs.validate-copilot-instructions.outputs.instructions_valid == 'true' && '✅ Valid' || '❌ Issues Found' }} | ${{ needs.validate-copilot-instructions.outputs.instructions_valid == 'true' && 'None' || 'See details below' }} |
+          | Repository Structure | ${{ needs.validate-repository-structure.outputs.structure_valid == 'true' && '✅ Valid' || '❌ Issues Found' }} | ${{ needs.validate-repository-structure.outputs.structure_valid == 'true' && 'None' || 'See details below' }} |
+          | YAML Syntax | ${{ needs.validate-yaml-syntax.outputs.yaml_valid == 'true' && '✅ Valid' || '❌ Issues Found' }} | ${{ needs.validate-yaml-syntax.outputs.yaml_valid == 'true' && 'None' || 'See details below' }} |
+          | Project Patterns | ${{ needs.analyze-project-patterns.outputs.patterns_valid == 'true' && '✅ Valid' || '⚠️ Warnings' }} | ${{ needs.analyze-project-patterns.outputs.patterns_valid == 'true' && 'None' || 'See details below' }} |
+
+          ## 📊 Project Analysis
+
+          - **Terraform Files:** ${{ needs.validate-repository-structure.outputs.terraform_files }}
+          - **K8s Applications:** ${{ needs.validate-repository-structure.outputs.k8s_applications }}
+          - **Security Scanning:** ${{ needs.analyze-project-patterns.outputs.security_scanning == 'true' && '✅ Enabled' || '❌ Not Detected' }}
+
+          ## 🔍 Detailed Issues
+
+          EOF
+
+          # Add detailed issues if any
+          if [[ "${{ needs.validate-copilot-instructions.outputs.instructions_valid }}" != "true" ]]; then
+            cat >> reports/copilot-setup-report.md << 'EOF'
+          ### Copilot Instructions Issues
+          ${{ needs.validate-copilot-instructions.outputs.instructions_issues }}
+
+          EOF
+          fi
+
+          if [[ "${{ needs.validate-repository-structure.outputs.structure_valid }}" != "true" ]]; then
+            cat >> reports/copilot-setup-report.md << 'EOF'
+          ### Repository Structure Issues
+          ${{ needs.validate-repository-structure.outputs.structure_issues }}
+
+          EOF
+          fi
+
+          if [[ "${{ needs.validate-yaml-syntax.outputs.yaml_valid }}" != "true" ]]; then
+            cat >> reports/copilot-setup-report.md << 'EOF'
+          ### YAML Syntax Issues
+          ${{ needs.validate-yaml-syntax.outputs.yaml_issues }}
+
+          EOF
+          fi
+
+          if [[ "${{ needs.analyze-project-patterns.outputs.patterns_valid }}" != "true" ]]; then
+            cat >> reports/copilot-setup-report.md << 'EOF'
+          ### Project Pattern Issues
+          ${{ needs.analyze-project-patterns.outputs.patterns_issues }}
+
+          EOF
+          fi
+
+          # Add recommendations
+          cat >> reports/copilot-setup-report.md << 'EOF'
+          ## 💡 Recommendations
+
+          ### For Optimal Copilot Usage:
+          1. **Keep Instructions Updated**: Regularly review and update `.github/copilot-instructions.md`
+          2. **Maintain Structure**: Follow established Terraform file naming conventions
+          3. **Security First**: Ensure security scanning and monitoring are properly configured
+          4. **YAML Quality**: Fix any YAML syntax issues for reliable CI/CD
+          5. **Documentation**: Keep README.md and instruction files current
+
+          ### Maintenance Schedule:
+          - **Weekly**: Review this validation report (automated via schedule)
+          - **Monthly**: Update Copilot instructions based on project evolution
+          - **Per Release**: Validate all workflows and configurations
+
+          ## 🔧 Quick Fixes
+
+          ```bash
+          # Format all Terraform files
+          terraform fmt -recursive .
+
+          # Validate YAML files
+          yamllint .github/workflows/
+
+          # Check for missing files
+          ls -la README.md variables.tf terraform.tf
+          ```
+
+          ---
+          *Report generated by Copilot Setup & Validation workflow*
+          EOF
+
+          # Replace variables in markdown report
+          sed -i "s/\$TIMESTAMP/$TIMESTAMP/g" reports/copilot-setup-report.md
+
+          echo "📄 Report generated successfully"
+          echo "   - JSON: reports/copilot-setup-report.json"
+          echo "   - Markdown: reports/copilot-setup-report.md"
+
+      - name: Upload Report Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-setup-report-${{ github.run_number }}
+          path: reports/
+          retention-days: 30
+
+      - name: Add Report to Job Summary
+        run: |
+          echo "## 📋 Copilot Setup Validation Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat reports/copilot-setup-report.md >> "$GITHUB_STEP_SUMMARY"
+
+  # Job 7: Comment on PR (if applicable)
+  comment-on-pr:
+    name: "Comment on Pull Request"
+    runs-on: ubuntu-latest
+    needs: [
+      validate-copilot-instructions,
+      validate-repository-structure,
+      validate-yaml-syntax,
+      analyze-project-patterns,
+      generate-report
+    ]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.inputs.skip_pr_comment != 'true' &&
+      always()
+    steps:
+      - name: Download Report Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: copilot-setup-report-${{ github.run_number }}
+          path: reports/
+
+      - name: Comment on Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Read the markdown report
+            const reportPath = 'reports/copilot-setup-report.md';
+            let reportContent = fs.readFileSync(reportPath, 'utf8');
+
+            // Truncate if too long for PR comment
+            if (reportContent.length > 60000) {
+              reportContent = reportContent.substring(0, 60000) + '\n\n... *Report truncated. See full report in workflow artifacts.*';
+            }
+
+            const comment = `## 🤖 Copilot Setup Validation Results
+
+            This pull request has been automatically validated for Copilot setup and configuration.
+
+            ${reportContent}
+
+            ---
+            🔗 **[View Full Report](${context.payload.repository.html_url}/actions/runs/${context.runId})**
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Job 8: Setup Monitoring (full-setup mode only)
+  setup-monitoring:
+    name: "Setup Copilot Monitoring"
+    runs-on: ubuntu-latest
+    if: github.event.inputs.setup_mode == 'full-setup'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Copilot Effectiveness Monitoring
+        run: |
+          set -e
+          echo "=== Setting up Copilot Effectiveness Monitoring ==="
+
+          # Create monitoring recommendations
+          cat > copilot-monitoring-setup.md << 'EOF'
+          # Copilot Effectiveness Monitoring Setup
+
+          ## Metrics to Track
+          1. **Code Quality Metrics**:
+             - Copilot suggestion acceptance rate
+             - Code review feedback on Copilot-generated code
+             - Time to resolution for bugs in Copilot-assisted code
+
+          2. **Developer Productivity**:
+             - Time to complete tasks with/without Copilot
+             - Lines of code written per hour
+             - Frequency of Copilot usage across team
+
+          3. **Infrastructure Deployment**:
+             - Terraform plan success rate
+             - Deployment time reduction
+             - Configuration drift incidents
+
+          ## Implementation Ideas
+          - Use GitHub API to track Copilot usage statistics
+          - Integrate with Azure Monitor for infrastructure metrics
+          - Create dashboards in Azure Application Insights
+          - Set up alerts for unusual patterns or issues
+
+          ## Maintenance Schedule
+          - **Daily**: Automated health checks via this workflow
+          - **Weekly**: Review usage metrics and effectiveness
+          - **Monthly**: Update instructions based on learnings
+          - **Quarterly**: Full effectiveness assessment
+          EOF
+
+          echo "📊 Monitoring setup recommendations created"
+          echo "   See: copilot-monitoring-setup.md"
+
+      - name: Upload Monitoring Setup
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-monitoring-setup
+          path: copilot-monitoring-setup.md
+          retention-days: 30
