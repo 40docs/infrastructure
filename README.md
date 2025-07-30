@@ -241,7 +241,7 @@ The AKS cluster is deployed with enterprise-grade configuration optimized for pr
   - Kubernetes events and inventory
   - Performance metrics and insights
 
-## � GitOps Implementation with Flux
+## 🔄 GitOps Implementation with Flux
 
 ### Flux Configuration
 
