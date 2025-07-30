@@ -19,7 +19,7 @@
 
 ## Developer Workflow
 - **Terraform**:
-  - Do not run `terraform init`, `terraform plan`, or `terraform apply` becuase terraform variables are initialized by github secrets during a workflow run.
+  - Do not run `terraform init`, `terraform plan`, or `terraform apply` because terraform variables are initialized by github secrets during a workflow run.
 - **Cloud-init**: Edit scripts in `cloud-init/` for VM setup.
 - **CI/CD**: Push to `main` triggers deploy pipeline.
 - **Testing**: Use security scanners (`tfsec`, `trivy`, `checkov`) before PR/merge.
