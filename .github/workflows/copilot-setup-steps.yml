@@ -277,7 +277,7 @@ jobs:
               ISSUES+="⚠️  infrastructure.yml missing explicit permissions\n"
             fi
 
-            if ! grep -q "concurrency:" .github/workflows/infrastructure.yml; then
+            if grep -q "concurrency:" .github/workflows/infrastructure.yml; then
               echo "✅ infrastructure.yml has concurrency control"
             fi
           else
