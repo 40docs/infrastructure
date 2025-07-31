@@ -10,7 +10,9 @@ resource "azurerm_resource_group" "azure_resource_group" {
   name     = var.project_name
   location = var.location
 
-  tags = local.standard_tags
+  tags = merge(local.standard_tags, {
+    CreatedOnDate = formatdate("YYYY-MM-DD", timestamp())
+  })
 
   lifecycle {
     ignore_changes = [
