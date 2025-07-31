@@ -193,22 +193,11 @@ variable "manifests_infrastructure_ssh_private_key" {
   sensitive   = true
 }
 
-# Environment Configuration
-variable "environment" {
-  type        = string
-  description = "Deployment environment (e.g., dev, staging, prod)"
-  default     = "dev"
-  validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "The environment must be one of: dev, staging, prod."
-  }
-}
-
 # Management Configuration
 variable "management_public_ip" {
   type        = bool
   description = "Whether to create a public IP for management access"
-  default     = var.environment == "prod" ? true : false
+  default     = false
 }
 
 # Owner Information
@@ -379,9 +368,27 @@ variable "hub-nva-vip-extractor" {
   }
 }
 
+variable "management_public_ip" {
+  default     = "false"
+  description = "Create management IP"
+  type        = bool
+}
+
+variable "spoke-aks-node-image" {
+  default     = "aks-node"
+  description = "Container server image product"
+  type        = string
+}
+
 variable "gpu_node_pool" {
   default     = false
   description = "Set to true to enable GPU workloads"
+  type        = bool
+}
+
+variable "spoke-k8s-node-pool-image" {
+  default     = false
+  description = "k8s node pool image."
   type        = bool
 }
 
@@ -434,6 +441,16 @@ variable "spoke-aks-subnet_prefix" {
   }
 }
 
+variable "spoke-aks_service_cidr" {
+  default     = "10.1.2.0/24"
+  description = "Spoke k8s service cidr."
+  type        = string
+  validation {
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-aks_service_cidr))
+    error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
+  }
+}
+
 variable "spoke-aks_pod_cidr" {
   default     = "10.244.0.0/16"
   description = "Spoke k8s pod cidr."
@@ -441,6 +458,16 @@ variable "spoke-aks_pod_cidr" {
   validation {
     condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-aks_pod_cidr))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
+  }
+}
+
+variable "spoke-aks_dns_service_ip" {
+  default     = "10.1.2.10"
+  description = "Spoke k8s dns service ip"
+  type        = string
+  validation {
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.spoke-aks_dns_service_ip))
+    error_message = "The IP address must be a valid IPv4 format (e.g., 10.2.0.10)."
   }
 }
 
@@ -464,6 +491,24 @@ variable "spoke-check-internet-up-ip" {
   }
 }
 
+variable "spoke-aks-node-ollama-port" {
+  default     = "11434"
+  description = "Port for ollama"
+  type        = string
+}
+
+variable "spoke-aks-node-ollama-webui-port" {
+  default     = "8080"
+  description = "Port for the ollama web ui"
+  type        = string
+}
+
+variable "cloudshell" {
+  type        = bool
+  description = "Enable or disable the creation of the Azure Cloud Shell VM."
+  default     = true
+}
+
 variable "cloudshell_directory_tenant_id" {
   type        = string
   description = "The tenant ID of the Azure Active Directory."
@@ -480,6 +525,13 @@ variable "cloudshell_admin_username" {
   type        = string
   description = "The username for the Cloud Shell administrator."
   default     = "ubuntu"
+}
+
+variable "cloudshell_admin_password" {
+  type        = string
+  description = "The CLOUDSHELL admin password"
+  default     = "ubuntu"
+  sensitive   = true
 }
 
 variable "forticnapp_account" {

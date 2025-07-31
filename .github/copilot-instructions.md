@@ -48,11 +48,13 @@
 3. Update `variables.tf` and outputs as needed.
 4. Commit and push to `main` to trigger deployment.
 
-## Troubleshooting terraform
+## Troubleshooting and Testing terraform
 1. run `terraform fmt` to format files
 2. run `terraform validate` to check syntax
-3. do not run `terraform plan` to preview changes since variables are initialized from github secrets in a workflow.
-4. do not run `terraform apply` to deploy changes since this is done automatically by the CI/CD pipeline.
+3. run `terraform init -backend=false` to initialize without backend
+4. run `lacework iac scan` to scan for security issues and suggest relevant fixes to the terraform plan.
+5. do not run `terraform plan` to preview changes since variables are initialized from github secrets in a workflow.
+6. do not run `terraform apply` to deploy changes since this is done automatically by the CI/CD pipeline.
 ---
 
 For more details, see `README.md` and inline comments in `.tf` files.

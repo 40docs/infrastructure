@@ -1,9 +1,3 @@
-data "azurerm_public_ip" "hub-nva-vip_video_public_ip" {
-  count               = var.application_video ? 1 : 0
-  name                = azurerm_public_ip.hub-nva-vip_video_public_ip[0].name
-  resource_group_name = azurerm_resource_group.azure_resource_group.name
-}
-
 resource "azurerm_public_ip" "hub-nva-vip_video_public_ip" {
   count               = var.application_video ? 1 : 0
   name                = "hub-nva-vip_video_public_ip"
