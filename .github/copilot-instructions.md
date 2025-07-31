@@ -53,10 +53,16 @@
 ## Troubleshooting and Testing terraform
 1. run `terraform fmt` to format files
 2. run `terraform validate` to check syntax
-3. run `terraform init -backend=false` to initialize without backend
+3. Do not run `terraform init`, instead run `terraform init -backend=false` to initialize without backend since provider variables are initialized from github secrets in a workflow.
 4. run `lacework iac scan` to scan for security issues and suggest relevant fixes to the terraform plan.
 5. do not run `terraform plan` to preview changes since variables are initialized from github secrets in a workflow.
 6. do not run `terraform apply` to deploy changes since this is done automatically by the CI/CD pipeline.
+
+## Terraform Code Standards
+- **Variable Naming**: All variables must use `snake_case` (underscores), never `kebab-case` (hyphens)
+- **Resource Naming**: Resource names should use underscores for consistency with Terraform conventions
+- **Variable References**: Always use `var.variable_name` format, never `var.variable-name`
+- **Code Style**: Follow HashiCorp Terraform style guide and run `terraform fmt` before committing
 ---
 
 For more details, see `README.md` and inline comments in `.tf` files.
