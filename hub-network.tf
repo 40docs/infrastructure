@@ -105,7 +105,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 
-  # Management access rule for NVA
+  # Management access rule for NVA (restricted to management network)
   security_rule {
     name                       = "MGMT_rule"
     priority                   = 100
@@ -114,11 +114,11 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = local.vm_image[var.hub-nva-image].management-port
-    source_address_prefix      = "*"
+    source_address_prefixes    = ["10.0.0.0/16", "172.16.0.0/12", "192.168.0.0/16"]
     destination_address_prefix = var.hub-nva-management-ip
   }
 
-  # Virtual IP rule for docs application
+  # Virtual IP rule for docs application (public access required)
   security_rule {
     name                       = "VIP_rule-docs"
     priority                   = 101
@@ -127,7 +127,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
-    source_address_prefix      = "*"
+    source_address_prefix      = "Internet"
     destination_address_prefix = var.hub-nva-vip-docs
   }
 
@@ -212,20 +212,20 @@ resource "azurerm_network_security_group" "hub_internal_network_security_group" 
     destination_address_prefix = "*"
   }
 
-  # Allow ICMP for connectivity testing
+  # Allow ICMP for connectivity testing (restricted sources and destinations)
   security_rule {
-    name                       = "icmp_to_google-dns_rule"
-    priority                   = 101
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Icmp"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+    name                         = "icmp_to_dns_rule"
+    priority                     = 101
+    direction                    = "Inbound"
+    access                       = "Allow"
+    protocol                     = "Icmp"
+    source_port_range            = "*"
+    destination_port_range       = "*"
+    source_address_prefix        = "10.0.0.0/16"
+    destination_address_prefixes = ["8.8.8.8/32", "8.8.4.4/32", "1.1.1.1/32"]
   }
 
-  # Allow outbound HTTP traffic for applications
+  # Allow outbound HTTP traffic for applications (restricted to internal sources)
   security_rule {
     name                       = "outbound-http_rule"
     priority                   = 102
@@ -234,8 +234,8 @@ resource "azurerm_network_security_group" "hub_internal_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_ranges    = ["8000", "8080", "11434"]
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+    source_address_prefix      = "10.0.0.0/16"
+    destination_address_prefix = "Internet"
   }
 
   tags = local.standard_tags

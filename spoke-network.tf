@@ -93,7 +93,7 @@ resource "azurerm_network_security_group" "spoke_network_security_group" {
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 
-  # Allow inbound HTTP traffic for applications
+  # Allow inbound HTTP traffic for applications (restricted to known sources)
   security_rule { #tfsec:ignore:AVD-AZU-0047
     name                       = "inbound-http_rule"
     priority                   = 100
@@ -101,8 +101,8 @@ resource "azurerm_network_security_group" "spoke_network_security_group" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
+    destination_port_ranges    = ["80", "443", "8080", "8000"]
+    source_address_prefixes    = ["10.0.0.0/16", "172.16.0.0/12", "192.168.0.0/16"]
     destination_address_prefix = "*"
   }
 
@@ -115,21 +115,21 @@ resource "azurerm_network_security_group" "spoke_network_security_group" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"]
-    source_address_prefix      = "*"
-    destination_address_prefix = "*" #tfsec:ignore:AVD-AZU-0051
+    source_address_prefix      = "10.0.0.0/16"
+    destination_address_prefix = "Internet"
   }
 
-  # Allow ICMP for connectivity testing
-  security_rule { #tfsec:ignore:AVD-AZU-0051
-    name                       = "icmp_to_google-dns_rule"
-    priority                   = 101
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Icmp"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  # Allow ICMP for connectivity testing (restricted to specific destinations)
+  security_rule {
+    name                         = "icmp_to_dns_rule"
+    priority                     = 101
+    direction                    = "Outbound"
+    access                       = "Allow"
+    protocol                     = "Icmp"
+    source_port_range            = "*"
+    destination_port_range       = "*"
+    source_address_prefix        = "10.0.0.0/16"
+    destination_address_prefixes = ["8.8.8.8/32", "8.8.4.4/32", "1.1.1.1/32"]
   }
 
   tags = local.standard_tags

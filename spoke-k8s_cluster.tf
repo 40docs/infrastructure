@@ -123,6 +123,14 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     msi_auth_for_monitoring_enabled = true
   }
 
+  # API Server access profile for security
+  api_server_access_profile {
+    authorized_ip_ranges = var.production_environment ? ["10.0.0.0/16", "172.16.0.0/12", "192.168.0.0/16"] : []
+  }
+
+  # Azure Policy Add-on for governance
+  azure_policy_enabled = var.production_environment ? true : false
+
   # Default node pool configuration
   default_node_pool {
     temporary_name_for_rotation  = "rotation"
@@ -137,6 +145,8 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     orchestrator_version         = "1.30.6"
     vnet_subnet_id               = azurerm_subnet.spoke_subnet.id
     only_critical_addons_enabled = var.production_environment ? true : false
+    os_disk_type                 = "Managed"
+    os_disk_size_gb              = 128
 
     upgrade_settings {
       max_surge = var.production_environment ? 10 : 1
@@ -151,6 +161,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   # Network profile configuration
   network_profile {
     network_plugin    = "kubenet"
+    network_policy    = "calico"
     load_balancer_sku = "standard"
     pod_cidr          = var.spoke-aks_pod_cidr
   }

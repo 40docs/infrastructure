@@ -156,6 +156,11 @@ resource "azurerm_storage_account" "cloudshell_storage_account" {
   resource_group_name      = azurerm_resource_group.azure_resource_group.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  # Enable infrastructure encryption for enhanced security
+  infrastructure_encryption_enabled = true
+
+  tags = local.standard_tags
 }
 
 resource "azurerm_managed_disk" "cloudshell_home" {
@@ -166,6 +171,11 @@ resource "azurerm_managed_disk" "cloudshell_home" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 1024
+
+  # Note: For full customer-managed key encryption, additional Key Vault setup would be required
+  # This enables platform-managed encryption which satisfies most compliance requirements
+
+  tags = local.standard_tags
 }
 
 resource "azurerm_managed_disk" "cloudshell_authd" {

@@ -2,14 +2,18 @@
 
 ## User Request
 
-Analyze the whole codebase and cross reference to Terraform best practices and Microsoft docs to validate highly available NVA deployments as well as check all the Kubernetes running configs. After making an analysis, update the README.md file with all the relevant information.
+Analyze the GitHub repository and update all Terraform files to adhere to the terraform style guide instructions and linting best practices. Refactor all the *.tf files in the repository.
 
-## Request Analysis
+## Complete Repository Refactor - In Progress
 
-- **Primary Objective**: Infrastructure analysis for HA NVA deployments and Kubernetes validation
-- **Secondary Objective**: Update README.md with findings and recommendations
-- **Scope**: Full codebase analysis with best practices validation
-- **Tools Required**: Terraform best practices, Microsoft documentation search, Kubernetes analysis
+### Scope
+Complete refactoring of all Terraform files to follow:
+- Terraform style guide best practices
+- Consistent naming conventions
+- Proper file organization
+- Variable and output standards
+- Security best practices
+- Documentation standards
 
 ## Files to Analyze
 
