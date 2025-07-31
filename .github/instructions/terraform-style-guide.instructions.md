@@ -121,6 +121,7 @@ resource "aws_s3_bucket" "application_logs" { ... }
 #### **Variable and Output Names**
 - Use descriptive nouns with underscores for separation
 - Follow consistent naming patterns across the project
+- Use only snake case (lowercase with underscores)
 
 **Example:**
 ```hcl

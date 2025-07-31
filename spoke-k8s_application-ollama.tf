@@ -1,6 +1,6 @@
-data "azurerm_public_ip" "hub-nva-vip_ollama_public_ip" {
+data "azurerm_public_ip" "hub_nva_vip_ollama_public_ip" {
   count               = var.application_ollama ? 1 : 0
-  name                = azurerm_public_ip.hub-nva-vip_ollama_public_ip[0].name
+  name                = azurerm_public_ip.hub_nva_vip_ollama_public_ip[0].name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
 
@@ -10,12 +10,12 @@ resource "azurerm_dns_cname_record" "ollama" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_ollama_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_ollama_public_ip[0].fqdn
 }
 
-resource "azurerm_public_ip" "hub-nva-vip_ollama_public_ip" {
+resource "azurerm_public_ip" "hub_nva_vip_ollama_public_ip" {
   count               = var.application_ollama ? 1 : 0
-  name                = "hub-nva-vip_ollama_public_ip"
+  name                = "hub_nva_vip_ollama_public_ip"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   allocation_method   = "Static"

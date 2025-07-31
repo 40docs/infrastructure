@@ -21,7 +21,7 @@ resource "azurerm_dns_zone" "dns_zone" {
 # Hub Virtual Network - Central networking component
 resource "azurerm_virtual_network" "hub_virtual_network" {
   name                = "hub_virtual_network"
-  address_space       = [var.hub-virtual-network_address_prefix]
+  address_space       = [var.hub_virtual_network_address_prefix]
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 
@@ -49,16 +49,16 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke_virtual_network_peering
 
 # External subnet for internet-facing resources
 resource "azurerm_subnet" "hub_external_subnet" {
-  name                 = var.hub-external-subnet_name
-  address_prefixes     = [var.hub-external-subnet_prefix]
+  name                 = var.hub_external_subnet_name
+  address_prefixes     = [var.hub_external_subnet_prefix]
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   virtual_network_name = azurerm_virtual_network.hub_virtual_network.name
 }
 
 # Internal subnet for internal resources
 resource "azurerm_subnet" "hub_internal_subnet" {
-  name                 = var.hub-internal-subnet_name
-  address_prefixes     = [var.hub-internal-subnet_prefix]
+  name                 = var.hub_internal_subnet_name
+  address_prefixes     = [var.hub_internal_subnet_prefix]
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   virtual_network_name = azurerm_virtual_network.hub_virtual_network.name
 }
@@ -113,9 +113,9 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = local.vm_image[var.hub-nva-image].management-port
+    destination_port_range     = local.vm_image[var.hub_nva_image].management-port
     source_address_prefixes    = ["10.0.0.0/16", "172.16.0.0/12", "192.168.0.0/16"]
-    destination_address_prefix = var.hub-nva-management-ip
+    destination_address_prefix = var.hub_nva_management_ip
   }
 
   # Virtual IP rule for docs application (public access required)
@@ -128,7 +128,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
     source_address_prefix      = "Internet"
-    destination_address_prefix = var.hub-nva-vip-docs
+    destination_address_prefix = var.hub_nva_vip_docs
   }
 
   # Virtual IP rule for DVWA application
@@ -141,7 +141,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
     source_address_prefix      = "*"
-    destination_address_prefix = var.hub-nva-vip-dvwa
+    destination_address_prefix = var.hub_nva_vip_dvwa
   }
 
   # Virtual IP rule for Ollama application
@@ -154,7 +154,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
     source_address_prefix      = "*"
-    destination_address_prefix = var.hub-nva-vip-ollama
+    destination_address_prefix = var.hub_nva_vip_ollama
   }
 
   # Virtual IP rule for video application
@@ -167,7 +167,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
     source_address_prefix      = "*"
-    destination_address_prefix = var.hub-nva-vip-video
+    destination_address_prefix = var.hub_nva_vip_video
   }
 
   # Virtual IP rule for extractor application
@@ -180,7 +180,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
     source_address_prefix      = "*"
-    destination_address_prefix = var.hub-nva-vip-extractor
+    destination_address_prefix = var.hub_nva_vip_extractor
   }
 
   tags = local.standard_tags

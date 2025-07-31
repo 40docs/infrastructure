@@ -228,153 +228,153 @@ variable "owner_email" {
 }
 
 # Network Configuration - Hub
-variable "hub-virtual-network_address_prefix" {
+variable "hub_virtual_network_address_prefix" {
   type        = string
   description = "Hub Virtual Network Address prefix"
   default     = "10.0.0.0/24"
 
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.hub-virtual-network_address_prefix))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.hub_virtual_network_address_prefix))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
   }
 }
 
-variable "hub-internal-subnet_name" {
+variable "hub_internal_subnet_name" {
   default     = "hub-internal_subnet"
   description = "Hub Subnet Name."
   type        = string
   validation {
-    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.hub-internal-subnet_name))
+    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.hub_internal_subnet_name))
     error_message = "The value must consist of alphanumeric characters, underscores, or dashes only."
   }
 }
 
-variable "hub-internal-subnet_prefix" {
+variable "hub_internal_subnet_prefix" {
   default     = "10.0.0.32/27"
   description = "Hub Subnet Prefix."
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.hub-internal-subnet_prefix))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.hub_internal_subnet_prefix))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
   }
 }
 
-variable "hub-external-subnet_name" {
+variable "hub_external_subnet_name" {
   default     = "hub-external_subnet"
   description = "External Subnet Name."
   type        = string
   validation {
-    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.hub-external-subnet_name))
+    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.hub_external_subnet_name))
     error_message = "The value must consist of alphanumeric characters, underscores, or dashes only."
   }
 }
 
-variable "hub-external-subnet_prefix" {
+variable "hub_external_subnet_prefix" {
   default     = "10.0.0.0/27"
   description = "External Subnet Prefix."
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.hub-external-subnet_prefix))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.hub_external_subnet_prefix))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
   }
 }
 
-variable "hub-external-subnet-gateway" {
+variable "hub_external_subnet_gateway" {
   default     = "10.0.0.1"
   description = "Azure gateway IP address to the Internet"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-external-subnet-gateway))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_external_subnet_gateway))
     error_message = "The IP address must be a valid IPv4 format (e.g., 192.168.1.1)."
   }
 }
 
-variable "hub-nva-image" {
+variable "hub_nva_image" {
   default     = "fortiweb"
   description = "NVA image product"
   type        = string
   validation {
-    condition     = var.hub-nva-image == "fortigate" || var.hub-nva-image == "fortiweb" || var.hub-nva-image == "fortiadc"
+    condition     = var.hub_nva_image == "fortigate" || var.hub_nva_image == "fortiweb" || var.hub_nva_image == "fortiadc"
     error_message = "The SKU must be either 'fortiweb', 'fortigate', or 'fortiadc'"
   }
 }
 
-variable "hub-nva-management-ip" {
+variable "hub_nva_management_ip" {
   default     = "10.0.0.4"
   description = "Hub NVA Management IP Address"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-management-ip))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_management_ip))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.4)."
   }
 }
 
-variable "hub-nva-gateway" {
+variable "hub_nva_gateway" {
   default     = "10.0.0.37"
   description = "Hub NVA Gateway IP Address"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-gateway))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_gateway))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.37)."
   }
 }
 
-variable "hub-nva-vip-docs" {
+variable "hub_nva_vip_docs" {
   default     = "10.0.0.5"
   description = "Hub NVA Gateway Virtual IP Address for Docs"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-vip-docs))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_vip_docs))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.5)."
   }
 }
 
-variable "hub-nva-vip-dvwa" {
+variable "hub_nva_vip_dvwa" {
   default     = "10.0.0.6"
   description = "Hub NVA Gateway Virtual IP Address for DVWA"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-vip-dvwa))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_vip_dvwa))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.6)."
   }
 }
 
-variable "hub-nva-vip-ollama" {
+variable "hub_nva_vip_ollama" {
   default     = "10.0.0.7"
   description = "Hub NVA Gateway Virtual IP Address for Ollama"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-vip-ollama))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_vip_ollama))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.7)."
   }
 }
 
-variable "hub-nva-vip-video" {
+variable "hub_nva_vip_video" {
   default     = "10.0.0.8"
   description = "Hub NVA Gateway Virtual IP Address for Video"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-vip-video))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_vip_video))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.8)."
   }
 }
 
-variable "hub-nva-vip-artifacts" {
+variable "hub_nva_vip_artifacts" {
   default     = "10.0.0.9"
   description = "Hub NVA Gateway Virtual IP Address for Artifacts"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-vip-artifacts))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_vip_artifacts))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.9)."
   }
 }
 
-variable "hub-nva-vip-extractor" {
+variable "hub_nva_vip_extractor" {
   default     = "10.0.0.10"
   description = "Hub NVA Gateway Virtual IP Address for extractor"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub-nva-vip-extractor))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.hub_nva_vip_extractor))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.0.0.10)."
   }
 }
@@ -385,81 +385,81 @@ variable "gpu_node_pool" {
   type        = bool
 }
 
-variable "spoke-virtual-network_address_prefix" {
+variable "spoke_virtual_network_address_prefix" {
   default     = "10.1.0.0/16"
   description = "Spoke Virtual Network Address prefix."
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-virtual-network_address_prefix))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke_virtual_network_address_prefix))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
   }
 }
 
-variable "spoke-subnet_name" {
+variable "spoke_subnet_name" {
   default     = "spoke_subnet"
   description = "Spoke Subnet Name."
   type        = string
   validation {
-    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.spoke-subnet_name))
+    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.spoke_subnet_name))
     error_message = "The value must consist of alphanumeric characters, underscores, or dashes only."
   }
 }
 
-variable "spoke-subnet_prefix" {
+variable "spoke_subnet_prefix" {
   default     = "10.1.1.0/24"
   description = "Spoke Subnet Prefix."
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-subnet_prefix))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke_subnet_prefix))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
   }
 }
-variable "spoke-aks-subnet_name" {
+variable "spoke_aks_subnet_name" {
   default     = "spoke-aks-subnet"
   description = "Spoke aks Subnet Name."
   type        = string
   validation {
-    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.spoke-aks-subnet_name))
+    condition     = can(regex("^[a-zA-Z0-9_-]*$", var.spoke_aks_subnet_name))
     error_message = "The value must consist of alphanumeric characters, underscores, or dashes only."
   }
 }
 
-variable "spoke-aks-subnet_prefix" {
+variable "spoke_aks_subnet_prefix" {
   default     = "10.1.2.0/24"
   description = "Spoke Pod Subnet Prefix."
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-aks-subnet_prefix))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke_aks_subnet_prefix))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
   }
 }
 
-variable "spoke-aks_pod_cidr" {
+variable "spoke_aks_pod_cidr" {
   default     = "10.244.0.0/16"
   description = "Spoke k8s pod cidr."
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-aks_pod_cidr))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke_aks_pod_cidr))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
   }
 }
 
-variable "spoke-aks-node-ip" {
+variable "spoke_aks_node_ip" {
   default     = "10.1.1.4"
   description = "Spoke Container Server IP Address"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.spoke-aks-node-ip))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.spoke_aks_node_ip))
     error_message = "The IP address must be a valid IPv4 format (e.g., 10.1.1.5)."
   }
 }
 
-variable "spoke-check-internet-up-ip" {
+variable "spoke_check_internet_up_ip" {
   default     = "8.8.8.8"
   description = "Spoke Container Server Checks the Internet at this IP Address"
   type        = string
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.spoke-check-internet-up-ip))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.spoke_check_internet_up_ip))
     error_message = "The IP address must be a valid IPv4 format (e.g., 8.8.8.8)."
   }
 }

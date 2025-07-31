@@ -101,7 +101,7 @@ locals {
 resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   depends_on = [
     azurerm_virtual_network_peering.spoke_to_hub_virtual_network_peering,
-    azurerm_linux_virtual_machine.hub-nva_virtual_machine
+    azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
 
   name                              = local.cluster_name
@@ -163,7 +163,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     network_plugin    = "kubenet"
     network_policy    = "calico"
     load_balancer_sku = "standard"
-    pod_cidr          = var.spoke-aks_pod_cidr
+    pod_cidr          = var.spoke_aks_pod_cidr
   }
 
   # System-assigned managed identity
@@ -174,7 +174,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   tags = local.standard_tags
 }
 
-resource "azurerm_kubernetes_cluster_node_pool" "cpu-node-pool" {
+resource "azurerm_kubernetes_cluster_node_pool" "cpu_node_pool" {
   count                 = var.production_environment ? 1 : 0
   name                  = "cpu"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.kubernetes_cluster.id
@@ -192,7 +192,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "cpu-node-pool" {
   vnet_subnet_id        = azurerm_subnet.spoke_subnet.id
 }
 
-resource "azurerm_kubernetes_cluster_node_pool" "gpu-node-pool" {
+resource "azurerm_kubernetes_cluster_node_pool" "gpu_node_pool" {
   count                 = var.gpu_node_pool ? 1 : 0
   name                  = "gpu"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.kubernetes_cluster.id

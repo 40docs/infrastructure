@@ -56,7 +56,7 @@ locals {
       name                          = "hub-nva-external-management_ip_configuration"
       primary                       = true
       private_ip_address_allocation = "Static"
-      private_ip_address            = var.hub-nva-management-ip
+      private_ip_address            = var.hub_nva_management_ip
       subnet_id                     = azurerm_subnet.hub_external_subnet.id
       public_ip_address_id          = var.management_public_ip ? (length(azurerm_public_ip.hub_nva_management_public_ip) > 0 ? azurerm_public_ip.hub_nva_management_public_ip[0].id : null) : null
       condition                     = true
@@ -65,45 +65,45 @@ locals {
       name                          = "hub-nva-external-vip-docs_configuration"
       primary                       = false
       private_ip_address_allocation = "Static"
-      private_ip_address            = var.hub-nva-vip-docs
+      private_ip_address            = var.hub_nva_vip_docs
       subnet_id                     = azurerm_subnet.hub_external_subnet.id
-      public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_docs_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_docs_public_ip[0].id : null
+      public_ip_address_id          = length(azurerm_public_ip.hub_nva_vip_docs_public_ip) > 0 ? azurerm_public_ip.hub_nva_vip_docs_public_ip[0].id : null
       condition                     = var.application_docs
     },
     {
       name                          = "hub-nva-external-vip-dvwa_configuration"
       primary                       = false
       private_ip_address_allocation = "Static"
-      private_ip_address            = var.hub-nva-vip-dvwa
+      private_ip_address            = var.hub_nva_vip_dvwa
       subnet_id                     = azurerm_subnet.hub_external_subnet.id
-      public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_dvwa_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].id : null
+      public_ip_address_id          = length(azurerm_public_ip.hub_nva_vip_dvwa_public_ip) > 0 ? azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].id : null
       condition                     = var.application_dvwa
     },
     {
       name                          = "hub-nva-external-vip-ollama_configuration"
       primary                       = false
       private_ip_address_allocation = "Static"
-      private_ip_address            = var.hub-nva-vip-ollama
+      private_ip_address            = var.hub_nva_vip_ollama
       subnet_id                     = azurerm_subnet.hub_external_subnet.id
-      public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_ollama_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_ollama_public_ip[0].id : null
+      public_ip_address_id          = length(azurerm_public_ip.hub_nva_vip_ollama_public_ip) > 0 ? azurerm_public_ip.hub_nva_vip_ollama_public_ip[0].id : null
       condition                     = var.application_ollama
     },
     {
       name                          = "hub-nva-external-vip-video_configuration"
       primary                       = false
       private_ip_address_allocation = "Static"
-      private_ip_address            = var.hub-nva-vip-video
+      private_ip_address            = var.hub_nva_vip_video
       subnet_id                     = azurerm_subnet.hub_external_subnet.id
-      public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_video_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_video_public_ip[0].id : null
+      public_ip_address_id          = length(azurerm_public_ip.hub_nva_vip_video_public_ip) > 0 ? azurerm_public_ip.hub_nva_vip_video_public_ip[0].id : null
       condition                     = var.application_video
     },
     {
       name                          = "hub-nva-external-vip-extractor_configuration"
       primary                       = false
       private_ip_address_allocation = "Static"
-      private_ip_address            = var.hub-nva-vip-extractor
+      private_ip_address            = var.hub_nva_vip_extractor
       subnet_id                     = azurerm_subnet.hub_external_subnet.id
-      public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_extractor_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_extractor_public_ip[0].id : null
+      public_ip_address_id          = length(azurerm_public_ip.hub_nva_vip_extractor_public_ip) > 0 ? azurerm_public_ip.hub_nva_vip_extractor_public_ip[0].id : null
       condition                     = var.application_extractor
     }
   ]
@@ -143,14 +143,15 @@ resource "azurerm_network_interface" "hub_nva_internal_network_interface" {
   ip_configuration {
     name                          = "hub-nva-internal_ip_configuration"
     private_ip_address_allocation = "Static"
-    private_ip_address            = var.hub-nva-gateway
+    private_ip_address            = var.hub_nva_gateway
     subnet_id                     = azurerm_subnet.hub_internal_subnet.id
   }
 
   tags = local.standard_tags
 }
 
-resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
+# Linux Virtual Machine running FortiWeb NVA
+resource "azurerm_linux_virtual_machine" "hub_nva_virtual_machine" {
   #checkov:skip=CKV_AZURE_178: Allow Fortigate to present HTTPS login UI instead of SSH
   #checkov:skip=CKV_AZURE_149: Allow Fortigate to present HTTPS login UI instead of SSH
   #checkov:skip=CKV_AZURE_1: Allow Fortigate to present HTTPS login UI instead of SSH
@@ -165,7 +166,7 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
   location                        = azurerm_resource_group.azure_resource_group.location
   resource_group_name             = azurerm_resource_group.azure_resource_group.name
   network_interface_ids           = [azurerm_network_interface.hub_nva_external_network_interface.id, azurerm_network_interface.hub_nva_internal_network_interface.id]
-  size                            = var.production_environment ? local.vm_image[var.hub-nva-image].size : local.vm_image[var.hub-nva-image].size-dev
+  size                            = var.production_environment ? local.vm_image[var.hub_nva_image].size : local.vm_image[var.hub_nva_image].size-dev
   allow_extension_operations      = false
 
   identity {
@@ -177,39 +178,39 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
     #disk_size_gb = var.production_environment ? 256 : 128
   }
   plan {
-    name      = local.vm_image[var.hub-nva-image].sku
-    product   = local.vm_image[var.hub-nva-image].offer
-    publisher = local.vm_image[var.hub-nva-image].publisher
+    name      = local.vm_image[var.hub_nva_image].sku
+    product   = local.vm_image[var.hub_nva_image].offer
+    publisher = local.vm_image[var.hub_nva_image].publisher
   }
   source_image_reference {
-    offer     = local.vm_image[var.hub-nva-image].offer
-    publisher = local.vm_image[var.hub-nva-image].publisher
-    sku       = local.vm_image[var.hub-nva-image].sku
+    offer     = local.vm_image[var.hub_nva_image].offer
+    publisher = local.vm_image[var.hub_nva_image].publisher
+    sku       = local.vm_image[var.hub_nva_image].sku
     version   = "latest"
   }
   custom_data = base64encode(
-    templatefile("cloud-init/${var.hub-nva-image}.conf",
+    templatefile("cloud-init/${var.hub_nva_image}.conf",
       {
-        VAR-config-system-global-admin-sport     = local.vm_image[var.hub-nva-image].management-port
-        VAR-hub-external-subnet-gateway          = var.hub-external-subnet-gateway
-        VAR-spoke-check-internet-up-ip           = var.spoke-check-internet-up-ip
-        VAR-spoke-default-gateway                = cidrhost(var.hub-internal-subnet_prefix, 1)
-        VAR-spoke-virtual-network_address_prefix = var.spoke-virtual-network_address_prefix
-        VAR-spoke-virtual-network_subnet         = cidrhost(var.spoke-virtual-network_address_prefix, 0)
-        VAR-spoke-virtual-network_netmask        = cidrnetmask(var.spoke-virtual-network_address_prefix)
-        VAR-spoke-aks-node-ip                    = var.spoke-aks-node-ip
-        VAR-hub-nva-vip-docs                     = var.hub-nva-vip-docs
-        VAR-hub-nva-vip-ollama                   = var.hub-nva-vip-ollama
-        VAR-hub-nva-vip-video                    = var.hub-nva-vip-video
-        VAR-hub-nva-vip-dvwa                     = var.hub-nva-vip-dvwa
-        VAR-hub-nva-vip-artifacts                = var.hub-nva-vip-artifacts
-        VAR-hub-nva-vip-extractor                = var.hub-nva-vip-extractor
+        VAR-config-system-global-admin-sport     = local.vm_image[var.hub_nva_image].management-port
+        VAR-hub-external-subnet-gateway          = var.hub_external_subnet_gateway
+        VAR-spoke-check-internet-up-ip           = var.spoke_check_internet_up_ip
+        VAR-spoke-default-gateway                = cidrhost(var.hub_internal_subnet_prefix, 1)
+        VAR-spoke-virtual-network_address_prefix = var.spoke_virtual_network_address_prefix
+        VAR-spoke-virtual-network_subnet         = cidrhost(var.spoke_virtual_network_address_prefix, 0)
+        VAR-spoke-virtual-network_netmask        = cidrnetmask(var.spoke_virtual_network_address_prefix)
+        VAR-spoke-aks-node-ip                    = var.spoke_aks_node_ip
+        VAR-hub-nva-vip-docs                     = var.hub_nva_vip_docs
+        VAR-hub-nva-vip-ollama                   = var.hub_nva_vip_ollama
+        VAR-hub-nva-vip-video                    = var.hub_nva_vip_video
+        VAR-hub-nva-vip-dvwa                     = var.hub_nva_vip_dvwa
+        VAR-hub-nva-vip-artifacts                = var.hub_nva_vip_artifacts
+        VAR-hub-nva-vip-extractor                = var.hub_nva_vip_extractor
         VAR-HUB_NVA_USERNAME                     = var.hub_nva_username
         VAR-CERTIFICATE                          = tls_self_signed_cert.self_signed_cert.cert_pem
         VAR-PRIVATEKEY                           = tls_private_key.private_key.private_key_pem
         VAR-fwb_license_file                     = ""
         VAR-fwb_license_fortiflex                = ""
-        VAR-spoke-aks-network                    = var.spoke-aks-subnet_prefix
+        VAR-spoke-aks-network                    = var.spoke_aks_subnet_prefix
       }
     )
   )

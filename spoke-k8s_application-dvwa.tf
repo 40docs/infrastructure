@@ -1,6 +1,6 @@
-data "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
+data "azurerm_public_ip" "hub_nva_vip_dvwa_public_ip" {
   count               = var.application_dvwa ? 1 : 0
-  name                = azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].name
+  name                = azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
 
@@ -10,7 +10,7 @@ resource "azurerm_dns_cname_record" "dvwa" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
 resource "azurerm_dns_cname_record" "app1" {
@@ -19,7 +19,7 @@ resource "azurerm_dns_cname_record" "app1" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
 resource "azurerm_dns_cname_record" "app2" {
@@ -28,7 +28,7 @@ resource "azurerm_dns_cname_record" "app2" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
 resource "azurerm_dns_cname_record" "app3" {
@@ -37,7 +37,7 @@ resource "azurerm_dns_cname_record" "app3" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
 resource "azurerm_dns_cname_record" "app4" {
@@ -46,7 +46,7 @@ resource "azurerm_dns_cname_record" "app4" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
 resource "azurerm_dns_cname_record" "app5" {
@@ -55,7 +55,7 @@ resource "azurerm_dns_cname_record" "app5" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
 resource "azurerm_dns_cname_record" "app6" {
@@ -64,7 +64,7 @@ resource "azurerm_dns_cname_record" "app6" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
 resource "azurerm_dns_cname_record" "app7" {
@@ -73,12 +73,12 @@ resource "azurerm_dns_cname_record" "app7" {
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_vip_dvwa_public_ip[0].fqdn
 }
 
-resource "azurerm_public_ip" "hub-nva-vip_dvwa_public_ip" {
+resource "azurerm_public_ip" "hub_nva_vip_dvwa_public_ip" {
   count               = var.application_dvwa ? 1 : 0
-  name                = "hub-nva-vip_dvwa_public_ip"
+  name                = "hub_nva_vip_dvwa_public_ip"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   allocation_method   = "Static"

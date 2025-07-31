@@ -14,7 +14,7 @@
 # Spoke Virtual Network - Contains AKS and application resources
 resource "azurerm_virtual_network" "spoke_virtual_network" {
   name                = "spoke_virtual_network"
-  address_space       = [var.spoke-virtual-network_address_prefix]
+  address_space       = [var.spoke_virtual_network_address_prefix]
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 
@@ -42,16 +42,16 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub_virtual_network_peering
 
 # General purpose subnet for spoke resources
 resource "azurerm_subnet" "spoke_subnet" {
-  name                 = var.spoke-subnet_name
-  address_prefixes     = [var.spoke-subnet_prefix]
+  name                 = var.spoke_subnet_name
+  address_prefixes     = [var.spoke_subnet_prefix]
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   virtual_network_name = azurerm_virtual_network.spoke_virtual_network.name
 }
 
 # Dedicated subnet for AKS cluster
 resource "azurerm_subnet" "spoke_aks_subnet" {
-  name                 = var.spoke-aks-subnet_name
-  address_prefixes     = [var.spoke-aks-subnet_prefix]
+  name                 = var.spoke_aks_subnet_name
+  address_prefixes     = [var.spoke_aks_subnet_prefix]
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   virtual_network_name = azurerm_virtual_network.spoke_virtual_network.name
 }
@@ -70,7 +70,7 @@ resource "azurerm_route_table" "spoke_route_table" {
     name                   = "default"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = var.hub-nva-gateway
+    next_hop_in_ip_address = var.hub_nva_gateway
   }
 
   tags = local.standard_tags
