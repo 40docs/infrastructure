@@ -6,9 +6,6 @@ permissions:
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     environment: copilot
     steps:
       - name: Azure login
