@@ -26,9 +26,9 @@ This repository automates the deployment and management of Azure infrastructure 
 - **Complete Refactoring**: All Terraform variables and resource names now use consistent `snake_case` formatting
 - **Variable References Fixed**: 65+ kebab-case variable references converted to snake_case throughout the codebase
 - **Resource Naming Updated**: All public IP resources in application files updated for consistency
-- **Files Updated**: 
+- **Files Updated**:
   - `hub-nva.tf` (45+ variable references)
-  - `spoke-network.tf` (6 variable references)  
+  - `spoke-network.tf` (6 variable references)
   - `spoke-k8s_cluster.tf` (1 variable reference)
   - All `spoke-k8s_application-*.tf` files (resource names)
 
@@ -48,7 +48,43 @@ This repository automates the deployment and management of Azure infrastructure 
 - ✅ **Zero Validation Errors**: All resource references now resolve correctly
 - ✅ **Consistent Naming**: All code follows HashiCorp Terraform best practices
 - ✅ **Enhanced Maintainability**: Unified naming convention reduces confusion
-- ✅ **Ready for Deployment**: Configuration validated and ready for production use## 🚨 Current Status & Critical Issues
+- ✅ **Ready for Deployment**: Configuration validated and ready for production use
+
+### ✅ February 2025 - Cloud-Init Template Variable Standardization
+
+**Complete Template Variable Refactoring:**
+- **Problem Identified**: Mixed variable naming conventions across cloud-init templates and Terraform files
+- **Scope**: CloudShell and FortiWeb NVA template configurations had inconsistent variable patterns
+- **Solution Implemented**: Comprehensive refactoring to standardize all template variables to lowercase snake_case
+
+**Changes Made:**
+
+**CloudShell Template Variables:**
+- **Before**: Mixed patterns (`VAR_Directory_tenant_ID`, `VAR_KUBECONFIG`, `VAR_Forticnapp_account`)
+- **After**: Consistent snake_case (`var_directory_tenant_id`, `var_kubeconfig`, `var_forticnapp_account`)
+- **Files Updated**:
+  - `cloudshell.tf` - templatefile section (14 variables)
+  - `cloud-init/CLOUDSHELL.conf` - variable references (14 locations)
+
+**FortiWeb NVA Template Variables:**
+- **Before**: Kebab-case patterns (`VAR-config-system-global-admin-sport`, `VAR-HUB_NVA_USERNAME`)
+- **After**: Consistent snake_case (`var_config_system_global_admin_sport`, `var_hub_nva_username`)
+- **Files Updated**:
+  - `hub-nva.tf` - templatefile section (20 variables)
+  - `cloud-init/fortiweb.conf` - variable references (20+ locations)
+
+**Technical Benefits:**
+- ✅ **Consistent Naming**: All template variables now follow HashiCorp Terraform best practices
+- ✅ **Improved Maintainability**: Unified naming convention reduces developer confusion
+- ✅ **Error Prevention**: Consistent patterns prevent template variable mismatches
+- ✅ **Code Readability**: Clear, predictable variable naming across all files
+
+**Validation Results:**
+- ✅ **Terraform Validate**: All configurations pass validation successfully
+- ✅ **No Uppercase Patterns**: Verified zero remaining `VAR_` or `VAR-` uppercase patterns
+- ✅ **Template Consistency**: All cloud-init templates use consistent lowercase snake_case variables
+
+## 🚨 Current Status & Critical Issues
 
 ### ❌ High Availability Concerns
 
