@@ -207,8 +207,8 @@ variable "environment" {
 # Management Configuration
 variable "management_public_ip" {
   type        = bool
-  description = "Whether to create a public IP for management access"
-  default     = var.environment == "prod" ? true : false
+  description = "Whether to create a public IP for management access. Set to true in production via tfvars or CI/CD."
+  default     = false
 }
 
 # Owner Information
