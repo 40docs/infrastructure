@@ -107,6 +107,7 @@ jobs:
           TF_VAR_application_artifacts: ${{ vars.APPLICATION_ARTIFACTS }}
           TF_VAR_application_extractor: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_management_public_ip: ${{ vars.MANAGEMENT_PUBLIC_IP }}
+          TF_VAR_cloudshell: ${{ vars.CLOUDSHELL }}
           TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.cloudshell_Directory_tenant_ID }}
           TF_VAR_cloudshell_directory_client_id: ${{ secrets.cloudshell_Directory_client_ID }}
           TF_VAR_forticnapp_account: ${{ secrets.Forticnapp_account }}
@@ -242,6 +243,7 @@ jobs:
           TF_VAR_application_artifacts: ${{ vars.APPLICATION_ARTIFACTS }}
           TF_VAR_application_extractor: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_management_public_ip: ${{ vars.MANAGEMENT_PUBLIC_IP }}
+          TF_VAR_cloudshell: ${{ vars.CLOUDSHELL }}
           TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.cloudshell_Directory_tenant_ID }}
           TF_VAR_cloudshell_directory_client_id: ${{ secrets.cloudshell_Directory_client_ID }}
           TF_VAR_forticnapp_account: ${{ secrets.Forticnapp_account }}
@@ -340,6 +342,7 @@ jobs:
           TF_VAR_application_artifacts: ${{ vars.APPLICATION_ARTIFACTS }}
           TF_VAR_application_extractor: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_management_public_ip: ${{ vars.MANAGEMENT_PUBLIC_IP }}
+          TF_VAR_cloudshell: ${{ vars.CLOUDSHELL }}
           TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.cloudshell_Directory_tenant_ID }}
           TF_VAR_cloudshell_directory_client_id: ${{ secrets.cloudshell_Directory_client_ID }}
           TF_VAR_forticnapp_account: ${{ secrets.Forticnapp_account }}
