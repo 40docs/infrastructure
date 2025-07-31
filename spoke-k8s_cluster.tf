@@ -136,7 +136,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     max_pods                     = "75"
     orchestrator_version         = "1.30.6"
     vnet_subnet_id               = azurerm_subnet.spoke_subnet.id
-    only_critical_addons_enabled = var.production_environment ? true : false
+    only_critical_addons_enabled = var.production_environment
 
     upgrade_settings {
       max_surge = var.production_environment ? 10 : 1
