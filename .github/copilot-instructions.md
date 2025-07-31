@@ -20,6 +20,7 @@
 
 ## Developer Workflow
 - **Branch Protection**: The `main` branch is protected. **All changes must be made via a pull request. Direct pushes to `main` are not allowed.**
+- **GitHub CLI**: Before running any `gh` commands, disable the pager with `export GH_PAGER=` to prevent pagination issues.
 - **Terraform**:
   - Do not run `terraform init`, `terraform plan`, or `terraform apply` because terraform variables are initialized by github secrets during a workflow run.
 - **Cloud-init**: Edit scripts in `cloud-init/` for VM setup.
@@ -29,6 +30,7 @@
 ## Integration Points
 - **Azure**: Auth via Azure CLI or GitHub Actions (`azure/login`).
 - **GitHub Actions**: See `.github/workflows/infrastructure.yml` for build/deploy logic.
+- **GitHub CLI**: Always run `export GH_PAGER=` before using `gh` commands to disable pager and prevent terminal blocking.
 - **External Tools**: Security scanning tools are recommended but not enforced.
 
 ## Project-Specific Conventions
