@@ -17,11 +17,13 @@
 - **Security**: Use private subnets, encryption, least-privilege IAM. Scan with `tfsec`, `trivy`, or `checkov`.
 - **Documentation**: Document complex logic inline in `.tf` files.
 
+
 ## Developer Workflow
+- **Branch Protection**: The `main` branch is protected. **All changes must be made via a pull request. Direct pushes to `main` are not allowed.**
 - **Terraform**:
   - Do not run `terraform init`, `terraform plan`, or `terraform apply` because terraform variables are initialized by github secrets during a workflow run.
 - **Cloud-init**: Edit scripts in `cloud-init/` for VM setup.
-- **CI/CD**: Push to `main` triggers deploy pipeline.
+- **CI/CD**: Merges to `main` via pull request trigger the deploy pipeline.
 - **Testing**: Use security scanners (`tfsec`, `trivy`, `checkov`) before PR/merge.
 
 ## Integration Points
