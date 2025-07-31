@@ -1,28 +1,53 @@
-resource "azurerm_public_ip" "hub-nva-management_public_ip" {
-  count               = var.management_public_ip ? 1 : 0
-  name                = "hub-nva-management_public_ip"
+#===============================================================================
+# Hub Network Virtual Appliance (NVA) Configuration
+#
+# This file configures the FortiWeb NVA instances in the hub network.
+# Includes public IPs, DNS records, availability sets, and network interfaces.
+#
+# Resources:
+# - Public IPs for management and VIP access
+# - DNS CNAME records for domain management
+# - Availability set for high availability
+# - Network interfaces for external and internal connectivity
+# - Virtual machine instance running FortiWeb
+#===============================================================================
+
+# Public IP for NVA management access
+resource "azurerm_public_ip" "hub_nva_management_public_ip" {
+  count = var.management_public_ip ? 1 : 0
+
+  name                = "hub-nva-management-public-ip"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   allocation_method   = "Static"
   sku                 = "Standard"
   domain_name_label   = "management-${azurerm_resource_group.azure_resource_group.name}"
+
+  tags = local.standard_tags
 }
 
-resource "azurerm_dns_cname_record" "hub-nva" {
-  count               = var.management_public_ip ? 1 : 0
+# DNS CNAME record for NVA management
+resource "azurerm_dns_cname_record" "hub_nva" {
+  count = var.management_public_ip ? 1 : 0
+
   name                = "hub-nva"
   zone_name           = azurerm_dns_zone.dns_zone.name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   ttl                 = 300
-  record              = data.azurerm_public_ip.hub-nva-management_public_ip[0].fqdn
+  record              = data.azurerm_public_ip.hub_nva_management_public_ip[0].fqdn
+
+  tags = local.standard_tags
 }
 
-resource "azurerm_availability_set" "hub-nva_availability_set" {
+# Availability set for NVA high availability
+resource "azurerm_availability_set" "hub_nva_availability_set" {
+  name                         = "hub-nva-availability-set"
   location                     = azurerm_resource_group.azure_resource_group.location
   resource_group_name          = azurerm_resource_group.azure_resource_group.name
-  name                         = "hub-nva_availability_set"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 2
+
+  tags = local.standard_tags
 }
 
 locals {
@@ -32,8 +57,8 @@ locals {
       primary                       = true
       private_ip_address_allocation = "Static"
       private_ip_address            = var.hub-nva-management-ip
-      subnet_id                     = azurerm_subnet.hub-external_subnet.id
-      public_ip_address_id          = var.management_public_ip ? (length(azurerm_public_ip.hub-nva-management_public_ip) > 0 ? azurerm_public_ip.hub-nva-management_public_ip[0].id : null) : null
+      subnet_id                     = azurerm_subnet.hub_external_subnet.id
+      public_ip_address_id          = var.management_public_ip ? (length(azurerm_public_ip.hub_nva_management_public_ip) > 0 ? azurerm_public_ip.hub_nva_management_public_ip[0].id : null) : null
       condition                     = true
     },
     {
@@ -41,7 +66,7 @@ locals {
       primary                       = false
       private_ip_address_allocation = "Static"
       private_ip_address            = var.hub-nva-vip-docs
-      subnet_id                     = azurerm_subnet.hub-external_subnet.id
+      subnet_id                     = azurerm_subnet.hub_external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_docs_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_docs_public_ip[0].id : null
       condition                     = var.application_docs
     },
@@ -50,7 +75,7 @@ locals {
       primary                       = false
       private_ip_address_allocation = "Static"
       private_ip_address            = var.hub-nva-vip-dvwa
-      subnet_id                     = azurerm_subnet.hub-external_subnet.id
+      subnet_id                     = azurerm_subnet.hub_external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_dvwa_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_dvwa_public_ip[0].id : null
       condition                     = var.application_dvwa
     },
@@ -59,7 +84,7 @@ locals {
       primary                       = false
       private_ip_address_allocation = "Static"
       private_ip_address            = var.hub-nva-vip-ollama
-      subnet_id                     = azurerm_subnet.hub-external_subnet.id
+      subnet_id                     = azurerm_subnet.hub_external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_ollama_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_ollama_public_ip[0].id : null
       condition                     = var.application_ollama
     },
@@ -68,7 +93,7 @@ locals {
       primary                       = false
       private_ip_address_allocation = "Static"
       private_ip_address            = var.hub-nva-vip-video
-      subnet_id                     = azurerm_subnet.hub-external_subnet.id
+      subnet_id                     = azurerm_subnet.hub_external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_video_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_video_public_ip[0].id : null
       condition                     = var.application_video
     },
@@ -77,15 +102,15 @@ locals {
       primary                       = false
       private_ip_address_allocation = "Static"
       private_ip_address            = var.hub-nva-vip-extractor
-      subnet_id                     = azurerm_subnet.hub-external_subnet.id
+      subnet_id                     = azurerm_subnet.hub_external_subnet.id
       public_ip_address_id          = length(azurerm_public_ip.hub-nva-vip_extractor_public_ip) > 0 ? azurerm_public_ip.hub-nva-vip_extractor_public_ip[0].id : null
       condition                     = var.application_extractor
     }
   ]
 }
 
-# Resource Definition
-resource "azurerm_network_interface" "hub-nva-external_network_interface" {
+# External network interface for hub NVA
+resource "azurerm_network_interface" "hub_nva_external_network_interface" {
   name                           = "hub-nva-external_network_interface"
   location                       = azurerm_resource_group.azure_resource_group.location
   resource_group_name            = azurerm_resource_group.azure_resource_group.name
@@ -103,20 +128,26 @@ resource "azurerm_network_interface" "hub-nva-external_network_interface" {
       public_ip_address_id          = ip_configuration.value.public_ip_address_id
     }
   }
+
+  tags = local.standard_tags
 }
 
-resource "azurerm_network_interface" "hub-nva-internal_network_interface" {
+# Internal network interface for hub NVA
+resource "azurerm_network_interface" "hub_nva_internal_network_interface" {
   name                           = "hub-nva-internal_network_interface"
   location                       = azurerm_resource_group.azure_resource_group.location
   resource_group_name            = azurerm_resource_group.azure_resource_group.name
   accelerated_networking_enabled = true
   ip_forwarding_enabled          = true #checkov:skip=CKV_AZURE_118:Fortigate NIC needs IP forwarding.
+
   ip_configuration {
     name                          = "hub-nva-internal_ip_configuration"
     private_ip_address_allocation = "Static"
     private_ip_address            = var.hub-nva-gateway
-    subnet_id                     = azurerm_subnet.hub-internal_subnet.id
+    subnet_id                     = azurerm_subnet.hub_internal_subnet.id
   }
+
+  tags = local.standard_tags
 }
 
 resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
@@ -127,13 +158,13 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
   depends_on                      = [null_resource.marketplace_agreement]
   name                            = "hub-nva_virtual_machine"
   computer_name                   = "hub-nva"
-  availability_set_id             = azurerm_availability_set.hub-nva_availability_set.id
+  availability_set_id             = azurerm_availability_set.hub_nva_availability_set.id
   admin_username                  = var.hub_nva_username
   disable_password_authentication = false #tfsec:ignore:AVD-AZU-0039
   admin_password                  = var.hub_nva_password
   location                        = azurerm_resource_group.azure_resource_group.location
   resource_group_name             = azurerm_resource_group.azure_resource_group.name
-  network_interface_ids           = [azurerm_network_interface.hub-nva-external_network_interface.id, azurerm_network_interface.hub-nva-internal_network_interface.id]
+  network_interface_ids           = [azurerm_network_interface.hub_nva_external_network_interface.id, azurerm_network_interface.hub_nva_internal_network_interface.id]
   size                            = var.production_environment ? local.vm_image[var.hub-nva-image].size : local.vm_image[var.hub-nva-image].size-dev
   allow_extension_operations      = false
 
@@ -183,19 +214,3 @@ resource "azurerm_linux_virtual_machine" "hub-nva_virtual_machine" {
     )
   )
 }
-
-#resource "azurerm_managed_disk" "log_disk" {
-#  name                 = "hub-nva-log_disk"
-#  location             = azurerm_resource_group.azure_resource_group.location
-#  resource_group_name  = azurerm_resource_group.azure_resource_group.name
-#  storage_account_type = "Standard_LRS"
-#  create_option        = "Empty"
-#  disk_size_gb         = var.production_environment ? 128 : 36
-#}
-
-#resource "azurerm_virtual_machine_data_disk_attachment" "log_disk" {
-#  managed_disk_id    = azurerm_managed_disk.log_disk.id
-#  virtual_machine_id = azurerm_linux_virtual_machine.hub-nva_virtual_machine.id
-#  lun                = "0"
-#  caching            = "ReadWrite"
-#}

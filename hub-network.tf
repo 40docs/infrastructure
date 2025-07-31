@@ -1,64 +1,111 @@
+#===============================================================================
+# Hub Network Infrastructure
+#
+# This file contains the core networking infrastructure for the hub network,
+# including DNS zone, virtual network, subnets, and network peering to spoke.
+#
+# Resources:
+# - DNS Zone for domain management
+# - Hub Virtual Network with external and internal subnets
+# - Virtual Network Peering from hub to spoke
+#===============================================================================
+
+# DNS Zone for domain management
 resource "azurerm_dns_zone" "dns_zone" {
   name                = var.dns_zone
   resource_group_name = azurerm_resource_group.azure_resource_group.name
+
+  tags = local.standard_tags
 }
 
+# Hub Virtual Network - Central networking component
 resource "azurerm_virtual_network" "hub_virtual_network" {
   name                = "hub_virtual_network"
   address_space       = [var.hub-virtual-network_address_prefix]
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
+
+  tags = local.standard_tags
 }
 
-resource "azurerm_virtual_network_peering" "hub-to-spoke_virtual_network_peering" {
+# Virtual Network Peering from Hub to Spoke
+resource "azurerm_virtual_network_peering" "hub_to_spoke_virtual_network_peering" {
   name                      = "hub-to-spoke_virtual_network_peering"
   resource_group_name       = azurerm_resource_group.azure_resource_group.name
   virtual_network_name      = azurerm_virtual_network.hub_virtual_network.name
   remote_virtual_network_id = azurerm_virtual_network.spoke_virtual_network.id
   allow_forwarded_traffic   = true
   allow_gateway_transit     = true
-  depends_on                = [azurerm_virtual_network.hub_virtual_network, azurerm_virtual_network.spoke_virtual_network]
+
+  depends_on = [
+    azurerm_virtual_network.hub_virtual_network,
+    azurerm_virtual_network.spoke_virtual_network
+  ]
 }
 
-resource "azurerm_subnet" "hub-external_subnet" {
-  address_prefixes     = [var.hub-external-subnet_prefix]
+#===============================================================================
+# Hub Subnets
+#===============================================================================
+
+# External subnet for internet-facing resources
+resource "azurerm_subnet" "hub_external_subnet" {
   name                 = var.hub-external-subnet_name
+  address_prefixes     = [var.hub-external-subnet_prefix]
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   virtual_network_name = azurerm_virtual_network.hub_virtual_network.name
 }
 
-resource "azurerm_subnet" "hub-internal_subnet" {
-  address_prefixes     = [var.hub-internal-subnet_prefix]
+# Internal subnet for internal resources
+resource "azurerm_subnet" "hub_internal_subnet" {
   name                 = var.hub-internal-subnet_name
+  address_prefixes     = [var.hub-internal-subnet_prefix]
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   virtual_network_name = azurerm_virtual_network.hub_virtual_network.name
 }
 
+#===============================================================================
+# Hub Network Routing
+#===============================================================================
+
+# Route table for hub network traffic
 resource "azurerm_route_table" "hub_route_table" {
   name                = "hub_route_table"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
+
   route {
     name           = "default"
     address_prefix = "0.0.0.0/0"
     next_hop_type  = "Internet"
   }
+
+  tags = local.standard_tags
 }
 
-resource "azurerm_subnet_route_table_association" "hub-internal-routing-table_association" {
-  subnet_id      = azurerm_subnet.hub-internal_subnet.id
+# Associate route table with internal subnet
+resource "azurerm_subnet_route_table_association" "hub_internal_route_table_association" {
+  subnet_id      = azurerm_subnet.hub_internal_subnet.id
   route_table_id = azurerm_route_table.hub_route_table.id
 }
 
-resource "azurerm_subnet_route_table_association" "hub-external-route-table_association" {
-  subnet_id      = azurerm_subnet.hub-external_subnet.id
+# Associate route table with external subnet
+resource "azurerm_subnet_route_table_association" "hub_external_route_table_association" {
+  subnet_id      = azurerm_subnet.hub_external_subnet.id
   route_table_id = azurerm_route_table.hub_route_table.id
 }
 
-resource "azurerm_network_security_group" "hub-external_network_security_group" { #tfsec:ignore:azure-network-no-public-ingress
+#===============================================================================
+# Hub Network Security Groups
+#===============================================================================
+
+# Network Security Group for External Subnet
+# Controls internet-facing traffic and NVA management access
+resource "azurerm_network_security_group" "hub_external_network_security_group" { #tfsec:ignore:azure-network-no-public-ingress
   name                = "hub-external_network_security_group"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
+
+  # Management access rule for NVA
   security_rule {
     name                       = "MGMT_rule"
     priority                   = 100
@@ -70,6 +117,8 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-management-ip
   }
+
+  # Virtual IP rule for docs application
   security_rule {
     name                       = "VIP_rule-docs"
     priority                   = 101
@@ -81,6 +130,8 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-vip-docs
   }
+
+  # Virtual IP rule for DVWA application
   security_rule {
     name                       = "VIP_rule-dvwa"
     priority                   = 102
@@ -92,6 +143,8 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-vip-dvwa
   }
+
+  # Virtual IP rule for Ollama application
   security_rule {
     name                       = "VIP_rule-ollama"
     priority                   = 103
@@ -103,6 +156,8 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-vip-ollama
   }
+
+  # Virtual IP rule for video application
   security_rule {
     name                       = "VIP_rule-video"
     priority                   = 104
@@ -114,6 +169,8 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-vip-video
   }
+
+  # Virtual IP rule for extractor application
   security_rule {
     name                       = "VIP_rule-extractor"
     priority                   = 105
@@ -125,57 +182,67 @@ resource "azurerm_network_security_group" "hub-external_network_security_group" 
     source_address_prefix      = "*"
     destination_address_prefix = var.hub-nva-vip-extractor
   }
+
+  tags = local.standard_tags
 }
 
-resource "azurerm_subnet_network_security_group_association" "hub-external-subnet-network-security-group_association" {
-  subnet_id                 = azurerm_subnet.hub-external_subnet.id
-  network_security_group_id = azurerm_network_security_group.hub-external_network_security_group.id
+# Associate external NSG with external subnet
+resource "azurerm_subnet_network_security_group_association" "hub_external_subnet_nsg_association" {
+  subnet_id                 = azurerm_subnet.hub_external_subnet.id
+  network_security_group_id = azurerm_network_security_group.hub_external_network_security_group.id
 }
 
-resource "azurerm_network_security_group" "hub-internal_network_security_group" {
+# Network Security Group for Internal Subnet
+# Controls internal traffic and communication with spoke networks
+resource "azurerm_network_security_group" "hub_internal_network_security_group" {
   name                = "hub-internal_network_security_group"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
+
+  # Allow AKS node internet access for updates and container pulls
   security_rule {
-    name                    = "aks-node_to_internet_rule"
-    priority                = 100
-    direction               = "Inbound"
-    access                  = "Allow"
-    protocol                = "Tcp"
-    source_port_range       = "*"
-    destination_port_ranges = ["80", "443"]
-    #source_address_prefix      = var.spoke-aks-node-ip
+    name                       = "aks-node_to_internet_rule"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
     source_address_prefix      = "10.0.0.0/8"
     destination_address_prefix = "*"
   }
+
+  # Allow ICMP for connectivity testing
   security_rule {
-    name                   = "icmp_to_google-dns_rule"
-    priority               = 101
-    direction              = "Inbound"
-    access                 = "Allow"
-    protocol               = "Icmp"
-    source_port_range      = "*"
-    destination_port_range = "*"
-    #source_address_prefix      = var.spoke-aks-node-ip
-    source_address_prefix = "*"
-    #destination_address_prefix = var.spoke-check-internet-up-ip
+    name                       = "icmp_to_google-dns_rule"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  # Allow outbound HTTP traffic for applications
   security_rule {
-    name                    = "outbound-http_rule"
-    priority                = 102
-    direction               = "Outbound"
-    access                  = "Allow"
-    protocol                = "Tcp"
-    source_port_range       = "*"
-    destination_port_ranges = ["8000", "8080", "11434"]
-    source_address_prefix   = "*"
-    #destination_address_prefix = var.spoke-aks-node-ip
+    name                       = "outbound-http_rule"
+    priority                   = 102
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["8000", "8080", "11434"]
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  tags = local.standard_tags
 }
 
-resource "azurerm_subnet_network_security_group_association" "hub-internal-subnet-network-security-group_association" {
-  subnet_id                 = azurerm_subnet.hub-internal_subnet.id
-  network_security_group_id = azurerm_network_security_group.hub-internal_network_security_group.id
+# Associate internal NSG with internal subnet
+resource "azurerm_subnet_network_security_group_association" "hub_internal_subnet_nsg_association" {
+  subnet_id                 = azurerm_subnet.hub_internal_subnet.id
+  network_security_group_id = azurerm_network_security_group.hub_internal_network_security_group.id
 }

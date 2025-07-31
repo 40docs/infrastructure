@@ -2,261 +2,226 @@
 # Terraform Variables
 #
 # This file defines all input variables for the infrastructure.
-# Ensure every variable has a description and sensitive variables
-# are marked as such. See .github/instructions/terraform.instructions.md
+# Variables are organized alphabetically and follow naming conventions.
+# All variables include type and description as per best practices.
 #
-# Reminder: Run `terraform fmt` and `terraform validate` before commit.
+# See .github/instructions/terraform.instructions.md for details.
 ###############################################################
 
-variable "project_name" {
-  description = "Project name for tagging and resource naming."
-  type        = string
-}
-
-variable "application_docs" {
-  description = "Deploy Docs Application"
+# Application Configuration
+variable "application_artifacts" {
   type        = bool
+  description = "Deploy Artifacts application"
   default     = true
 }
 
-variable "application_signup" {
-  description = "Deploy Signup Application"
+variable "application_docs" {
   type        = bool
-  default     = false
-}
-
-variable "arm_subscription_id" {
-  description = "Azure Subscription ID"
-  type        = string
-}
-
-variable "letsencrypt_url" {
-  description = "Production or staging Let's Encrypt URL"
-  type        = string
-  validation {
-    condition     = var.letsencrypt_url == "https://acme-staging-v02.api.letsencrypt.org/directory" || var.letsencrypt_url == "https://acme-v02.api.letsencrypt.org/directory"
-    error_message = "letsencrypt_url must be either 'https://acme-staging-v02.api.letsencrypt.org/directory' or 'https://acme-v02.api.letsencrypt.org/directory'."
-  }
-}
-
-variable "dns_zone" {
-  description = "DNS Zone"
-  default     = "example.com"
-  type        = string
-}
-
-variable "htusername" {
-  description = "Username for Docs"
-  type        = string
-}
-
-variable "htpasswd" {
-  description = "Password for Docs"
-  type        = string
-}
-
-variable "application_video" {
-  description = "Deploy Docs Application"
-  type        = bool
+  description = "Deploy Docs application"
   default     = true
 }
 
 variable "application_dvwa" {
-  description = "Deploy Docs Application"
   type        = bool
-  default     = true
-}
-
-variable "application_ollama" {
-  description = "Deploy Docs Application"
-  type        = bool
-  default     = true
-}
-
-variable "application_artifacts" {
-  description = "Deploy Artifacts Application"
-  type        = bool
+  description = "Deploy DVWA (Damn Vulnerable Web Application)"
   default     = true
 }
 
 variable "application_extractor" {
-  description = "Deploy Extractor Application"
   type        = bool
+  description = "Deploy Extractor application"
   default     = true
 }
 
-variable "production_environment" {
-  description = "The environment for deployment Production=(true|false)"
+variable "application_ollama" {
   type        = bool
+  description = "Deploy Ollama application"
   default     = true
+}
+
+variable "application_signup" {
+  type        = bool
+  description = "Deploy Signup application"
+  default     = false
+}
+
+variable "application_video" {
+  type        = bool
+  description = "Deploy Video application"
+  default     = true
+}
+
+# Azure Configuration
+variable "arm_subscription_id" {
+  type        = string
+  description = "Azure Subscription ID"
+}
+
+# CloudShell Configuration
+variable "cloudshell" {
+  type        = bool
+  description = "Deploy CloudShell VM"
+  default     = false
+}
+
+# DNS Configuration
+variable "dns_zone" {
+  type        = string
+  description = "DNS Zone for the deployment"
+  default     = "example.com"
+}
+
+# GitHub Configuration
+variable "docs_builder_repo_name" {
+  type        = string
+  description = "Name of the docs builder repository"
+  default     = "docs-builder"
+}
+
+variable "github_org" {
+  type        = string
+  description = "GitHub organization name"
+}
+
+variable "github_token" {
+  type        = string
+  description = "GitHub token for authenticating to the repository"
+  sensitive   = true
+}
+
+# HTTP Authentication
+variable "htpasswd" {
+  type        = string
+  description = "Password for HTTP authentication"
+  sensitive   = true
+}
+
+variable "htusername" {
+  type        = string
+  description = "Username for HTTP authentication"
+}
+
+# Hub NVA Configuration
+variable "hub_nva_password" {
+  type        = string
+  description = "Password for Hub NVA device"
+  sensitive   = true
 }
 
 variable "hub_nva_username" {
-  description = "Username for Hub NVA device."
   type        = string
+  description = "Username for Hub NVA device"
   sensitive   = true
 }
 
-variable "hub_nva_password" {
-  description = "Password for Hub NVA device."
+# Let's Encrypt Configuration
+variable "letsencrypt_url" {
   type        = string
-  sensitive   = true
+  description = "Production or staging Let's Encrypt URL"
+
+  validation {
+    condition = contains([
+      "https://acme-staging-v02.api.letsencrypt.org/directory",
+      "https://acme-v02.api.letsencrypt.org/directory"
+    ], var.letsencrypt_url)
+    error_message = "letsencrypt_url must be either staging or production Let's Encrypt directory URL."
+  }
 }
 
+# Project Configuration
+variable "project_name" {
+  type        = string
+  description = "Project name for tagging and resource naming"
+}
+
+variable "location" {
+  type        = string
+  description = "Azure region for resource deployment"
+  default     = "eastus"
+
+  validation {
+    condition = contains([
+      "australiacentral", "australiacentral2", "australiaeast", "australiasoutheast",
+      "brazilsouth", "brazilsoutheast", "canadacentral", "canadaeast",
+      "centralindia", "centralus", "centraluseuap", "eastasia", "eastus", "eastus2",
+      "eastus2euap", "francecentral", "francesouth", "germanynorth", "germanywestcentral",
+      "israelcentral", "italynorth", "japaneast", "japanwest", "jioindiacentral",
+      "jioindiawest", "koreacentral", "koreasouth", "mexicocentral", "northcentralus",
+      "northeurope", "norwayeast", "norwaywest", "polandcentral", "qatarcentral",
+      "southafricanorth", "southafricawest", "southcentralus", "southeastasia",
+      "southindia", "swedencentral", "switzerlandnorth", "switzerlandwest",
+      "uaecentral", "uaenorth", "uksouth", "ukwest", "westcentralus",
+      "westeurope", "westindia", "westus", "westus2"
+    ], var.location)
+    error_message = "The location must be a valid Azure region."
+  }
+}
+
+variable "production_environment" {
+  type        = bool
+  description = "Whether this is a production environment (affects resource sizing and configuration)"
+  default     = true
+}
+
+# Lacework Configuration
 variable "lw_agent_token" {
-  description = "Lacework agent token."
   type        = string
+  description = "Lacework agent token for security monitoring"
   sensitive   = true
+}
+
+# Manifest Repository Configuration
+variable "manifests_applications_repo_name" {
+  type        = string
+  description = "Name of the applications manifest repository"
+}
+
+variable "manifests_applications_ssh_private_key" {
+  type        = string
+  description = "SSH private key for applications manifest repository authentication"
+  sensitive   = true
+}
+
+variable "manifests_infrastructure_repo_name" {
+  type        = string
+  description = "Name of the infrastructure manifest repository"
+}
+
+variable "manifests_infrastructure_ssh_private_key" {
+  type        = string
+  description = "SSH private key for infrastructure manifest repository authentication"
+  sensitive   = true
+}
+
+# Management Configuration
+variable "management_public_ip" {
+  type        = bool
+  description = "Whether to create a public IP for management access"
+  default     = false
+}
+
+# Owner Information
+variable "name" {
+  type        = string
+  description = "Full name of the owner for resource tagging"
 }
 
 variable "owner_email" {
-  description = "Email address for use with Owner tag."
   type        = string
+  description = "Email address for use with Owner tag"
+
   validation {
     condition     = can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.owner_email))
     error_message = "The owner_email must be a valid email address."
   }
 }
 
-variable "name" {
-  description = "Fullname of the owner for resource tagging"
-  type        = string
-}
-
-variable "github_token" {
-  type        = string
-  description = "GitHub token for authenticating to the repository"
-}
-
-variable "github_org" {
-  type = string
-}
-
-variable "manifests_infrastructure_ssh_private_key" {
-  type        = string
-  description = "GitHub deploy-key for authenticating to the repository"
-}
-
-variable "manifests_applications_ssh_private_key" {
-  type        = string
-  description = "GitHub deploy-key for authenticating to the repository"
-}
-
-variable "manifests_infrastructure_repo_name" {
-  type = string
-}
-
-variable "manifests_applications_repo_name" {
-  type = string
-}
-
-variable "docs_builder_repo_name" {
-  type    = string
-  default = "docs-builder"
-}
-
-variable "location" {
-  default     = "eastus"
-  description = "Azure region for resource group."
-  type        = string
-  validation {
-    condition = contains(
-      [
-        "asia",
-        "asiapacific",
-        "australia",
-        "australiacentral",
-        "australiacentral2",
-        "australiaeast",
-        "australiasoutheast",
-        "brazil",
-        "brazilsouth",
-        "brazilsoutheast",
-        "brazilus",
-        "canada",
-        "canadacentral",
-        "canadaeast",
-        "centralindia",
-        "centralus",
-        "centraluseuap",
-        "centralusstage",
-        "eastasia",
-        "eastus",
-        "eastus2",
-        "eastus2euap",
-        "eastusstage",
-        "eastusstg",
-        "europe",
-        "france",
-        "francecentral",
-        "francesouth",
-        "germany",
-        "germanynorth",
-        "germanywestcentral",
-        "global",
-        "india",
-        "israel",
-        "israelcentral",
-        "italy",
-        "italynorth",
-        "japan",
-        "japaneast",
-        "japanwest",
-        "jioindiawest",
-        "jioindiacentral",
-        "korea",
-        "koreacentral",
-        "koreasouth",
-        "mexicocentral",
-        "newzealand",
-        "northeurope",
-        "norway",
-        "norwayeast",
-        "norwaywest",
-        "northcentralus",
-        "northcentralusstage",
-        "poland",
-        "polandcentral",
-        "qatar",
-        "qatarcentral",
-        "singapore",
-        "southafrica",
-        "southafricanorth",
-        "southafricawest",
-        "southcentralus",
-        "southcentralusstage",
-        "southindia",
-        "southeastasia",
-        "southeastasiastage",
-        "sweden",
-        "swedencentral",
-        "switzerland",
-        "switzerlandnorth",
-        "switzerlandwest",
-        "uae",
-        "uaecentral",
-        "uaenorth",
-        "uk",
-        "ukwest",
-        "unitedstates",
-        "unitedstateseuap",
-        "uksouth",
-        "westcentralus",
-        "westeurope",
-        "westindia",
-        "westus",
-        "westus2",
-        "westus2stage",
-        "westusstage"
-    ], var.location)
-    error_message = "The Azure location must be one of the allowed Azure regions."
-  }
-}
-
+# Network Configuration - Hub
 variable "hub-virtual-network_address_prefix" {
-  default     = "10.0.0.0/24"
-  description = "Hub Virtual Network Address prefix."
   type        = string
+  description = "Hub Virtual Network Address prefix"
+  default     = "10.0.0.0/24"
+
   validation {
     condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.hub-virtual-network_address_prefix))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
@@ -403,27 +368,9 @@ variable "hub-nva-vip-extractor" {
   }
 }
 
-variable "management_public_ip" {
-  default     = "false"
-  description = "Create management IP"
-  type        = bool
-}
-
-variable "spoke-aks-node-image" {
-  default     = "aks-node"
-  description = "Container server image product"
-  type        = string
-}
-
 variable "gpu_node_pool" {
   default     = false
   description = "Set to true to enable GPU workloads"
-  type        = bool
-}
-
-variable "spoke-k8s-node-pool-image" {
-  default     = false
-  description = "k8s node pool image."
   type        = bool
 }
 
@@ -476,16 +423,6 @@ variable "spoke-aks-subnet_prefix" {
   }
 }
 
-variable "spoke-aks_service_cidr" {
-  default     = "10.1.2.0/24"
-  description = "Spoke k8s service cidr."
-  type        = string
-  validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-aks_service_cidr))
-    error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
-  }
-}
-
 variable "spoke-aks_pod_cidr" {
   default     = "10.244.0.0/16"
   description = "Spoke k8s pod cidr."
@@ -493,16 +430,6 @@ variable "spoke-aks_pod_cidr" {
   validation {
     condition     = can(regex("^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$", var.spoke-aks_pod_cidr))
     error_message = "The subnet must be in the format of 'xxx.xxx.xxx.xxx/xx', where xxx is between 0 and 255, and xx is between 0 and 32."
-  }
-}
-
-variable "spoke-aks_dns_service_ip" {
-  default     = "10.1.2.10"
-  description = "Spoke k8s dns service ip"
-  type        = string
-  validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.spoke-aks_dns_service_ip))
-    error_message = "The IP address must be a valid IPv4 format (e.g., 10.2.0.10)."
   }
 }
 
@@ -526,24 +453,6 @@ variable "spoke-check-internet-up-ip" {
   }
 }
 
-variable "spoke-aks-node-ollama-port" {
-  default     = "11434"
-  description = "Port for ollama"
-  type        = string
-}
-
-variable "spoke-aks-node-ollama-webui-port" {
-  default     = "8080"
-  description = "Port for the ollama web ui"
-  type        = string
-}
-
-variable "cloudshell" {
-  type        = bool
-  description = "Enable or disable the creation of the Azure Cloud Shell VM."
-  default     = true
-}
-
 variable "cloudshell_directory_tenant_id" {
   type        = string
   description = "The tenant ID of the Azure Active Directory."
@@ -560,13 +469,6 @@ variable "cloudshell_admin_username" {
   type        = string
   description = "The username for the Cloud Shell administrator."
   default     = "ubuntu"
-}
-
-variable "cloudshell_admin_password" {
-  type        = string
-  description = "The CLOUDSHELL admin password"
-  default     = "ubuntu"
-  sensitive   = true
 }
 
 variable "forticnapp_account" {

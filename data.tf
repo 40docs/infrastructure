@@ -1,6 +1,13 @@
-data "azurerm_public_ip" "hub-nva-management_public_ip" {
+###############################################################
+# Data Sources
+#
+# This file contains all data source definitions for gathering
+# information about existing Azure resources and configuration.
+###############################################################
+
+data "azurerm_public_ip" "hub_nva_management_public_ip" {
   count               = var.management_public_ip ? 1 : 0
-  name                = azurerm_public_ip.hub-nva-management_public_ip[0].name
+  name                = azurerm_public_ip.hub_nva_management_public_ip[0].name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
 
