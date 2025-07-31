@@ -26,9 +26,9 @@ This repository automates the deployment and management of Azure infrastructure 
 - **Complete Refactoring**: All Terraform variables and resource names now use consistent `snake_case` formatting
 - **Variable References Fixed**: 65+ kebab-case variable references converted to snake_case throughout the codebase
 - **Resource Naming Updated**: All public IP resources in application files updated for consistency
-- **Files Updated**: 
+- **Files Updated**:
   - `hub-nva.tf` (45+ variable references)
-  - `spoke-network.tf` (6 variable references)  
+  - `spoke-network.tf` (6 variable references)
   - `spoke-k8s_cluster.tf` (1 variable reference)
   - All `spoke-k8s_application-*.tf` files (resource names)
 
@@ -62,7 +62,7 @@ This repository automates the deployment and management of Azure infrastructure 
 **CloudShell Template Variables:**
 - **Before**: Mixed patterns (`VAR_Directory_tenant_ID`, `VAR_KUBECONFIG`, `VAR_Forticnapp_account`)
 - **After**: Consistent snake_case (`var_directory_tenant_id`, `var_kubeconfig`, `var_forticnapp_account`)
-- **Files Updated**: 
+- **Files Updated**:
   - `cloudshell.tf` - templatefile section (14 variables)
   - `cloud-init/CLOUDSHELL.conf` - variable references (14 locations)
 
