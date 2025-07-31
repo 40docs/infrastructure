@@ -193,11 +193,22 @@ variable "manifests_infrastructure_ssh_private_key" {
   sensitive   = true
 }
 
+# Environment Configuration
+variable "environment" {
+  type        = string
+  description = "Deployment environment (e.g., dev, staging, prod)"
+  default     = "dev"
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "The environment must be one of: dev, staging, prod."
+  }
+}
+
 # Management Configuration
 variable "management_public_ip" {
   type        = bool
   description = "Whether to create a public IP for management access"
-  default     = false
+  default     = var.environment == "prod" ? true : false
 }
 
 # Owner Information
