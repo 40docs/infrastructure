@@ -39,13 +39,6 @@ resource "tls_private_key" "cloudshell_host_ed25519" {
   algorithm = "ED25519"
 }
 
-resource "azurerm_resource_group" "cloudshell" {
-  count    = var.cloudshell ? 1 : 0
-  name     = "${local.cloudshell_service_tag}-${local.common.project_name}"
-  location = local.common.location
-  tags     = local.common.tags
-}
-
 resource "azurerm_virtual_network" "cloudshell_network" {
   count               = var.cloudshell ? 1 : 0
   name                = "cloudshell-VirtualNetwork"
