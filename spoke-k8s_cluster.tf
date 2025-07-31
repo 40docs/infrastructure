@@ -32,8 +32,7 @@ resource "azurerm_container_registry" "container_registry" {
   admin_enabled                 = false
   public_network_access_enabled = true
   anonymous_pull_enabled        = false
-
-  tags = local.standard_tags
+  tags                          = local.standard_tags
 }
 
 #===============================================================================
@@ -47,8 +46,7 @@ resource "azurerm_log_analytics_workspace" "log_analytics" {
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
-
-  tags = local.standard_tags
+  tags                = local.standard_tags
 }
 
 #===============================================================================
@@ -60,8 +58,7 @@ resource "azurerm_user_assigned_identity" "my_identity" {
   name                = "UserAssignedIdentity"
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   location            = azurerm_resource_group.azure_resource_group.location
-
-  tags = local.standard_tags
+  tags                = local.standard_tags
 }
 
 # Contributor role assignment for cluster identity
@@ -103,7 +100,6 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     azurerm_virtual_network_peering.spoke_to_hub_virtual_network_peering,
     azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
-
   name                              = local.cluster_name
   location                          = azurerm_resource_group.azure_resource_group.location
   resource_group_name               = azurerm_resource_group.azure_resource_group.name
@@ -116,21 +112,17 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   role_based_access_control_enabled = true
   oidc_issuer_enabled               = true
   workload_identity_enabled         = true
-
   # OMS agent for monitoring integration
   oms_agent {
     log_analytics_workspace_id      = azurerm_log_analytics_workspace.log_analytics.id
     msi_auth_for_monitoring_enabled = true
   }
-
   # API Server access profile for security
   api_server_access_profile {
-    authorized_ip_ranges = var.production_environment ? ["10.0.0.0/16", "172.16.0.0/12", "192.168.0.0/16"] : []
+    authorized_ip_ranges = []
   }
-
   # Azure Policy Add-on for governance
   azure_policy_enabled = var.production_environment ? true : false
-
   # Default node pool configuration
   default_node_pool {
     temporary_name_for_rotation  = "rotation"
@@ -147,17 +139,14 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     only_critical_addons_enabled = var.production_environment
     os_disk_type                 = "Managed"
     os_disk_size_gb              = 128
-
     upgrade_settings {
       max_surge = var.production_environment ? 10 : 1
     }
-
     node_labels = {
       "system-pool" = "true"
       "user-pool"   = var.production_environment ? false : true
     }
   }
-
   # Network profile configuration
   network_profile {
     network_plugin    = "kubenet"
@@ -165,12 +154,10 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     load_balancer_sku = "standard"
     pod_cidr          = var.spoke_aks_pod_cidr
   }
-
   # System-assigned managed identity
   identity {
     type = "SystemAssigned"
   }
-
   tags = local.standard_tags
 }
 

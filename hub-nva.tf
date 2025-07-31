@@ -191,26 +191,26 @@ resource "azurerm_linux_virtual_machine" "hub_nva_virtual_machine" {
   custom_data = base64encode(
     templatefile("cloud-init/${var.hub_nva_image}.conf",
       {
-        VAR-config-system-global-admin-sport     = local.vm_image[var.hub_nva_image].management-port
-        VAR-hub-external-subnet-gateway          = var.hub_external_subnet_gateway
-        VAR-spoke-check-internet-up-ip           = var.spoke_check_internet_up_ip
-        VAR-spoke-default-gateway                = cidrhost(var.hub_internal_subnet_prefix, 1)
-        VAR-spoke-virtual-network_address_prefix = var.spoke_virtual_network_address_prefix
-        VAR-spoke-virtual-network_subnet         = cidrhost(var.spoke_virtual_network_address_prefix, 0)
-        VAR-spoke-virtual-network_netmask        = cidrnetmask(var.spoke_virtual_network_address_prefix)
-        VAR-spoke-aks-node-ip                    = var.spoke_aks_node_ip
-        VAR-hub-nva-vip-docs                     = var.hub_nva_vip_docs
-        VAR-hub-nva-vip-ollama                   = var.hub_nva_vip_ollama
-        VAR-hub-nva-vip-video                    = var.hub_nva_vip_video
-        VAR-hub-nva-vip-dvwa                     = var.hub_nva_vip_dvwa
-        VAR-hub-nva-vip-artifacts                = var.hub_nva_vip_artifacts
-        VAR-hub-nva-vip-extractor                = var.hub_nva_vip_extractor
-        VAR-HUB_NVA_USERNAME                     = var.hub_nva_username
-        VAR-CERTIFICATE                          = tls_self_signed_cert.self_signed_cert.cert_pem
-        VAR-PRIVATEKEY                           = tls_private_key.private_key.private_key_pem
-        VAR-fwb_license_file                     = ""
-        VAR-fwb_license_fortiflex                = ""
-        VAR-spoke-aks-network                    = var.spoke_aks_subnet_prefix
+        var_config_system_global_admin_sport     = local.vm_image[var.hub_nva_image].management-port
+        var_hub_external_subnet_gateway          = var.hub_external_subnet_gateway
+        var_spoke_check_internet_up_ip           = var.spoke_check_internet_up_ip
+        var_spoke_default_gateway                = cidrhost(var.hub_internal_subnet_prefix, 1)
+        var_spoke_virtual_network_address_prefix = var.spoke_virtual_network_address_prefix
+        var_spoke_virtual_network_subnet         = cidrhost(var.spoke_virtual_network_address_prefix, 0)
+        var_spoke_virtual_network_netmask        = cidrnetmask(var.spoke_virtual_network_address_prefix)
+        var_spoke_aks_node_ip                    = var.spoke_aks_node_ip
+        var_hub_nva_vip_docs                     = var.hub_nva_vip_docs
+        var_hub_nva_vip_ollama                   = var.hub_nva_vip_ollama
+        var_hub_nva_vip_video                    = var.hub_nva_vip_video
+        var_hub_nva_vip_dvwa                     = var.hub_nva_vip_dvwa
+        var_hub_nva_vip_artifacts                = var.hub_nva_vip_artifacts
+        var_hub_nva_vip_extractor                = var.hub_nva_vip_extractor
+        var_hub_nva_username                     = var.hub_nva_username
+        var_certificate                          = tls_self_signed_cert.self_signed_cert.cert_pem
+        var_privatekey                           = tls_private_key.private_key.private_key_pem
+        var_fwb_license_file                     = ""
+        var_fwb_license_fortiflex                = ""
+        var_spoke_aks_network                    = var.spoke_aks_subnet_prefix
       }
     )
   )

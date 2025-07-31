@@ -14,8 +14,7 @@
 resource "azurerm_dns_zone" "dns_zone" {
   name                = var.dns_zone
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-
-  tags = local.standard_tags
+  tags                = local.standard_tags
 }
 
 # Hub Virtual Network - Central networking component
@@ -24,8 +23,7 @@ resource "azurerm_virtual_network" "hub_virtual_network" {
   address_space       = [var.hub_virtual_network_address_prefix]
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-
-  tags = local.standard_tags
+  tags                = local.standard_tags
 }
 
 # Virtual Network Peering from Hub to Spoke
@@ -36,7 +34,6 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke_virtual_network_peering
   remote_virtual_network_id = azurerm_virtual_network.spoke_virtual_network.id
   allow_forwarded_traffic   = true
   allow_gateway_transit     = true
-
   depends_on = [
     azurerm_virtual_network.hub_virtual_network,
     azurerm_virtual_network.spoke_virtual_network
@@ -72,13 +69,11 @@ resource "azurerm_route_table" "hub_route_table" {
   name                = "hub_route_table"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-
   route {
     name           = "default"
     address_prefix = "0.0.0.0/0"
     next_hop_type  = "Internet"
   }
-
   tags = local.standard_tags
 }
 
@@ -114,7 +109,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = local.vm_image[var.hub_nva_image].management-port
-    source_address_prefixes    = ["10.0.0.0/16", "172.16.0.0/12", "192.168.0.0/16"]
+    source_address_prefix      = "Internet"
     destination_address_prefix = var.hub_nva_management_ip
   }
 
@@ -140,7 +135,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
-    source_address_prefix      = "*"
+    source_address_prefix      = "Internet"
     destination_address_prefix = var.hub_nva_vip_dvwa
   }
 
@@ -153,7 +148,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
-    source_address_prefix      = "*"
+    source_address_prefix      = "Internet"
     destination_address_prefix = var.hub_nva_vip_ollama
   }
 
@@ -166,7 +161,7 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
-    source_address_prefix      = "*"
+    source_address_prefix      = "Internet"
     destination_address_prefix = var.hub_nva_vip_video
   }
 
@@ -179,10 +174,9 @@ resource "azurerm_network_security_group" "hub_external_network_security_group" 
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"] #checkov:skip=CKV_AZURE_160: Allow HTTP redirects
-    source_address_prefix      = "*"
+    source_address_prefix      = "Internet"
     destination_address_prefix = var.hub_nva_vip_extractor
   }
-
   tags = local.standard_tags
 }
 
@@ -191,14 +185,12 @@ resource "azurerm_subnet_network_security_group_association" "hub_external_subne
   subnet_id                 = azurerm_subnet.hub_external_subnet.id
   network_security_group_id = azurerm_network_security_group.hub_external_network_security_group.id
 }
-
 # Network Security Group for Internal Subnet
 # Controls internal traffic and communication with spoke networks
 resource "azurerm_network_security_group" "hub_internal_network_security_group" {
   name                = "hub-internal_network_security_group"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-
   # Allow AKS node internet access for updates and container pulls
   security_rule {
     name                       = "aks-node_to_internet_rule"
@@ -237,7 +229,6 @@ resource "azurerm_network_security_group" "hub_internal_network_security_group" 
     source_address_prefix      = "10.0.0.0/16"
     destination_address_prefix = "Internet"
   }
-
   tags = local.standard_tags
 }
 

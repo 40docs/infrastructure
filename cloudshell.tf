@@ -5,12 +5,11 @@ resource "random_pet" "cloudshell_ssh_key_name" {
 }
 
 resource "azapi_resource_action" "cloudshell_ssh_public_key_gen" {
-  count       = var.cloudshell ? 1 : 0
-  type        = "Microsoft.Compute/sshPublicKeys@2022-11-01"
-  resource_id = azapi_resource.cloudshell_ssh_public_key[count.index].id
-  action      = "generateKeyPair"
-  method      = "POST"
-
+  count                  = var.cloudshell ? 1 : 0
+  type                   = "Microsoft.Compute/sshPublicKeys@2022-11-01"
+  resource_id            = azapi_resource.cloudshell_ssh_public_key[count.index].id
+  action                 = "generateKeyPair"
+  method                 = "POST"
   response_export_values = ["publicKey", "privateKey"]
 }
 
@@ -149,11 +148,9 @@ resource "azurerm_storage_account" "cloudshell_storage_account" {
   resource_group_name      = azurerm_resource_group.azure_resource_group.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
   # Enable infrastructure encryption for enhanced security
   infrastructure_encryption_enabled = true
-
-  tags = local.standard_tags
+  tags                              = local.standard_tags
 }
 
 resource "azurerm_managed_disk" "cloudshell_home" {
@@ -164,10 +161,8 @@ resource "azurerm_managed_disk" "cloudshell_home" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 1024
-
   # Note: For full customer-managed key encryption, additional Key Vault setup would be required
   # This enables platform-managed encryption which satisfies most compliance requirements
-
   tags = local.standard_tags
 }
 
@@ -243,20 +238,20 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   custom_data = base64encode(
     templatefile("${path.module}/cloud-init/CLOUDSHELL.conf",
       {
-        VAR_ssh_host_rsa_private     = tls_private_key.cloudshell_host_rsa.private_key_pem
-        VAR_ssh_host_rsa_public      = tls_private_key.cloudshell_host_rsa.public_key_openssh
-        VAR_ssh_host_ecdsa_private   = tls_private_key.cloudshell_host_ecdsa.private_key_pem
-        VAR_ssh_host_ecdsa_public    = tls_private_key.cloudshell_host_ecdsa.public_key_openssh
-        VAR_ssh_host_ed25519_private = tls_private_key.cloudshell_host_ed25519.private_key_pem
-        VAR_ssh_host_ed25519_public  = tls_private_key.cloudshell_host_ed25519.public_key_openssh
-        VAR_Directory_tenant_ID      = var.cloudshell_directory_tenant_id
-        VAR_Directory_client_ID      = var.cloudshell_directory_client_id
-        VAR_admin_username           = var.cloudshell_admin_username
-        VAR_Forticnapp_account       = var.forticnapp_account
-        VAR_Forticnapp_subaccount    = var.forticnapp_subaccount
-        VAR_Forticnapp_api_key       = var.forticnapp_api_key
-        VAR_Forticnapp_api_secret    = var.forticnapp_api_secret
-        VAR_KUBECONFIG               = local.kubeconfig
+        var_ssh_host_rsa_private     = tls_private_key.cloudshell_host_rsa.private_key_pem
+        var_ssh_host_rsa_public      = tls_private_key.cloudshell_host_rsa.public_key_openssh
+        var_ssh_host_ecdsa_private   = tls_private_key.cloudshell_host_ecdsa.private_key_pem
+        var_ssh_host_ecdsa_public    = tls_private_key.cloudshell_host_ecdsa.public_key_openssh
+        var_ssh_host_ed25519_private = tls_private_key.cloudshell_host_ed25519.private_key_pem
+        var_ssh_host_ed25519_public  = tls_private_key.cloudshell_host_ed25519.public_key_openssh
+        var_directory_tenant_id      = var.cloudshell_directory_tenant_id
+        var_directory_client_id      = var.cloudshell_directory_client_id
+        var_admin_username           = var.cloudshell_admin_username
+        var_forticnapp_account       = var.forticnapp_account
+        var_forticnapp_subaccount    = var.forticnapp_subaccount
+        var_forticnapp_api_key       = var.forticnapp_api_key
+        var_forticnapp_api_secret    = var.forticnapp_api_secret
+        var_kubeconfig               = local.kubeconfig
       }
     )
   )
