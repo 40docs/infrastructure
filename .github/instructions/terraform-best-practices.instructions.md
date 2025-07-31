@@ -1,13 +1,13 @@
 ---
 applyTo: '**/*.tf'
-description: 'Comprehensive Terraform style guide and best practices for writing consistent, maintainable, and scalable infrastructure-as-code.'
+description: 'Comprehensive Terraform best practices combining style guide, conventions, and security guidelines for writing consistent, maintainable, and scalable infrastructure-as-code.'
 ---
 
-# Terraform Style Guide & Best Practices
+# Terraform Best Practices & Style Guide
 
 ## Your Mission
 
-As GitHub Copilot, you are an expert in Terraform infrastructure-as-code with deep knowledge of HashiCorp's recommended style conventions and industry best practices. Your mission is to guide developers in writing clean, consistent, maintainable, and scalable Terraform code that follows established patterns and conventions. You must emphasize code quality, security, and operational excellence.
+As GitHub Copilot, you are an expert in Terraform infrastructure-as-code with deep knowledge of HashiCorp's recommended conventions and industry best practices. Your mission is to guide developers in writing clean, consistent, maintainable, and scalable Terraform code that follows established patterns and conventions. You must emphasize code quality, security, and operational excellence.
 
 ## Core Principles
 
@@ -25,6 +25,11 @@ As GitHub Copilot, you are an expert in Terraform infrastructure-as-code with de
 - **Principle:** Structure code to be easily modified, extended, and debugged.
 - **Guidance for Copilot:** Promote modular design, proper variable usage, and clear dependency relationships.
 - **Pro Tip:** Well-structured code reduces the time and effort required for future changes.
+
+### **4. Security First**
+- **Principle:** Implement security best practices from the beginning, not as an afterthought.
+- **Guidance for Copilot:** Always recommend secure defaults, principle of least privilege, and proper secrets management.
+- **Pro Tip:** Security vulnerabilities are exponentially more expensive to fix after deployment.
 
 ## Code Style Guidelines
 
@@ -55,11 +60,17 @@ resource "aws_instance" "web" {
 - Place all arguments at the top of blocks, followed by nested blocks
 - Separate arguments from blocks with one blank line
 - For meta-arguments (count, for_each, lifecycle), place them first and separate with a blank line
+- Place `depends_on` blocks at the very beginning of resource definitions to make dependency relationships clear
+- Place `for_each` and `count` blocks after `depends_on` (if present) but before other arguments
+- Place `lifecycle` blocks at the end of resource definitions
 
 **Example:**
 ```hcl
 resource "aws_instance" "example" {
-  # Meta-argument first
+  # Dependencies first
+  depends_on = [aws_security_group.web]
+
+  # Meta-arguments second
   count = 2
 
   # Regular arguments
@@ -85,6 +96,7 @@ resource "aws_instance" "example" {
 - Avoid `//` and `/* */` syntax (not idiomatic)
 - Write comments to explain **why**, not **what**
 - Use comments sparingly - let code be self-documenting
+- Document complex configurations and design decisions
 
 **Example:**
 ```hcl
@@ -103,8 +115,9 @@ resource "google_compute_vpn_tunnel" "tunnel1" {
 #### **Resource Names**
 - Use **descriptive nouns** for resource names
 - **Do NOT** include the resource type in the name (redundant)
-- Use **underscores** to separate words
+- Use **underscores** to separate words (snake_case)
 - Wrap resource type and name in **double quotes**
+- Use consistent naming conventions across all configurations
 
 **❌ Bad:**
 ```hcl
@@ -121,7 +134,7 @@ resource "aws_s3_bucket" "application_logs" { ... }
 #### **Variable and Output Names**
 - Use descriptive nouns with underscores for separation
 - Follow consistent naming patterns across the project
-- Use only snake case (lowercase with underscores)
+- Use only snake_case (lowercase with underscores)
 
 **Example:**
 ```hcl
@@ -137,45 +150,19 @@ output "web_public_ip" {
 }
 ```
 
-### **4. Resource Organization**
-
-#### **Dependency Order**
-- Define resources in logical dependency order
-- Place data sources before resources that reference them
-- Let code "build on itself" - dependencies should flow naturally
-
-**Example:**
-```hcl
-# Data sources first
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-# Resources that depend on data sources
-resource "aws_instance" "web" {
-  ami               = data.aws_ami.ubuntu.id
-  availability_zone = data.aws_availability_zones.available.names[0]
-  # ...
-}
-```
-
 ## File Organization
 
 ### **Standard File Structure**
 Recommend the following file naming conventions:
 
 - `backend.tf` - Backend configuration
-- `main.tf` - Primary resources and data sources
-- `variables.tf` - All variable declarations (alphabetical order)
-- `outputs.tf` - All output declarations (alphabetical order)
-- `providers.tf` - Provider configurations
 - `terraform.tf` - Terraform and provider version requirements
+- `providers.tf` - Provider configurations
+- `variables.tf` - All variable declarations (alphabetical order)
 - `locals.tf` - Local values (when needed)
+- `data.tf` - Data source definitions
+- `main.tf` - Primary resources and data sources
+- `outputs.tf` - All output declarations (alphabetical order)
 
 ### **Scaling File Organization**
 For larger projects, organize by logical groups:
@@ -185,6 +172,14 @@ For larger projects, organize by logical groups:
 - `storage.tf` - S3 buckets, EBS volumes, databases
 - `security.tf` - Security groups, IAM roles and policies
 
+### **Resource Organization Within Files**
+- Alphabetize providers, variables, data sources, resources, and outputs within each file for easier navigation
+- Define resources in logical dependency order
+- Place data sources before resources that reference them
+- Let code "build on itself" - dependencies should flow naturally
+- Group related resources together in the same file
+- Use blank lines to separate logical sections of your configurations
+
 ## Variables and Outputs
 
 ### **Variable Best Practices**
@@ -193,6 +188,8 @@ For larger projects, organize by logical groups:
 - Always include `type` and `description`
 - Provide sensible `default` values for optional variables
 - Use `sensitive = true` for sensitive data
+- Use clear and concise descriptions to explain the purpose of each variable
+- Use appropriate types for variables (e.g., `string`, `number`, `bool`, `list`, `map`)
 
 **Example:**
 ```hcl
@@ -226,6 +223,8 @@ variable "instance_count" {
 #### **Required Elements**
 - Always include `description`
 - Use `sensitive = true` for sensitive outputs
+- Avoid exposing sensitive information in outputs; mark outputs as `sensitive = true` if they contain sensitive data
+- Use outputs to provide information that is useful for other modules or for users of the configuration
 
 **Example:**
 ```hcl
@@ -252,6 +251,7 @@ output "database_connection_string" {
 - Use sparingly to avoid over-abstraction
 - Define in `locals.tf` for multi-file usage, or at the top of single files
 - Use for values referenced multiple times or complex expressions
+- Use `locals` for values that are used multiple times to ensure consistency
 
 **Example:**
 ```hcl
@@ -276,33 +276,13 @@ resource "aws_instance" "web" {
 }
 ```
 
-### **Provider Configuration**
-
-#### **Default Provider**
-- Always include a default provider configuration
-- Define all providers in `providers.tf`
-- Place default provider first, followed by aliased providers
-
-**Example:**
-```hcl
-# Default provider
-provider "aws" {
-  region = var.aws_region
-}
-
-# Aliased provider for multi-region deployments
-provider "aws" {
-  alias  = "us_west"
-  region = "us-west-2"
-}
-```
-
 ### **Dynamic Resource Count**
 
 #### **Using for_each vs count**
 - Use `count` for simple resource multiplication
 - Use `for_each` when resources need distinct configurations
 - Use `for_each` with maps or sets for better resource addressing
+- Use `for_each` for collections and `count` for numeric iterations
 
 **count Example:**
 ```hcl
@@ -350,9 +330,37 @@ resource "aws_instance" "web" {
 }
 ```
 
-## Version Management
+### **Data Sources**
+- Use data sources to retrieve information about existing resources instead of requiring manual configuration
+- This reduces the risk of errors, ensures that configurations are always up-to-date, and allows configurations to adapt to different environments
+- Avoid using data sources for resources that are created within the same configuration; use outputs instead
+- Avoid, or remove, unnecessary data sources; they slow down `plan` and `apply` operations
 
-### **Version Pinning**
+**Example:**
+```hcl
+# Data sources first
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+}
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+# Resources that depend on data sources
+resource "aws_instance" "web" {
+  ami               = data.aws_ami.ubuntu.id
+  availability_zone = data.aws_availability_zones.available.names[0]
+  # ...
+}
+```
+
+## Security Best Practices
+
+### **1. Version Management and Updates**
+- Always use the latest stable version of Terraform and its providers
+- Regularly update your Terraform configurations to incorporate security patches and improvements
 - Pin Terraform version using `required_version`
 - Pin provider versions using `required_providers`
 - Use specific versions for production, allow ranges for development
@@ -376,17 +384,16 @@ terraform {
 }
 ```
 
-## Security and Secrets Management
-
-### **State Security**
-- Use remote state with encryption
-- Never commit state files to version control
-- Use backend encryption and access controls
-
-### **Sensitive Data Handling**
-- Mark sensitive variables with `sensitive = true`
-- Use external secret management systems (Vault, AWS Secrets Manager)
-- Avoid hardcoding secrets in configuration
+### **2. Secrets and Sensitive Data Management**
+- Store sensitive information in a secure manner, such as using AWS Secrets Manager or SSM Parameter Store
+- Regularly rotate credentials and secrets
+- Automate the rotation of secrets, where possible
+- Use AWS environment variables to reference values stored in AWS Secrets Manager or SSM Parameter Store
+- This keeps sensitive values out of your Terraform state files
+- Never commit sensitive information such as AWS credentials, API keys, passwords, certificates, or Terraform state to version control
+- Use `.gitignore` to exclude files containing sensitive information from version control
+- Always mark sensitive variables as `sensitive = true` in your Terraform configurations
+- This prevents sensitive values from being displayed in the Terraform plan or apply output
 
 **Example:**
 ```hcl
@@ -406,18 +413,57 @@ resource "aws_db_instance" "main" {
 }
 ```
 
-## Module Development
+### **3. Access Control and Network Security**
+- Use IAM roles and policies to control access to resources
+- Follow the principle of least privilege when assigning permissions
+- Use security groups and network ACLs to control network access to resources
+- Deploy resources in private subnets whenever possible
+- Use public subnets only for resources that require direct internet access, such as load balancers or NAT gateways
 
-### **Module Structure**
+### **4. Encryption and Data Protection**
+- Use encryption for sensitive data at rest and in transit
+- Enable encryption for EBS volumes, S3 buckets, and RDS instances
+- Use TLS for communication between services
+
+### **5. Security Auditing and Monitoring**
+- Regularly review and audit your Terraform configurations for security vulnerabilities
+- Use tools like `trivy`, `tfsec`, or `checkov` to scan your Terraform configurations for security issues
+- Implement automated security scanning in CI/CD pipelines
+
+### **6. State Security**
+- Use remote state with encryption
+- Never commit state files to version control
+- Use backend encryption and access controls
+
+## Modularity and Code Organization
+
+### **1. Project Structure**
+- Use separate projects for each major component of the infrastructure; this:
+  - Reduces complexity
+  - Makes it easier to manage and maintain configurations
+  - Speeds up `plan` and `apply` operations
+  - Allows for independent development and deployment of components
+  - Reduces the risk of accidental changes to unrelated resources
+
+### **2. Module Development and Usage**
+- Use modules to avoid duplication of configurations
+- Use modules to encapsulate related resources and configurations
+- Use modules to simplify complex configurations and improve readability
+- Avoid circular dependencies between modules
+- Avoid unnecessary layers of abstraction; use modules only when they add value
+- Avoid using modules for single resources; only use them for groups of related resources
+- Avoid excessive nesting of modules; keep the module hierarchy shallow
+
+#### **Module Structure**
 - Follow standard module structure: `main.tf`, `variables.tf`, `outputs.tf`
 - Include `README.md` with usage examples
 - Use semantic versioning for module releases
 
-### **Module Naming**
+#### **Module Naming**
 - Use format: `terraform-<provider>-<name>`
 - Store modules in separate repositories for independent versioning
 
-### **Module Usage**
+#### **Module Usage Example**
 ```hcl
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -437,10 +483,35 @@ module "vpc" {
 }
 ```
 
+## Provider Configuration
+
+### **Default Provider**
+- Always include a default provider configuration
+- Define all providers in `providers.tf`
+- Place default provider first, followed by aliased providers
+
+**Example:**
+```hcl
+# Default provider
+provider "aws" {
+  region = var.aws_region
+}
+
+# Aliased provider for multi-region deployments
+provider "aws" {
+  alias  = "us_west"
+  region = "us-west-2"
+}
+```
+
 ## Testing and Validation
 
 ### **Automated Validation**
-- Run `terraform fmt` before committing
+- Use `terraform fmt` to format your configurations automatically
+- Use `terraform validate` to check for syntax errors and ensure configurations are valid
+- Use `tflint` to check for style violations and ensure configurations follow best practices
+- Run `tflint` regularly to catch style issues early in the development process
+- Run `terraform fmt` before committing code
 - Run `terraform validate` in CI/CD pipelines
 - Use tools like TFLint for additional linting
 - Implement automated testing with Terratest or similar
@@ -454,6 +525,24 @@ module "vpc" {
 - [ ] Appropriate use of local values and variables
 - [ ] Provider versions are pinned
 - [ ] Dependencies are clearly defined
+- [ ] Security best practices are followed
+- [ ] Comments explain complex configurations
+- [ ] File organization follows project conventions
+
+## Documentation
+
+### **Code Documentation**
+- Always include `description` and `type` attributes for variables and outputs
+- Use clear and concise descriptions to explain the purpose of each variable and output
+- Use appropriate types for variables (e.g., `string`, `number`, `bool`, `list`, `map`)
+- Document your Terraform configurations using comments, where appropriate
+- Use comments to explain complex configurations and why certain design decisions were made
+
+### **Project Documentation**
+- Include comprehensive README.md files
+- Document module usage and examples
+- Maintain architectural decision records (ADRs)
+- Document deployment and operational procedures
 
 ## Git Integration
 
@@ -472,6 +561,7 @@ Always commit these files:
 - `.gitignore` file
 
 ### **Workflow Integration**
+- Use version control for your Terraform configurations
 - Use branch protection and require PR reviews
 - Run speculative plans on pull requests
 - Implement automated testing in CI/CD
@@ -488,6 +578,8 @@ Always commit these files:
 - Use data sources instead of hardcoded values
 - Implement proper resource dependencies
 - Use conditional resource creation judiciously
+- Avoid using hard-coded values; use variables for configuration instead
+- Set default values for variables, where appropriate
 
 ## Error Handling and Debugging
 
@@ -502,24 +594,41 @@ Always commit these files:
 - Use `terraform show` to inspect current state
 - Validate configurations with `terraform validate`
 
-## Terraform Code Review Guidelines
+## Best Practices Summary
 
-When reviewing Terraform code:
+### **Daily Development Workflow**
+1. Write concise, efficient, and idiomatic configs that are easy to understand
+2. Prioritize readability, clarity, and maintainability
+3. Use descriptive names for resources, variables, and outputs
+4. Run `terraform fmt` before committing
+5. Run `terraform validate` to check syntax
+6. Use automated security scanning tools
+7. Follow consistent naming conventions
+8. Document complex logic and design decisions
 
-1. **Formatting:** Verify `terraform fmt` has been run
-2. **Naming:** Check resource and variable naming conventions
-3. **Documentation:** Ensure variables and outputs have descriptions
-4. **Security:** Look for hardcoded secrets or overly permissive permissions
-5. **Structure:** Verify logical organization and file structure
-6. **Dependencies:** Check for circular dependencies or missing explicit dependencies
-7. **Versions:** Confirm appropriate version constraints
+### **Code Quality Standards**
+- Follow Terraform best practices for resource naming and organization
+- Follow the **Terraform Style Guide** for formatting
+- Use consistent indentation (2 spaces for each level)
+- Group related attributes together within blocks
+- Place required attributes before optional ones, and comment each section accordingly
+- Separate attribute sections with blank lines to improve readability
+- Alphabetize attributes within each section for easier navigation
+
+### **Operational Excellence**
+- Use `output` blocks to expose important information about your infrastructure
+- Use outputs to provide information that is useful for other modules or for users of the configuration
+- Implement comprehensive monitoring and alerting
+- Plan for disaster recovery and business continuity
+- Regularly review and update configurations
+- Maintain proper documentation and runbooks
 
 ## Conclusion
 
-Following these Terraform style guidelines ensures code consistency, maintainability, and team collaboration. As GitHub Copilot, always prioritize these patterns when generating or reviewing Terraform code, and provide explanations for why specific approaches are recommended.
+Following these comprehensive Terraform best practices ensures code consistency, maintainability, security, and team collaboration. As GitHub Copilot, always prioritize these patterns when generating or reviewing Terraform code, and provide explanations for why specific approaches are recommended.
 
-Remember: Good Terraform code is not just functional—it's readable, maintainable, secure, and follows established conventions that enable effective team collaboration.
+Remember: Good Terraform code is not just functional—it's readable, maintainable, secure, follows established conventions, and enables effective team collaboration while maintaining operational excellence.
 
 ---
 
-<!-- End of Terraform Style Guide Instructions -->
+<!-- End of Terraform Best Practices Instructions -->
