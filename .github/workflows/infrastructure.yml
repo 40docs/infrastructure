@@ -108,12 +108,12 @@ jobs:
           TF_VAR_application_extractor: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_management_public_ip: ${{ vars.MANAGEMENT_PUBLIC_IP }}
           TF_VAR_cloudshell: ${{ vars.CLOUDSHELL }}
-          TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.cloudshell_Directory_tenant_ID }}
-          TF_VAR_cloudshell_directory_client_id: ${{ secrets.cloudshell_Directory_client_ID }}
-          TF_VAR_forticnapp_account: ${{ secrets.Forticnapp_account }}
-          TF_VAR_forticnapp_subaccount: ${{ secrets.Forticnapp_subaccount }}
-          TF_VAR_forticnapp_api_key: ${{ secrets.Forticnapp_api_key }}
-          TF_VAR_forticnapp_api_secret: ${{ secrets.Forticnapp_api_secret }}
+          TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.CLOUDSHELL_DIRECTORY_TENANT_ID }}
+          TF_VAR_cloudshell_directory_client_id: ${{ secrets.CLOUDSHELL_DIRECTORY_CLIENT_ID }}
+          TF_VAR_forticnapp_account: ${{ secrets.FORTICNAPP_ACCOUNT }}
+          TF_VAR_forticnapp_subaccount: ${{ secrets.FORTICNAPP_SUBACCOUNT }}
+          TF_VAR_forticnapp_api_key: ${{ secrets.FORTICNAPP_API_KEY }}
+          TF_VAR_forticnapp_api_secret: ${{ secrets.FORTICNAPP_API_SECRET }}
           TF_VAR_htusername: ${{ secrets.HTUSERNAME }}
           TF_VAR_htpasswd: ${{ secrets.HTPASSWD }}
           TF_VAR_dns_zone: ${{ vars.DNS_ZONE }}
@@ -160,22 +160,6 @@ jobs:
           SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
         run: |
           echo "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
-
-      # - name: Push Terraform Output to PR
-      #   if: github.ref != 'refs/heads/main'
-      #   uses: actions/github-script@v6
-      #   env:
-      #     SUMMARY: "${{ steps.tf-plan-string.outputs.summary }}"
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     script: |
-      #       const body = `${process.env.SUMMARY}`;
-      #        github.rest.issues.createComment({
-      #          issue_number: context.issue.number,
-      #          owner: context.repo.owner,
-      #          repo: context.repo.repo,
-      #          body: body
-      #        })
 
   apply:
     name: Terraform Apply
@@ -244,12 +228,12 @@ jobs:
           TF_VAR_application_extractor: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_management_public_ip: ${{ vars.MANAGEMENT_PUBLIC_IP }}
           TF_VAR_cloudshell: ${{ vars.CLOUDSHELL }}
-          TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.cloudshell_Directory_tenant_ID }}
-          TF_VAR_cloudshell_directory_client_id: ${{ secrets.cloudshell_Directory_client_ID }}
-          TF_VAR_forticnapp_account: ${{ secrets.Forticnapp_account }}
-          TF_VAR_forticnapp_subaccount: ${{ secrets.Forticnapp_subaccount }}
-          TF_VAR_forticnapp_api_key: ${{ secrets.Forticnapp_api_key }}
-          TF_VAR_forticnapp_api_secret: ${{ secrets.Forticnapp_api_secret }}
+          TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.CLOUDSHELL_DIRECTORY_TENANT_ID }}
+          TF_VAR_cloudshell_directory_client_id: ${{ secrets.CLOUDSHELL_DIRECTORY_CLIENT_ID }}
+          TF_VAR_forticnapp_account: ${{ secrets.FORTICNAPP_ACCOUNT }}
+          TF_VAR_forticnapp_subaccount: ${{ secrets.FORTICNAPP_SUBACCOUNT }}
+          TF_VAR_forticnapp_api_key: ${{ secrets.FORTICNAPP_API_KEY }}
+          TF_VAR_forticnapp_api_secret: ${{ secrets.FORTICNAPP_API_SECRET }}
           TF_VAR_htusername: ${{ secrets.HTUSERNAME }}
           TF_VAR_htpasswd: ${{ secrets.HTPASSWD }}
           TF_VAR_dns_zone: ${{ vars.DNS_ZONE }}
@@ -343,12 +327,12 @@ jobs:
           TF_VAR_application_extractor: ${{ vars.APPLICATION_EXTRACTOR }}
           TF_VAR_management_public_ip: ${{ vars.MANAGEMENT_PUBLIC_IP }}
           TF_VAR_cloudshell: ${{ vars.CLOUDSHELL }}
-          TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.cloudshell_Directory_tenant_ID }}
-          TF_VAR_cloudshell_directory_client_id: ${{ secrets.cloudshell_Directory_client_ID }}
-          TF_VAR_forticnapp_account: ${{ secrets.Forticnapp_account }}
-          TF_VAR_forticnapp_subaccount: ${{ secrets.Forticnapp_subaccount }}
-          TF_VAR_forticnapp_api_key: ${{ secrets.Forticnapp_api_key }}
-          TF_VAR_forticnapp_api_secret: ${{ secrets.Forticnapp_api_secret }}
+          TF_VAR_cloudshell_directory_tenant_id: ${{ secrets.CLOUDSHELL_DIRECTORY_TENANT_ID }}
+          TF_VAR_cloudshell_directory_client_id: ${{ secrets.CLOUDSHELL_DIRECTORY_CLIENT_ID }}
+          TF_VAR_forticnapp_account: ${{ secrets.FORTICNAPP_ACCOUNT }}
+          TF_VAR_forticnapp_subaccount: ${{ secrets.FORTICNAPP_SUBACCOUNT }}
+          TF_VAR_forticnapp_api_key: ${{ secrets.FORTICNAPP_API_KEY }}
+          TF_VAR_forticnapp_api_secret: ${{ secrets.FORTICNAPP_API_SECRET }}
           TF_VAR_htusername: ${{ secrets.HTUSERNAME }}
           TF_VAR_htpasswd: ${{ secrets.HTPASSWD }}
           TF_VAR_dns_zone: ${{ vars.DNS_ZONE }}
