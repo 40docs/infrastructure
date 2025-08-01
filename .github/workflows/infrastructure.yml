@@ -47,8 +47,6 @@ jobs:
     if: needs.terraform.outputs.action == 'apply'
     name: Terraform Plan
     runs-on: ubuntu-latest
-    env:
-      ARM_SKIP_PROVIDER_REGISTRATION: false
     outputs:
       tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
 
