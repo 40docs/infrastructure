@@ -48,6 +48,87 @@ grep -r "resource_group_name.*azure_resource_group" cloudshell.tf
 - ✅ **Commit**: Comprehensive refactoring documented with detailed commit message
 
 ### 🎉 **Benefits Achieved**:
+
+---
+
+## 🔍 INFRASTRUCTURE WORKFLOW TROUBLESHOOTING - JANUARY 2025
+
+### 🎯 **Mission: Fix Failed Infrastructure Workflow**
+**Status**: 🔄 **IN PROGRESS**
+
+#### **User Request**:
+> "the latest workflow run named infrastructure failed. Examine the logs and troubleshoot the problem until you come up with a solution to refactor into the code, commit sync to github and create a PR"
+
+#### **Action Plan**:
+
+##### **Phase 1: Investigation** 🔍
+- [ ] Check current git status and branch
+- [ ] Examine recent workflow runs to identify the failed run  
+- [ ] Retrieve and analyze workflow logs
+- [ ] Identify root cause of failure
+
+##### **Phase 2: Problem Analysis** 🧪
+- [ ] Analyze error messages and failure patterns
+- [ ] Identify affected files and configuration issues
+- [ ] Determine required code changes
+
+##### **Phase 3: Solution Implementation** 🔧
+- [ ] Refactor problematic code based on findings
+- [ ] Test changes locally where possible
+- [ ] Validate configuration syntax
+
+##### **Phase 4: Git Operations** 📤
+- [ ] Stage all changes
+- [ ] Commit with descriptive message
+- [ ] Push changes to repository
+- [ ] Create pull request with detailed description
+
+#### **Investigation Log**:
+
+##### **✅ Phase 1: Investigation - COMPLETED**
+- [x] Checked current git status and branch (on main branch)
+- [x] Examined recent workflow runs to identify failed run (ID: 16686416127)
+- [x] Retrieved and analyzed workflow logs
+- [x] Identified root cause of failure
+
+##### **🔍 Root Cause Analysis**:
+**Issue Found**: AzureRM Provider Deprecation Error
+- **Problem**: Using deprecated `ARM_SKIP_PROVIDER_REGISTRATION` environment variable
+- **Error Message**: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead."
+- **Impact**: Terraform plan failed due to deprecated configuration
+
+##### **✅ Phase 2: Problem Analysis - COMPLETED**  
+- [x] Analyzed error messages and failure patterns
+- [x] Identified affected files: `providers.tf` and `.github/workflows/infrastructure.yml`
+- [x] Determined required code changes
+
+##### **✅ Phase 3: Solution Implementation - COMPLETED**
+- [x] **Updated `providers.tf`**: Added `resource_provider_registrations = "all"` to replace deprecated setting
+- [x] **Updated `.github/workflows/infrastructure.yml`**: Removed deprecated `ARM_SKIP_PROVIDER_REGISTRATION: false` environment variable
+- [x] Validated configuration syntax with `terraform fmt` and `terraform validate`
+
+##### **📤 Phase 4: Git Operations - IN PROGRESS**
+- [ ] Stage all changes
+- [ ] Commit with descriptive message  
+- [ ] Push changes to repository
+- [ ] Create pull request with detailed description
+
+#### **Changes Made**:
+
+**File: `providers.tf`**
+```hcl
+provider "azurerm" {
+  # Use the new resource_provider_registrations instead of deprecated skip_provider_registration
+  resource_provider_registrations = "all"
+  
+  features {
+    # ... existing configuration
+  }
+}
+```
+
+**File: `.github/workflows/infrastructure.yml`**
+- Removed deprecated `ARM_SKIP_PROVIDER_REGISTRATION: false` environment variable from plan job
 - **Single Resource Group**: All infrastructure components in `azurerm_resource_group.azure_resource_group`
 - **Simplified Management**: Unified resource lifecycle and access control
 - **Consistent Tagging**: All resources follow same tagging strategy
