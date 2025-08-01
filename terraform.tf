@@ -67,7 +67,7 @@ terraform {
   backend "azurerm" {
     # Values are provided via -backend-config parameters in GitHub Actions:
     # - storage_account_name
-    # - container_name  
+    # - container_name
     # - key
     # - resource_group_name
   }
