@@ -63,12 +63,12 @@ terraform {
   }
 
   # Backend configuration for remote state management
-  # Uncomment and configure for production use
-  # backend "azurerm" {
-  #   # Configure via environment variables or terraform init parameters:
-  #   # storage_account_name = "<your_storage_account>"
-  #   # container_name       = "tfstate"
-  #   # key                  = "infrastructure.terraform.tfstate"
-  #   # resource_group_name  = "<your_resource_group>"
-  # }
+  # Configuration is provided via backend-config parameters in GitHub Actions
+  backend "azurerm" {
+    # Values are provided via -backend-config parameters in GitHub Actions:
+    # - storage_account_name
+    # - container_name  
+    # - key
+    # - resource_group_name
+  }
 }
