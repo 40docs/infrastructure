@@ -4,10 +4,21 @@
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/"
     },
+    "MCP_GATEWAY": {
+      "command": "docker",
+      "args": [
+        "mcp",
+        "gateway",
+        "run"
+      ],
+      "type": "stdio"
+    },
     "Perplexity": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["perplexity-mcp"],
+      "args": [
+        "perplexity-mcp"
+      ],
       "env": {
         "PERPLEXITY_API_KEY": "${input:perplexity-api-key}",
         "PERPLEXITY_MODEL": "sonar"
@@ -25,15 +36,29 @@
     },
     "time": {
       "command": "docker",
-      "args": ["run", "-i", "mcp/time"]
+      "args": [
+        "run",
+        "-i",
+        "mcp/time"
+      ]
     },
     "memory": {
       "command": "docker",
-      "args": ["run", "-i", "-v", "claude-memory:/app/dist", "mcp/memory"]
+      "args": [
+        "run",
+        "-i",
+        "-v",
+        "claude-memory:/app/dist",
+        "mcp/memory"
+      ]
     },
     "sequential-thinking": {
       "command": "docker",
-      "args": ["run", "-i", "mcp/sequentialthinking"]
+      "args": [
+        "run",
+        "-i",
+        "mcp/sequentialthinking"
+      ]
     },
     "filesystem": {
       "command": "docker",
@@ -49,16 +74,26 @@
     "kubernetes": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "kubernetes-mcp-server@latest"]
+      "args": [
+        "-y",
+        "kubernetes-mcp-server@latest"
+      ]
     },
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     },
     "terraform": {
       "type": "stdio",
       "command": "docker",
-      "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server:latest"]
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "hashicorp/terraform-mcp-server:latest"
+      ]
     },
     "azure": {
       "type": "stdio",
@@ -79,7 +114,9 @@
     "markitdown": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["markitdown-mcp"]
+      "args": [
+        "markitdown-mcp"
+      ]
     }
   },
   "inputs": [
