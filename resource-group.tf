@@ -11,7 +11,7 @@ resource "azurerm_resource_group" "azure_resource_group" {
   location = var.location
 
   tags = merge(local.standard_tags, {
-    CreatedOnDate = "2025-07-31"
+    CreatedOnDate = formatdate("YYYY-MM-DD", timestamp())
   })
 
   lifecycle {
