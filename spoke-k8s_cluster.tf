@@ -107,7 +107,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   sku_tier                          = var.production_environment ? "Standard" : "Free"
   cost_analysis_enabled             = var.production_environment ? true : false
   support_plan                      = "KubernetesOfficial"
-  kubernetes_version                = "1.31.8"
+  kubernetes_version                = "1.31.10"
   node_resource_group               = local.node_resource_group
   role_based_access_control_enabled = true
   oidc_issuer_enabled               = true

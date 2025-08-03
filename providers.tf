@@ -9,7 +9,7 @@
 provider "azurerm" {
   # Use the new resource_provider_registrations instead of deprecated skip_provider_registration
   resource_provider_registrations = "all"
-  
+
   features {
     api_management {
       purge_soft_delete_on_destroy = true
