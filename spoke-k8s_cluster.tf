@@ -134,7 +134,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     vm_size                      = var.production_environment ? local.vm_image["aks"].size : local.vm_image["aks"].size-dev
     os_sku                       = "AzureLinux"
     max_pods                     = "75"
-    orchestrator_version         = "1.30.6"
+    orchestrator_version         = "1.31.10"
     vnet_subnet_id               = azurerm_subnet.spoke_subnet.id
     only_critical_addons_enabled = var.production_environment
     os_disk_type                 = "Managed"
