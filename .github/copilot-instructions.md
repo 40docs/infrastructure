@@ -21,8 +21,10 @@
 ## Developer Workflow
 - **Branch Protection**: The `main` branch is protected. **All changes must be made via a pull request. Direct pushes to `main` are not allowed.**
 - **GitHub CLI**: Before running any `gh` commands, disable the pager with `export GH_PAGER=` to prevent pagination issues.
+- **Pull Request Creation**: When creating a pull request, use a temporary file as the body of the pull request message instead of using a lengthy bash command.
+- **Commit**: When creating a git commit, use a temporary file as the body of the commit message instead of using a lengthy bash command.
 - **Terraform**:
-  - Do not run `terraform init`, `terraform plan`, or `terraform apply` because terraform variables are initialized by github secrets during a workflow run.
+  - Do not run `terraform plan`, or `terraform apply` because terraform variables are initialized by github secrets during a workflow run.
 - **Cloud-init**: Edit scripts in `cloud-init/` for VM setup.
 - **CI/CD**: Merges to `main` via pull request trigger the deploy pipeline.
 - **Testing**: Use security scanners (`tfsec`, `trivy`, `checkov`) before PR/merge.
