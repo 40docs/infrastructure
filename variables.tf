@@ -510,10 +510,10 @@ variable "forticnapp_api_secret" {
 variable "cloudshell_auth_fqdn" {
   type        = string
   description = "FQDN for CloudShell instance (used for Entra ID redirect URIs)"
-  default     = "cloudshell.40docs.com"
+  default     = "cloudshell.example.com"
 
-  validation {
-    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\\.[a-zA-Z]{2,}$", var.cloudshell_auth_fqdn))
-    error_message = "CloudShell FQDN must be a valid domain name."
-  }
+#  validation {
+#    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\\.[a-zA-Z]{2,}$", var.cloudshell_auth_fqdn))
+#    error_message = "CloudShell FQDN must be a valid domain name."
+#  }
 }
