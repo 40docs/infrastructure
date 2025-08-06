@@ -148,24 +148,53 @@ resource "azurerm_storage_account" "cloudshell_storage_account" {
   resource_group_name      = azurerm_resource_group.azure_resource_group.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  # Enable infrastructure encryption for enhanced security
   infrastructure_encryption_enabled = true
   tags                              = local.standard_tags
 }
 
-resource "azurerm_managed_disk" "cloudshell_home_disk" {
+resource "azurerm_managed_disk" "cloudshell_home" {
   count                = var.cloudshell ? 1 : 0
-  name                 = "cloudshell_home_disk"
+  name                 = "CLOUDSHELL-home-disk"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 1024
+  # Note: For full customer-managed key encryption, additional Key Vault setup would be required
+  # This enables platform-managed encryption which satisfies most compliance requirements
   tags = local.standard_tags
 }
 
-resource "azurerm_managed_disk" "cloudshell_docker_disk" {
+resource "azurerm_managed_disk" "cloudshell_authd" {
   count                = var.cloudshell ? 1 : 0
-  name                 = "cloudshell_docker_disk"
+  name                 = "CLOUDSHELL-authd"
+  location             = azurerm_resource_group.azure_resource_group.location
+  resource_group_name  = azurerm_resource_group.azure_resource_group.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 5
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurerm_managed_disk" "cloudshell_authd-msentraid" {
+  count                = var.cloudshell ? 1 : 0
+  name                 = "CLOUDSHELL-authd-msentraid"
+  location             = azurerm_resource_group.azure_resource_group.location
+  resource_group_name  = azurerm_resource_group.azure_resource_group.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 5
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurerm_managed_disk" "cloudshell_docker" {
+  count                = var.cloudshell ? 1 : 0
+  name                 = "CLOUDSHELL-docker-disk"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   storage_account_type = "Premium_LRS"
@@ -176,9 +205,9 @@ resource "azurerm_managed_disk" "cloudshell_docker_disk" {
   }
 }
 
-resource "azurerm_managed_disk" "cloudshell_ollama_disk" {
+resource "azurerm_managed_disk" "cloudshell_ollama" {
   count                = var.cloudshell ? 1 : 0
-  name                 = "cloudshell_ollama_disk"
+  name                 = "CLOUDSHELL-ollama-disk"
   location             = azurerm_resource_group.azure_resource_group.location
   resource_group_name  = azurerm_resource_group.azure_resource_group.name
   storage_account_type = "Premium_LRS"
@@ -195,7 +224,7 @@ locals {
 
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   count                 = var.cloudshell ? 1 : 0
-  name                  = "cloudshell_vm"
+  name                  = "CLOUDSHELL"
   location              = azurerm_resource_group.azure_resource_group.location
   resource_group_name   = azurerm_resource_group.azure_resource_group.name
   network_interface_ids = [azurerm_network_interface.cloudshell_nic[count.index].id]
@@ -217,17 +246,17 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         var_ssh_host_ed25519_public  = tls_private_key.cloudshell_host_ed25519.public_key_openssh
         var_directory_tenant_id      = var.cloudshell_directory_tenant_id
         var_directory_client_id      = var.cloudshell_directory_client_id
+        var_admin_username           = var.cloudshell_admin_username
         var_forticnapp_account       = var.forticnapp_account
         var_forticnapp_subaccount    = var.forticnapp_subaccount
         var_forticnapp_api_key       = var.forticnapp_api_key
         var_forticnapp_api_secret    = var.forticnapp_api_secret
         var_kubeconfig               = local.kubeconfig
-        var_admin_username           = var.cloudshell_admin_username
       }
     )
   )
   os_disk {
-    name                 = "cloudshell_os_disk"
+    name                 = "CLOUDSHELL-osdisk"
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
     disk_size_gb         = 256
@@ -249,30 +278,48 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   }
 }
 
-resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_home_disk_attachment" {
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_home" {
   count              = var.cloudshell ? 1 : 0
-  managed_disk_id    = azurerm_managed_disk.cloudshell_home_disk[count.index].id
+  managed_disk_id    = azurerm_managed_disk.cloudshell_home[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 0
   caching            = "ReadWrite"
   create_option      = "Attach"
 }
 
-resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker_disk_attachment" {
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd" {
   count              = var.cloudshell ? 1 : 0
-  managed_disk_id    = azurerm_managed_disk.cloudshell_docker_disk[count.index].id
+  managed_disk_id    = azurerm_managed_disk.cloudshell_authd[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
   lun                = 1
+  caching            = "ReadWrite"
+  create_option      = "Attach"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_authd-msentraid" {
+  count              = var.cloudshell ? 1 : 0
+  managed_disk_id    = azurerm_managed_disk.cloudshell_authd-msentraid[count.index].id
+  virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
+  lun                = 2
+  caching            = "ReadWrite"
+  create_option      = "Attach"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_docker" {
+  count              = var.cloudshell ? 1 : 0
+  managed_disk_id    = azurerm_managed_disk.cloudshell_docker[count.index].id
+  virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
+  lun                = 3
   create_option      = "Attach"
   caching            = "ReadWrite"
   #write_accelerator_enabled = true
 }
 
-resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama_disk_attachment" {
+resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama" {
   count              = var.cloudshell ? 1 : 0
-  managed_disk_id    = azurerm_managed_disk.cloudshell_ollama_disk[count.index].id
+  managed_disk_id    = azurerm_managed_disk.cloudshell_ollama[count.index].id
   virtual_machine_id = azurerm_linux_virtual_machine.cloudshell_vm[count.index].id
-  lun                = 2
+  lun                = 4
   caching            = "ReadOnly"
   create_option      = "Attach"
   #write_accelerator_enabled = true

@@ -6,40 +6,42 @@ package_upgrade: true
 package_reboot_if_required: true
 
 bootcmd:
-  - mkdir -p /home
-  - mkdir -p /var/lib/docker
-  - mkdir -p /root/.ollama
+  - mkdir -p /home /var/lib/docker /root/.ollama
+  - |
+    format_and_mount() {
+      local lun="$1" label="$2" mount_point="$3" always_format="$4"
+      local dev="/dev/disk/azure/scsi1/lun$${lun}"
+      local part="$${dev}-part1"
 
-disk_setup:
-  /dev/disk/azure/scsi1/lun0:
-    table_type: gpt
-    layout:
-      - [100, 83]
-    overwrite: true
-  /dev/disk/azure/scsi1/lun1:
-    table_type: gpt
-    layout:
-      - [100, 83]
-    overwrite: false
-  /dev/disk/azure/scsi1/lun2:
-    table_type: gpt
-    layout:
-      - [100, 83]
-    overwrite: false
+      echo "[INFO] Waiting for $dev ..."
+      for i in $(seq 1 30); do
+        if [ -b "$dev" ]; then
+          echo "[INFO] $dev detected."
+          break
+        fi
+        sleep 2
+      done
 
-fs_setup:
-  - device: /dev/disk/azure/scsi1/lun0-part1
-    filesystem: ext4
-    overwrite: true
-    label: homefs
-  - device: /dev/disk/azure/scsi1/lun1-part1
-    filesystem: ext4
-    overwrite: false
-    label: dockerfs
-  - device: /dev/disk/azure/scsi1/lun2-part1
-    filesystem: ext4
-    overwrite: false
-    label: ollamafs
+      if [[ "$always_format" == "yes" ]]; then
+        echo "[INFO] Formatting $dev (forced) for $mount_point ..."
+        parted -s "$dev" mklabel gpt mkpart primary ext4 0% 100%
+        mkfs.ext4 -F "$part" -L "$label"
+      else
+        if ! blkid "$part" >/dev/null 2>&1; then
+          echo "[INFO] No filesystem on $dev — formatting for $mount_point ..."
+          parted -s "$dev" mklabel gpt mkpart primary ext4 0% 100%
+          mkfs.ext4 -F "$part" -L "$label"
+        else
+          echo "[INFO] Filesystem already exists on $dev — preserving data."
+        fi
+      fi
+
+      mount -o defaults,nofail LABEL="$label" "$mount_point"
+    }
+
+    format_and_mount 0 homefs /home yes
+    format_and_mount 1 dockerfs /var/lib/docker no
+    format_and_mount 2 ollamafs /root/.ollama no
 
 mounts:
   - [ "LABEL=homefs", "/home", "ext4", "defaults,nofail", "0", "2" ]
@@ -108,173 +110,14 @@ apt:
     ubuntu-multiverse:
       source: "deb http://archive.ubuntu.com/ubuntu $RELEASE multiverse"
 
-packages:
-  - alsa-utils
-  - ansible
-  - ansible-lint
-  - apache2-utils
-  - apparmor
-  - apt-transport-https
-  - asciidoctor
-  - aspnetcore-runtime-9.0
-  - autoconf
-  - azure-cli
-  - bash-completion
-  - bat
-  - build-essential
-  - cabextract
-  - ca-certificates
-  - cockpit
-  - code
-  - code-insiders
-  - cmake
-  - curl
-  - dos2unix
-  - docker-ce
-  - docker-ce-cli
-  - containerd.io
-  - docker-compose-plugin
-  - docker-ce-rootless-extras
-  - docker-buildx-plugin
-  - dotnet-sdk-9.0
-  - dotnet-sdk-8.0
-  - dotnet-sdk-6.0
-  - dpkg
-  - dpkg-dev
-  - dnsutils
-  - fail2ban
-  - ffmpeg
-  - file
-  - fontconfig
-  - fonts-powerline
-  - frei0r-plugins
-  - fuse3
-  - fzf
-  - g++
-  - gh
-  - gnupg
-  - golang-go
-  - graphviz
-  - gstreamer1.0-libav
-  - gstreamer1.0-vaapi
-  - gstreamer1.0-plugins-base
-  - gstreamer1.0-plugins-good
-  - gstreamer1.0-plugins-bad
-  - gstreamer1.0-plugins-ugly
-  - google-cloud-cli
-  - google-chrome-stable
-  - hwloc
-  - imagemagick
-  - inkscape
-  - iputils-ping
-  - kubectl
-  - ladspa-sdk
-  - libapache2-mod-php
-  - libavif-dev
-  - libc6
-  - libfuse3-3
-  - libgcc-s1
-  - libgstreamer1.0-0
-  - libicu74
-  - liblttng-ust1t64
-  - libappindicator3-1
-  - libdbusmenu-glib4
-  - libdbusmenu-gtk3-4
-  - libfftw3-bin
-  - libfftw3-dev
-  - libfftw3-long3
-  - libfftw3-quad3
-  - libfftw3-single3
-  - libfuse2t64
-  - libgavl2
-  - libgl1-mesa-dri
-  - libgl1
-  - libgif-dev
-  - libglu1-mesa
-  - libhwloc-dev
-  - libhwloc15
-  - libicu-dev
-  - libmovit-dev
-  - libnotify4
-  - libnuma-dev
-  - libpoppler-cpp-dev
-  - librust-gdk-pixbuf-sys-dev
-  - libsecret-1-0
-  - libsecret-1-dev
-  - libsecret-common
-  - libsox-fmt-all
-  - libstdc++6
-  - libssl3t64
-  - libslirp0
-  - libglx-mesa0
-  - libunwind8
-  - libvulkan1
-  - libvidstab-dev
-  - libyelp-dev
-  - locales
-  - locales-all
-  - lsb-release
-  - lsd
-  - make
-  - melt
-  - mesa-utils
-  - mesa-utils-bin
-  - mesa-vulkan-drivers
-  - mtr
-  - nmap
-  - npm
-  - nvidia-driver-575
-  - nvtop
-  - php
-  - php-cli
-  - php-cgi
-  - php-mysql
-  - php-pgsql
-  - pigz
-  - pkexec
-  - pkg-config
-  - policykit-1
-  - postgresql
-  - postgresql-contrib
-  - poppler-utils
-  - powershell
-  - python3-full
-  - python3-pip
-  - python3-venv
-  - shellcheck
-  - skopeo
-  - slirp4netns
-  - snapd
-  - software-properties-common
-  - squashfs-tools
-  - swh-plugins
-  - sox
-  - sqlite3
-  - terraform
-  - tesseract-ocr
-  - tini
-  - tcpdump
-  - tofrodos
-  - trivy
-  - ubuntu-drivers-common
-  - unzip
-  - vlc
-  - vim-syntastic
-  - weasyprint
-  - xvfb
-  - xdg-utils
-  - yq
-  - yamllint
-  - yelp-tools
-  - zsh
-  - zlib1g
-
-snap:
-  commands:
-    01: ['install', 'go', '--classic']
-    02: ['install', 'shfmt']
-
 write_files:
+  - path: /etc/ssh/sshd_config.d/custom.conf
+    content: |
+      UsePAM yes
+      KbdInteractiveAuthentication yes
+      PrintMotd no
+      PrintLastLog no
+      UseDNS no
   - path: /root/prewarm-cache.sh
     permissions: '0755'
     owner: root:root
@@ -298,13 +141,6 @@ write_files:
           --user-data-dir "$HOME/.vscode-server-insiders/data" \
           --extensions-dir "$HOME/.vscode-server-insiders/extensions" \
           --skip-welcome --skip-release-notes --disable-telemetry || true
-  - path: /etc/ssh/sshd_config.d/custom.conf
-    content: |
-      UsePAM yes
-      KbdInteractiveAuthentication yes
-      PrintMotd no
-      PrintLastLog no
-      UseDNS no
   - path: /etc/profile.d/nvm.sh
     owner: root:root
     permissions: '0644'
@@ -554,143 +390,248 @@ write_files:
       set -euo pipefail
       IFS=$'\n\t'
 
-      # Set NVM installation directory
-      export NVM_DIR="/usr/local/nvm"
-      mkdir -p "$NVM_DIR"
+      # Config
+      NVM_DIR="/usr/local/nvm"
+      NODE_VERSION="v24.4.1"
 
-      # Install NVM if not already installed
+      # Install or update NVM
       if [[ ! -d "$NVM_DIR/.git" ]]; then
-        git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+        git clone --quiet https://github.com/nvm-sh/nvm.git "$NVM_DIR"
       else
-        echo "[INFO] NVM already installed at $NVM_DIR"
+        git -C "$NVM_DIR" pull --quiet || true
       fi
 
-      # Source nvm
       # shellcheck disable=SC1090
       . "$NVM_DIR/nvm.sh"
 
-      # Clear any existing NPM config that conflicts with nvm
+      # Remove npm prefix conflicts
       unset NPM_CONFIG_PREFIX
       export npm_config_prefix=""
       export npm_config_globalconfig=""
 
-      # Immediately neutralize prefix issues
-      nvm use --delete-prefix v24.4.1 --silent || true
-
-      # Backup and remove existing .npmrc if it contains conflicting settings
+      # Remove problematic .npmrc
       if [[ -f "/root/.npmrc" ]]; then
-        echo "[INFO] Backing up and removing conflicting /root/.npmrc"
         mv /root/.npmrc "/root/.npmrc.bak"
       fi
 
-      # Install latest Node.js LTS and set as default
-      nvm install node
+      # Install Node.js LTS and set default
+      nvm install node --silent
       nvm alias default node
-      nvm use default --delete-prefix
+      nvm use default --delete-prefix --silent
 
-      # Optionally try to use specific version if available
-      nvm use --delete-prefix v24.4.1 || echo "[WARN] Node v24.4.1 not installed"
+      # Try specific Node version if available
+      if ! nvm use --delete-prefix "$NODE_VERSION" --silent; then
+        echo "[WARN] Node $NODE_VERSION not installed, sticking with LTS" >&2;
+      fi
 
-      # Set npm verbosity
-      npm config set loglevel verbose
+      # Set npm log level to basic info
+      npm config set loglevel info
 
-      # Install all global tools in one command
-      CXXFLAGS="--std=gnu++20" npm install --location=global --no-save \
-        @anthropic-ai/claude-code \
-        bash-language-server \
-        cwebp \
-        @devcontainers/cli \
-        dockerfile-language-server-nodejs \
-        eslint \
-        eslint-config-prettier \
-        gatsby-cli \
-        javascript-typescript-langserver \
-        jsonlint \
-        markdownlint \
-        markdownlint-cli \
-        markdownlint-cli2 \
-        newman \
-        playwright \
-        prettier \
-        puppeteer \
-        setup-eslint-config \
-        sql-language-server \
-        stylelint-config-prettier \
-        svgo \
-        terminalizer \
-        unified-language-server \
-        vscode-css-languageserver-bin \
-        vscode-html-languageserver-bin \
-        vscode-json-languageserver-bin \
+      # Global npm packages
+      GLOBAL_NPM_PACKAGES=(
+        @anthropic-ai/claude-code
+        bash-language-server
+        cwebp
+        @devcontainers/cli
+        dockerfile-language-server-nodejs
+        eslint
+        eslint-config-prettier
+        gatsby-cli
+        javascript-typescript-langserver
+        jsonlint
+        markdownlint
+        markdownlint-cli
+        markdownlint-cli2
+        newman
+        playwright
+        prettier
+        puppeteer
+        setup-eslint-config
+        sql-language-server
+        stylelint-config-prettier
+        svgo
+        terminalizer
+        unified-language-server
+        vscode-css-languageserver-bin
+        vscode-html-languageserver-bin
+        vscode-json-languageserver-bin
         yaml-language-server
+      )
+
+      CXXFLAGS="--std=gnu++20" npm install --location=global --no-save "${GLOBAL_NPM_PACKAGES[@]}"
 
       # Install browser binaries for Playwright
-      playwright install --with-deps chromium
+      playwright install --with-deps chromium >/dev/null 2>&1
 
-      echo "[INFO] npm install script completed successfully."
+      # Clean up unwanted files like '=0.22'
+      find / -maxdepth 1 -type f \( -name "=0.22" -o -name "=1.12" -o -name "=2.0" -o -name "'=0.22'" \) -delete 2>/dev/null || true
+
+packages:
+  - alsa-utils
+  - ansible
+  - ansible-lint
+  - apache2-utils
+  - apparmor
+  - apt-transport-https
+  - asciidoctor
+  - aspnetcore-runtime-9.0
+  - autoconf
+  - azure-cli
+  - bash-completion
+  - bat
+  - build-essential
+  - cabextract
+  - ca-certificates
+  - cockpit
+  - code
+  - code-insiders
+  - cmake
+  - curl
+  - dos2unix
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-compose-plugin
+  - docker-ce-rootless-extras
+  - docker-buildx-plugin
+  - dotnet-sdk-9.0
+  - dotnet-sdk-8.0
+  - dotnet-sdk-6.0
+  - dpkg
+  - dpkg-dev
+  - dnsutils
+  - ffmpeg
+  - file
+  - fontconfig
+  - fonts-powerline
+  - frei0r-plugins
+  - fuse3
+  - fzf
+  - g++
+  - gh
+  - gnupg
+  - golang-go
+  - graphviz
+  - gstreamer1.0-libav
+  - gstreamer1.0-vaapi
+  - gstreamer1.0-plugins-base
+  - gstreamer1.0-plugins-good
+  - gstreamer1.0-plugins-bad
+  - gstreamer1.0-plugins-ugly
+  - google-cloud-cli
+  - google-chrome-stable
+  - hwloc
+  - imagemagick
+  - inkscape
+  - iputils-ping
+  - kubectl
+  - ladspa-sdk
+  - libapache2-mod-php
+  - libavif-dev
+  - libc6
+  - libfuse3-3
+  - libgcc-s1
+  - libgstreamer1.0-0
+  - libicu74
+  - liblttng-ust1t64
+  - libappindicator3-1
+  - libdbusmenu-glib4
+  - libdbusmenu-gtk3-4
+  - libfftw3-bin
+  - libfftw3-dev
+  - libfftw3-long3
+  - libfftw3-quad3
+  - libfftw3-single3
+  - libfuse2t64
+  - libgavl2
+  - libgl1-mesa-dri
+  - libgl1
+  - libgif-dev
+  - libglu1-mesa
+  - libhwloc-dev
+  - libhwloc15
+  - libicu-dev
+  - libmovit-dev
+  - libnotify4
+  - libnuma-dev
+  - libpoppler-cpp-dev
+  - librust-gdk-pixbuf-sys-dev
+  - libsecret-1-0
+  - libsecret-1-dev
+  - libsecret-common
+  - libsox-fmt-all
+  - libstdc++6
+  - libssl3t64
+  - libslirp0
+  - libglx-mesa0
+  - libunwind8
+  - libvulkan1
+  - libvidstab-dev
+  - libyelp-dev
+  - locales
+  - locales-all
+  - lsb-release
+  - lsd
+  - make
+  - melt
+  - mesa-utils
+  - mesa-utils-bin
+  - mesa-vulkan-drivers
+  - mtr
+  - nmap
+  - npm
+  - nvidia-driver-575
+  - nvtop
+  - php
+  - php-cli
+  - php-cgi
+  - php-mysql
+  - php-pgsql
+  - pigz
+  - pkexec
+  - pkg-config
+  - policykit-1
+  - postgresql
+  - postgresql-contrib
+  - poppler-utils
+  - powershell
+  - python3-full
+  - python3-pip
+  - python3-venv
+  - shellcheck
+  - skopeo
+  - slirp4netns
+  - snapd
+  - software-properties-common
+  - squashfs-tools
+  - swh-plugins
+  - sox
+  - sqlite3
+  - terraform
+  - tesseract-ocr
+  - tini
+  - tcpdump
+  - tofrodos
+  - trivy
+  - ubuntu-drivers-common
+  - unzip
+  - vlc
+  - vim-syntastic
+  - weasyprint
+  - xvfb
+  - xdg-utils
+  - yq
+  - yamllint
+  - yelp-tools
+  - zsh
+  - zlib1g
+
 runcmd:
   - echo "runcmd executed at $(date)"
   - |
-    systemctl stop systemd-logind || true
-    systemctl stop getty@tty1.service || true
-    mv /etc/skel /home/.skel
-    mkdir -p /etc/skel
-    chmod 755 /etc/skel
-    chown root:root /etc/skel
-    # Add bind mount to /etc/fstab if not already there
-    if ! grep -q "/home/.skel /etc/skel" /etc/fstab; then
-      echo "/home/.skel /etc/skel none bind 0 0" >> /etc/fstab
-    fi
-    mount --bind /home/.skel /etc/skel
-    systemctl start systemd-logind || true
-  #- |
-  #  mkdir -p /var/lib/authd/
-  #  DEV=/dev/disk/azure/scsi1/lun2
-  #  if ! blkid -s TYPE "$DEV" >/dev/null 2>&1; then
-  #    echo "Formatting $DEV as ext4"
-  #    mkfs.ext4 -F "$DEV"
-  #  fi
-  #  echo '/dev/disk/azure/scsi1/lun2 /var/lib/authd/ ext4 defaults,nofail 0 2' >> /etc/fstab
-  #  mountpoint -q /var/lib/authd/ || mount /dev/disk/azure/scsi1/lun2 /var/lib/authd
-  #- mkdir -p /mnt/authd-cache
-  #- |
-  #  DEV=/dev/disk/azure/scsi1/lun1
-  #  if ! blkid -s TYPE "$DEV" >/dev/null 2>&1; then
-  #    echo "Formatting $DEV as ext4"
-  #    mkfs.ext4 -F "$DEV"
-  #  fi
-  #- echo '/dev/disk/azure/scsi1/lun1 /mnt/authd-cache ext4 defaults,nofail 0 2' >> /etc/fstab
-  #- mountpoint -q /mnt/authd-cache || mount /dev/disk/azure/scsi1/lun1 /mnt/authd-cache
-  #- DEBIAN_FRONTEND=noninteractive apt-get install -y authd
-  #- snap install authd-msentraid
-  #- sed -i 's/^\(LOGIN_TIMEOUT\t\t\)[0-9]\+/\1360/' /etc/login.defs
-  #- |
-  #  SNAP_CURRENT=$(readlink -f /var/snap/authd-msentraid/current)
-  #  CACHED=$(find /mnt/authd-cache -maxdepth 1 -type d -name 'login.microsoftonline.com_*' | head -n1)
-  #  LINK_TARGET="$SNAP_CURRENT/$(basename "$CACHED")"
-  #  if [ -n "$CACHED" ]; then
-  #    echo "Found login cache: $CACHED"
-  #    if [ ! -e "$LINK_TARGET" ]; then
-  #      echo "Linking $LINK_TARGET → $CACHED"
-  #      ln -s "$CACHED" "$LINK_TARGET"
-  #    else
-  #      echo "Login state already linked or exists at $LINK_TARGET"
-  #    fi
-  #  else
-  #    echo "No cached login state found in /mnt/authd-cache"
-  #  fi
-  # - mkdir -p /etc/systemd/system/authd.socket.d
-  #- |
-  #  cat <<EOF >/etc/systemd/system/authd.socket.d/override.conf
-  #  [Install]
-  #  WantedBy=multi-user.target
-  #  EOF
-  # - systemctl daemon-reload
-  #- systemctl enable --now authd.socket
-  - |
     DEBIAN_FRONTEND=noninteractive apt install authd -y
     snap install authd-msentraid
-    systemctl stop authd ssh systemd-logind ssh.socket
+    systemctl stop authd authd.socket ssh systemd-logind ssh.socket
     snap stop authd-msentraid
     mkdir -p /etc/authd/brokers.d/
     chmod 700 /etc/authd
@@ -705,8 +646,23 @@ runcmd:
     rm -rf /var/lib/authd
     mkdir -p /var/lib/authd
     chmod 700 /var/lib/authd
-    systemctl start authd ssh systemd-logind ssh.socket
+    systemctl start authd
+    timeout 10 bash -c 'until systemctl is-active --quiet authd; do sleep 0.5; done' || echo "authd not yet active, proceeding..."
     snap start authd-msentraid
+    systemctl start ssh systemd-logind ssh.socket
+  - |
+    systemctl stop systemd-logind || true
+    systemctl stop getty@tty1.service || true
+    mv /etc/skel /home/.skel
+    mkdir -p /etc/skel
+    chmod 755 /etc/skel
+    chown root:root /etc/skel
+    # Add bind mount to /etc/fstab if not already there
+    if ! grep -q "/home/.skel /etc/skel" /etc/fstab; then
+      echo "/home/.skel /etc/skel none bind 0 0" >> /etc/fstab
+    fi
+    mount --bind /home/.skel /etc/skel
+    systemctl start systemd-logind || true
   - |
     OS=$(go env GOOS); ARCH=$(go env GOARCH); curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_$${OS}_$${ARCH}
     chmod +x cmctl
@@ -714,7 +670,7 @@ runcmd:
   - |
     curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     chmod 700 /tmp/get_helm.sh
-    [bash, -lc, "export HOME=/root && /tmp/get_helm.sh"]
+    [ bash, -c, "export HOME=/root && /tmp/get_helm.sh" ]
     rm -f /tmp/get_helm.sh
     mkdir -p /root/.local/state/vs-kubernetes/tools/helm/linux-amd64
     ln -s /usr/local/bin/helm /root/.local/state/vs-kubernetes/tools/helm/linux-amd64/helm
@@ -727,7 +683,7 @@ runcmd:
     cd -
   - |
     mkdir -p /root/.kube/
-    bash -c 'echo "${var_kubeconfig}" | base64 -d > /root/.kube/config'
+    [ bash, -c, 'echo "${var_kubeconfig}" | base64 -d > /root/.kube/config' ]
     chmod 400 /root/.kube/config
     chmod 500 /root/.kube/
     echo 'export KUBECONFIG=$HOME/.kube/config' >> /root/.bashrc
@@ -735,15 +691,13 @@ runcmd:
     echo 'export KUBECONFIG=$HOME/.kube/config' >> /root/.zshrc
   - useradd -D -s "$(which zsh)"
   - sed -i -E 's|^#?DSHELL=.*|DSHELL=/usr/bin/zsh|' /etc/adduser.conf
-  - [ sh, -xc, "echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | debconf-set-selections" ]
-  - [ sh, -xc, "DEBIAN_FRONTEND=noninteractive apt-get update -qq" ]
-  - DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y
-  - [ sh, -xc, "DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer ubuntu-restricted-extras libavcodec-extra libavcodec-extra60 ubuntu-restricted-addons unrar" ]
   - |
-    # Ensure all packages are fully installed and available
+    [ sh, -xc, "echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | debconf-set-selections" ]
+    [ sh, -xc, "DEBIAN_FRONTEND=noninteractive apt-get update -qq" ]
+    DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y
+    [ sh, -xc, "DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer ubuntu-restricted-extras libavcodec-extra libavcodec-extra60 ubuntu-restricted-addons unrar" ]
     dpkg --configure -a
     apt-get install -f -y
-    sleep 5
   - python3 -m pip install --break-system-packages --ignore-installed numpy>=2.0 uvicorn>=0.22 scipy>=1.12 aider-install azure-cognitiveservices-speech black checkov docs-chat-bot fastapi gitlint git-filter-repo google-api-python-client qrcode[pil] markitdown mkdocs-add-teaser mkdocs-awesome-pages-plugin mkdocs-childpages-card-grid-plugin mkdocs-enumerate-headings-plugin mkdocs-exclude mkdocs-git-authors-plugin mkdocs-git-committers-plugin-2 mkdocs-github-admonitions-plugin mkdocs-git-revision-date-localized-plugin mkdocs-glightbox mkdocs-literate-nav mkdocs-material 'mkdocs-material[imaging]' mkdocs-minify-plugin mkdocs-monorepo-plugin mkdocs-pdf-export-plugin mkdocs-same-dir mkdocs-section-index mkdocs-table-reader-plugin mkdocs-with-pdf 'mkdocstrings[crystal]' 'mkdocstrings[python]' oauth2client oterm pre-commit progressbar2 pydantic powerline-shell uv
   - |
     mkdir -p "/usr/share/fonts/powerline"
@@ -751,29 +705,29 @@ runcmd:
     mkdir -p /etc/fonts/conf.avail
     curl -L https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf -o /etc/fonts/conf.avail/10-powerline-symbols.conf
     fc-cache -f /usr/share/fonts
-  #- bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" --unattended
   - |
     export HOME=/root
     curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s --
-  - echo 'source <(lacework completion bash)' >> /root/.bashrc
-  - echo 'export OLLAMA_API_BASE=http://127.0.0.1:11434' >> /root/.bashrc
-  #- sed -i '/^export OSH=/c\export OSH=~/.oh-my-bash' /etc/skel/.bashrc
-  - lacework component install sca
-  - lacework component install iac
-  - lacework component install remediate
-  - lacework component install vuln-scanner
-  - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-  - export HOME=/root/.ollama && curl -fsSL https://ollama.com/install.sh | sh
-  - systemctl start ollama.service
-  - systemctl enable ollama.service
-  - ollama pull deepseek-r1:latest
-  - curl -s https://fluxcd.io/install.sh | bash
-  - go install github.com/Azure/aztfexport@latest
-  - echo 'export OLLAMA_API_BASE=http://127.0.0.1:11434' >> /root/.zshrc
+    echo 'source <(lacework completion bash)' >> /root/.bashrc
+    echo 'export OLLAMA_API_BASE=http://127.0.0.1:11434' >> /root/.bashrc
+    lacework component install sca
+    lacework component install iac
+    lacework component install remediate
+    lacework component install vuln-scanner
+  - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash -s --
+  - |
+    export HOME=/root/.ollama && curl -fsSL https://ollama.com/install.sh | sh
+    systemctl start ollama.service
+    systemctl enable ollama.service
+    ollama pull deepseek-r1:latest
+    echo 'export OLLAMA_API_BASE=http://127.0.0.1:11434' >> /root/.zshrc
+    echo 'export OLLAMA_API_BASE=http://127.0.0.1:11434' >> /root/.bashrc
+  - curl -s https://fluxcd.io/install.sh | bash -s --
   #- curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
   #- install -o root -g root -m 0755 kubectl /usr/bin/kubectl
-  - mkdir -p /root/.local/state/vs-kubernetes/tools/kubectl/
-  - ln -s `which kubectl` /root/.local/state/vs-kubernetes/tools/kubectl/kubectl
+  - |
+    mkdir -p /root/.local/state/vs-kubernetes/tools/kubectl/
+    ln -s `which kubectl` /root/.local/state/vs-kubernetes/tools/kubectl/kubectl
   - curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | bash -s -- -b /usr/local/bin
   - |
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
@@ -797,7 +751,7 @@ runcmd:
     docker pull kubernetes-mcp-server@latest
     docker pull hashicorp/terraform-mcp-server:latest
     docker pull node:20-bookworm
-  - usermod -aG docker ${var_admin_username}
+    usermod -aG docker ${var_admin_username}
   - service apache2 stop && systemctl disable apache2
   - export HOME="/root" && curl -fsSL https://coder.com/install.sh | sh -s -- && usermod -aG docker coder && echo 'CODER_HTTP_ADDRESS=0.0.0.0:80' > /etc/coder.d/coder.env && systemctl enable --now coder && journalctl -u coder.service -b && rm -rf "/root/.cache/coder/"
   - |
@@ -821,11 +775,12 @@ runcmd:
     export HOME=/root && bash /tmp/actionlint.sh latest /usr/bin
     rm /tmp/actionlint.sh
   - |
-    curl -sSLo /tmp/terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.20.0/terraform-docs-v0.20.0-linux-amd64.tar.gz
-    tar -xzf /tmp/terraform-docs.tar.gz
-    chmod +x terraform-docs
-    install terraform-docs -D -t /usr/local/bin/
-    rm -rf /tmp/terraform-docs.tar.gz terraform-docs
+    curl -sSLo /tmp/terraform-docs.tar.gz \
+      https://github.com/terraform-docs/terraform-docs/releases/download/v0.20.0/terraform-docs-v0.20.0-linux-amd64.tar.gz
+    tar --extract --gzip --file /tmp/terraform-docs.tar.gz \
+        --directory /usr/local/bin terraform-docs
+    chmod +x /usr/local/bin/terraform-docs
+    rm -f /tmp/terraform-docs.tar.gz
   - |
     curl -Lo /tmp/terrascan.tar.gz https://github.com/tenable/terrascan/releases/download/v1.19.9/terrascan_1.19.9_Linux_x86_64.tar.gz
     tar -xf /tmp/terrascan.tar.gz terrascan
@@ -844,11 +799,12 @@ runcmd:
     export HOME=/root && bash /tmp/kustomize.sh /usr/local/bin
     rm /tmp/kustomize.sh
   - |
-    curl -L -o /tmp/speedtest.tgz https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz
-    tar -zxf /tmp/speedtest.tgz
-    install speedtest /usr/local/bin/speedtest
-    rm -rf speedtest
-    rm /tmp/speedtest.tgz
+    curl -sSLo /tmp/speedtest.tgz \
+      https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz
+    tar --extract --gzip --file /tmp/speedtest.tgz \
+        --directory /usr/local/bin speedtest
+    chmod +x /usr/local/bin/speedtest
+    rm -f /tmp/speedtest.tgz
     echo 'alias speedtest="speedtest --accept-license --accept-gdpr"' >> /root/.bash_aliases
     echo 'alias speedtest="speedtest --accept-license --accept-gdpr"' >> /root/.zshrc
     echo 'alias speedtest="speedtest --accept-license --accept-gdpr"' >> /root/.bashrc
@@ -858,8 +814,11 @@ runcmd:
     curl -LO "https://github.com/GoogleCloudPlatform/terraformer/releases/download/$(curl -s https://api.github.com/repos/GoogleCloudPlatform/terraformer/releases/latest | grep tag_name | cut -d '"' -f 4)/terraformer-$${PROVIDER}-linux-amd64"
     chmod +x terraformer-$${PROVIDER}-linux-amd64
     mv terraformer-$${PROVIDER}-linux-amd64 /usr/local/bin/terraformer
-  - "GOBIN=/usr/local/bin go install golang.org/x/tools/gopls@latest"
-  - "GOBIN=/usr/local/bin go install honnef.co/go/tools/cmd/staticcheck@latest"
+  - |
+    export "GOBIN=/usr/local/bin"
+    go install github.com/Azure/aztfexport@latest
+    go install golang.org/x/tools/gopls@latest
+    go install honnef.co/go/tools/cmd/staticcheck@latest
   - |
     # Clone and build xmrig with proper dependency checks
     if command -v cmake >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
@@ -950,8 +909,8 @@ runcmd:
     cp -a /root/snap /etc/skel
     cp -a /root/.act /etc/skel
     cp -a /root/.azure /etc/skel
-  - az vm extension set --publisher Microsoft.Azure.ActiveDirectory --subscription Canada-PAYG --name AADSSHLoginForLinux --resource-group 40docs --vm-name cloudshell_vm
-  - az config set extension.use_dynamic_install=yes_without_prompt
+  #- az vm extension set --publisher Microsoft.Azure.ActiveDirectory --subscription Canada-PAYG --name AADSSHLoginForLinux --resource-group 40docs --vm-name cloudshell_vm
+  #- az config set extension.use_dynamic_install=yes_without_prompt
   - fwupdmgr update -y --no-reboot-check
   - |
     echo "Checking if reboot is required..."
@@ -961,3 +920,4 @@ runcmd:
     else
       echo "No reboot required."
     fi
+
