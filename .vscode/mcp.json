@@ -71,14 +71,6 @@
         "/projects"
       ]
     },
-    "kubernetes": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "kubernetes-mcp-server@latest"
-      ]
-    },
     "playwright": {
       "command": "npx",
       "args": [
@@ -91,7 +83,6 @@
       "args": [
         "run",
         "-i",
-        "--rm",
         "hashicorp/terraform-mcp-server:latest"
       ]
     },
