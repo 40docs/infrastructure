@@ -217,7 +217,6 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         var_ssh_host_ed25519_public  = tls_private_key.cloudshell_host_ed25519.public_key_openssh
         var_directory_tenant_id      = var.cloudshell_directory_tenant_id
         var_directory_client_id      = var.cloudshell_directory_client_id
-        var_admin_username           = var.cloudshell_admin_username
         var_forticnapp_account       = var.forticnapp_account
         var_forticnapp_subaccount    = var.forticnapp_subaccount
         var_forticnapp_api_key       = var.forticnapp_api_key
