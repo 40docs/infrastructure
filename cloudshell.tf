@@ -222,6 +222,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         var_forticnapp_api_key       = var.forticnapp_api_key
         var_forticnapp_api_secret    = var.forticnapp_api_secret
         var_kubeconfig               = local.kubeconfig
+        var_admin_username           = var.cloudshell_admin_username
       }
     )
   )
