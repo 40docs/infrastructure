@@ -205,10 +205,12 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   location              = azurerm_resource_group.azure_resource_group.location
   resource_group_name   = azurerm_resource_group.azure_resource_group.name
   network_interface_ids = [azurerm_network_interface.cloudshell_nic[count.index].id]
-  #size                  = "Standard_NC6s_v3" # 6 vCPU, 112 GB RAM, 1 GPU
-  #size = "Standard_NC24s_v3" # 24 vCPU, 448 GB RAM
+  size                  = "Standard_NC12s_v3" # 12 vCPU, 224 GB RAM, 2x V100 16GB GPUs (32GB total)
+  #size = "Standard_NC6s_v3" # 6 vCPU, 112 GB RAM, 1x V100 16GB GPU
+  #size = "Standard_NC24s_v3" # 24 vCPU, 448 GB RAM, 4x V100 16GB GPUs
+  #size = "Standard_NC24ads_A100_v4" # 24 vCPU, 220 GB RAM, 1x A100 80GB GPU (requires quota)
   #size                  = "Standard_M16ms" # 16 vCPU, 384 GB RAM
-  size = "Standard_D4s_v3" # 4 vCPU, 16 GB RAM
+  #size = "Standard_D4s_v3" # 4 vCPU, 16 GB RAM
   identity {
     type = "SystemAssigned"
   }
