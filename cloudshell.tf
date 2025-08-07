@@ -205,6 +205,9 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   location              = azurerm_resource_group.azure_resource_group.location
   resource_group_name   = azurerm_resource_group.azure_resource_group.name
   network_interface_ids = [azurerm_network_interface.cloudshell_nic[count.index].id]
+
+  # GPU-enabled VM size for AI/ML workloads with NVIDIA Tesla V100 GPUs
+  # Cloud-init includes nvidia-container-toolkit and proper GPU device permissions
   size                  = "Standard_NC12s_v3" # 12 vCPU, 224 GB RAM, 2x V100 16GB GPUs (32GB total)
   #size = "Standard_NC6s_v3" # 6 vCPU, 112 GB RAM, 1x V100 16GB GPU
   #size = "Standard_NC24s_v3" # 24 vCPU, 448 GB RAM, 4x V100 16GB GPUs
