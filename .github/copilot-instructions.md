@@ -20,6 +20,9 @@
 
 ## Developer Workflow
 - **Branch Protection**: The `main` branch is protected. **All changes must be made via a pull request. Direct pushes to `main` are not allowed.**
+  - **ALWAYS create a feature branch** for any changes (e.g., `git checkout -b feature/cloudshell-fix`)
+  - **Never commit directly to main** - this will be rejected by GitHub
+  - **All deployments require PR approval** and CI/CD validation before merge
 - **GitHub CLI**: Before running any `gh` commands, disable the pager with `export GH_PAGER=` to prevent pagination issues.
 - **Pull Request Creation**: When creating a pull request, use a temporary file as the body of the pull request message instead of using a lengthy bash command.
 - **Commit**: When creating a git commit, use a temporary file as the body of the commit message instead of using a lengthy bash command.
@@ -37,7 +40,7 @@
 
 ## Project-Specific Conventions
 - **Variable Definitions**: All variables in `variables.tf` must have descriptions; sensitive variables must be marked.
-- **Adding Applications**: Create a new `spoke-k8s_application-<name>.tf` file, follow existing patterns, update variables/outputs, and push to `main`.
+- **Adding Applications**: Create a new `spoke-k8s_application-<name>.tf` file, follow existing patterns, update variables/outputs, and **create a feature branch + pull request** to deploy changes.
 - **Cloud-init**: Use YAML syntax; avoid mixing shell and cloud-init mounts. If using `mounts:`, ensure all fields are strings.
 - **CI/CD Secrets**: All secrets are injected via GitHub Actions, not stored in code.
 
@@ -49,10 +52,11 @@
 - `variables.tf` — All input variables
 
 ## Example: Adding a New Application
-1. Create `spoke-k8s_application-<name>.tf`.
-2. Define resources using existing patterns.
-3. Update `variables.tf` and outputs as needed.
-4. Commit and push to `main` to trigger deployment.
+1. **Create a feature branch**: `git checkout -b feature/add-new-app`
+2. Create `spoke-k8s_application-<name>.tf`.
+3. Define resources using existing patterns.
+4. Update `variables.tf` and outputs as needed.
+5. **Create a pull request** to merge changes into `main` and trigger deployment.
 
 ## Troubleshooting and Testing terraform
 1. run `terraform fmt` to format files
