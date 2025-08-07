@@ -22,7 +22,9 @@
 - **Branch Protection**: The `main` branch is protected. **All changes must be made via a pull request. Direct pushes to `main` are not allowed.**
   - **ALWAYS create a feature branch** for any changes (e.g., `git checkout -b feature/cloudshell-fix`)
   - **Never commit directly to main** - this will be rejected by GitHub
+  - **NEVER use `git push origin main`** - this will be rejected due to branch protection
   - **All deployments require PR approval** and CI/CD validation before merge
+  - **Proper workflow**: Create feature branch → Make changes → Push feature branch → Create PR → Merge via GitHub
 - **GitHub CLI**: Before running any `gh` commands, disable the pager with `export GH_PAGER=` to prevent pagination issues.
 - **Pull Request Creation**: When creating a pull request, use a temporary file as the body of the pull request message instead of using a lengthy bash command.
 - **Commit**: When creating a git commit, use a temporary file as the body of the commit message instead of using a lengthy bash command.
