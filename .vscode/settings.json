@@ -13,17 +13,7 @@
   ],
   "github.copilot.chat.agent.thinkingTool": true,
   "chat.tools.autoApprove": true,
-  "dotnetAcquisitionExtension.existingDotnetPath": [
-    {
-      "extensionId": "MS-CST-E.vscode-devskim",
-      "path": "/usr/lib/dotnet/dotnet"
-    },
-    {
-      "extensionId": "ms-azuretools.vscode-azure-github-copilot",
-      "path": "/usr/lib/dotnet/dotnet"
-    }
-  ],
-  "dotnetAcquisitionExtension.sharedExistingDotnetPath": "/usr/lib/dotnet",
+  "dotnetAcquisitionExtension.allowInvalidPaths": true,
   "workbench.colorTheme": "Visual Studio Dark",
   "workbench.editor.enablePreview": false,
   "workbench.startupEditor": "none",
