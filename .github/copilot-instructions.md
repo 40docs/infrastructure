@@ -42,7 +42,7 @@ These commands will be **REJECTED** by GitHub and cause workflow violations:
 ```bash
 # NEVER RUN THESE - THEY WILL FAIL:
 git push origin main
-git push --force origin main  
+git push --force origin main
 git push -f origin main
 git push --set-upstream origin main
 # ANY direct push to main branch
@@ -54,7 +54,7 @@ git push --set-upstream origin main
    - **WHY**: No exceptions exist - ALL changes must go through PR process
    - **CONSEQUENCE**: Direct pushes get rejected with `GH013: Repository rule violations`
 
-2. **📋 RULE**: AI assistants must follow the same workflow as humans  
+2. **📋 RULE**: AI assistants must follow the same workflow as humans
    - **WHY**: Branch protection doesn't distinguish between human and AI commits
    - **CONSEQUENCE**: Violations require manual recovery and workflow cleanup
 
