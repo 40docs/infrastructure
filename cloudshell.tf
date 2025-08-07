@@ -142,12 +142,12 @@ resource "random_id" "random_id" {
 }
 
 resource "azurerm_storage_account" "cloudshell_storage_account" {
-  count                    = var.cloudshell ? 1 : 0
-  name                     = "cldshl${random_id.random_id[count.index].hex}"
-  location                 = azurerm_resource_group.azure_resource_group.location
-  resource_group_name      = azurerm_resource_group.azure_resource_group.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  count                             = var.cloudshell ? 1 : 0
+  name                              = "cldshl${random_id.random_id[count.index].hex}"
+  location                          = azurerm_resource_group.azure_resource_group.location
+  resource_group_name               = azurerm_resource_group.azure_resource_group.name
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
   tags                              = local.standard_tags
 }
@@ -160,7 +160,13 @@ resource "azurerm_managed_disk" "cloudshell_home_disk" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 1024
-  tags = local.standard_tags
+  tags                 = local.standard_tags
+
+  lifecycle {
+    replace_triggered_by = [
+      azurerm_linux_virtual_machine.cloudshell_vm
+    ]
+  }
 }
 
 resource "azurerm_managed_disk" "cloudshell_docker_disk" {

@@ -44,9 +44,6 @@ resource "random_password" "salt" {
 
 resource "htpasswd_password" "hash" {
   password = var.htpasswd
-  lifecycle {
-    ignore_changes = [apr1]
-  }
 }
 
 resource "kubernetes_secret" "htpasswd_secret" {
