@@ -40,7 +40,7 @@ Copilot frequently creates temporary files for commits, PRs, and processing. The
 
 **Commit & PR Files:**
 - `commit_message.md` / `commit_message.txt` - For detailed commit messages
-- `pr_body.md` / `pr_body.txt` - For pull request descriptions  
+- `pr_body.md` / `pr_body.txt` - For pull request descriptions
 - `pr_body_temp.md` / `pr_body_temp.txt` - For temporary PR content
 - `*_temp.md` / `*_temp.txt` - Any file with "_temp" suffix
 
@@ -67,7 +67,7 @@ Copilot frequently creates temporary files for commits, PRs, and processing. The
 # Clean up commit message files
 rm commit_message.md 2>/dev/null || true
 
-# Clean up PR body files  
+# Clean up PR body files
 rm pr_body*.md pr_body*.txt 2>/dev/null || true
 
 # Clean up all temporary patterns
@@ -132,7 +132,7 @@ git push origin feature/my-changes
 export GH_PAGER=  # Disable pager first!
 gh pr create --title "My Changes" --body-file pr_body.md
 
-# Step 6: Clean up PR temporary files  
+# Step 6: Clean up PR temporary files
 rm pr_body.md 2>/dev/null || true
 
 # Step 7: Merge via GitHub interface after approval
@@ -159,6 +159,53 @@ If you accidentally attempt to push to main:
 - **GitHub Actions**: See `.github/workflows/infrastructure.yml` for build/deploy logic.
 - **GitHub CLI**: Always run `export GH_PAGER=` before using `gh` commands to disable pager and prevent terminal blocking.
 - **External Tools**: Security scanning tools are recommended but not enforced.
+
+## Azure Kubernetes Service (AKS) Cluster
+
+### **🎯 Cluster Information**
+- **Cluster Name**: `40docs_k8s-cluster_eastus`
+- **Resource Group**: `40docs`
+- **Location**: `eastus`
+- **Kubernetes Version**: `1.31.10`
+- **Status**: Managed through Terraform in `spoke-k8s_cluster.tf`
+
+### **🔧 Getting Kubeconfig Access**
+
+To connect to the AKS cluster for kubectl operations, use the Azure CLI:
+
+```bash
+# Standard user credentials (recommended)
+az aks get-credentials --resource-group 40docs --name 40docs_k8s-cluster_eastus --overwrite-existing
+
+# Admin credentials (for cluster administration)
+az aks get-credentials --resource-group 40docs --name 40docs_k8s-cluster_eastus --admin --overwrite-existing
+
+# Save to specific kubeconfig file
+az aks get-credentials --resource-group 40docs --name 40docs_k8s-cluster_eastus --file ~/.kube/aks-config
+```
+
+### **✅ Verification Commands**
+
+After getting credentials, verify connectivity:
+```bash
+kubectl config current-context        # Should show: 40docs_k8s-cluster_eastus
+kubectl get nodes                     # List cluster nodes
+kubectl get namespaces                # List available namespaces
+kubectl get pods --all-namespaces     # List all pods across namespaces
+```
+
+### **🚀 Common AKS Operations**
+
+- **Application Deployments**: Managed via Terraform files `spoke-k8s_application-*.tf`
+- **Infrastructure Changes**: All cluster modifications should go through Terraform and CI/CD pipeline
+- **Direct kubectl**: Use for monitoring, debugging, and read-only operations
+- **Secrets Management**: Handled through Terraform and Azure Key Vault integration
+
+### **⚠️ Important Notes**
+- **Never manually modify cluster resources** that are managed by Terraform (deployments, services, ingress)
+- **Use kubectl for troubleshooting and monitoring** only
+- **All persistent changes** must go through the Terraform + CI/CD workflow
+- **Feature branch workflow** applies to any infrastructure changes
 
 ## Project-Specific Conventions
 - **Variable Definitions**: All variables in `variables.tf` must have descriptions; sensitive variables must be marked.
