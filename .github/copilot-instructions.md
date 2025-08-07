@@ -34,23 +34,69 @@
 - **CI/CD**: Merges to `main` via pull request trigger the deploy pipeline.
 - **Testing**: Use security scanners (`tfsec`, `trivy`, `checkov`) before PR/merge.
 
-## ⚠️ CRITICAL: Protected Branch Commands to NEVER Use
+## 🚨 CRITICAL: Protected Branch Workflow - LESSONS LEARNED
 
-**NEVER run these commands - they will be rejected by GitHub:**
-- `git push origin main` 
-- `git push --force origin main`
-- `git push -f origin main`
-- Any direct push to main branch
+**⚠️ ABSOLUTE RULE: NEVER EXECUTE THESE COMMANDS ⚠️**
 
-**Instead, always use the feature branch workflow:**
+These commands will be **REJECTED** by GitHub and cause workflow violations:
 ```bash
-# Correct workflow
-git checkout -b feature/my-changes
-git add .
-git commit -m "My changes"
-git push origin feature/my-changes
-gh pr create --title "My changes" --body-file pr_body.md
+# NEVER RUN THESE - THEY WILL FAIL:
+git push origin main
+git push --force origin main  
+git push -f origin main
+git push --set-upstream origin main
+# ANY direct push to main branch
 ```
+
+### **Hard-Learned Lessons from Protected Branch Violations:**
+
+1. **📋 RULE**: Even "simple documentation changes" require feature branches
+   - **WHY**: No exceptions exist - ALL changes must go through PR process
+   - **CONSEQUENCE**: Direct pushes get rejected with `GH013: Repository rule violations`
+
+2. **📋 RULE**: AI assistants must follow the same workflow as humans  
+   - **WHY**: Branch protection doesn't distinguish between human and AI commits
+   - **CONSEQUENCE**: Violations require manual recovery and workflow cleanup
+
+3. **📋 RULE**: "Just this once" mindset leads to violations
+   - **WHY**: Shortcuts bypass essential review and CI/CD validation
+   - **CONSEQUENCE**: Forces time-consuming recovery and demonstrates poor practice
+
+### **✅ CORRECT WORKFLOW - NO EXCEPTIONS:**
+
+```bash
+# Step 1: ALWAYS create feature branch first
+git checkout -b feature/my-changes
+
+# Step 2: Make your changes and commit
+git add .
+git commit -m "description of changes"
+
+# Step 3: Push feature branch (this is ALLOWED)
+git push origin feature/my-changes
+
+# Step 4: Create pull request via GitHub CLI
+export GH_PAGER=  # Disable pager first!
+gh pr create --title "My Changes" --body-file pr_body.md
+
+# Step 5: Merge via GitHub interface after approval
+# (Never push directly to main)
+```
+
+### **🔧 Recovery from Protected Branch Violations:**
+
+If you accidentally attempt to push to main:
+1. **DON'T PANIC** - the push will be rejected (this is good!)
+2. **Create feature branch**: `git checkout -b feature/recovery-branch`
+3. **Reset main branch**: `git checkout main && git reset --hard origin/main`
+4. **Push feature branch**: `git push origin feature/recovery-branch`
+5. **Create PR**: Follow normal PR process
+
+### **🎯 Key Takeaways:**
+- **Branch protection rules exist for good reasons** - they enforce quality and collaboration
+- **There are NO exceptions** - documentation, hotfixes, "simple changes" all need PRs
+- **When in doubt, use feature branch** - it's always the safe choice
+- **Recovery is possible** - but prevention through proper workflow is better
 
 ## Integration Points
 - **Azure**: Auth via Azure CLI or GitHub Actions (`azure/login`).
