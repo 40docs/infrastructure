@@ -117,10 +117,6 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     log_analytics_workspace_id      = azurerm_log_analytics_workspace.log_analytics.id
     msi_auth_for_monitoring_enabled = true
   }
-  # API Server access profile for security
-  api_server_access_profile {
-    authorized_ip_ranges = []
-  }
   # Azure Policy Add-on for governance
   azure_policy_enabled = var.production_environment ? true : false
   # Default node pool configuration
