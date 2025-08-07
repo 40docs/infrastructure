@@ -22,7 +22,9 @@
 - **Branch Protection**: The `main` branch is protected. **All changes must be made via a pull request. Direct pushes to `main` are not allowed.**
   - **ALWAYS create a feature branch** for any changes (e.g., `git checkout -b feature/cloudshell-fix`)
   - **Never commit directly to main** - this will be rejected by GitHub
+  - **NEVER use `git push origin main`** - this will be rejected due to branch protection
   - **All deployments require PR approval** and CI/CD validation before merge
+  - **Proper workflow**: Create feature branch → Make changes → Push feature branch → Create PR → Merge via GitHub
 - **GitHub CLI**: Before running any `gh` commands, disable the pager with `export GH_PAGER=` to prevent pagination issues.
 - **Pull Request Creation**: When creating a pull request, use a temporary file as the body of the pull request message instead of using a lengthy bash command.
 - **Commit**: When creating a git commit, use a temporary file as the body of the commit message instead of using a lengthy bash command.
@@ -31,6 +33,24 @@
 - **Cloud-init**: Edit scripts in `cloud-init/` for VM setup.
 - **CI/CD**: Merges to `main` via pull request trigger the deploy pipeline.
 - **Testing**: Use security scanners (`tfsec`, `trivy`, `checkov`) before PR/merge.
+
+## ⚠️ CRITICAL: Protected Branch Commands to NEVER Use
+
+**NEVER run these commands - they will be rejected by GitHub:**
+- `git push origin main` 
+- `git push --force origin main`
+- `git push -f origin main`
+- Any direct push to main branch
+
+**Instead, always use the feature branch workflow:**
+```bash
+# Correct workflow
+git checkout -b feature/my-changes
+git add .
+git commit -m "My changes"
+git push origin feature/my-changes
+gh pr create --title "My changes" --body-file pr_body.md
+```
 
 ## Integration Points
 - **Azure**: Auth via Azure CLI or GitHub Actions (`azure/login`).
