@@ -1,4 +1,23 @@
 Copilot-Processing.md
+
+# GitHub Copilot and AI-generated temporary files
+**/commit_message.md
+**/commit_message.txt
+**/pr_body.md
+**/pr_body.txt
+**/pr_body_temp.md
+**/pr_body_temp.txt
+**/*_temp.md
+**/*_temp.txt
+**/copilot_*.md
+**/copilot_*.txt
+**/temp_*.md
+**/temp_*.txt
+**/draft_*.md
+**/draft_*.txt
+**/.copilot/
+**/.ai_temp/
+
 .aider*
 .env
 # OSX leaves these everywhere on SMB shares
