@@ -28,6 +28,56 @@
 - **GitHub CLI**: Before running any `gh` commands, disable the pager with `export GH_PAGER=` to prevent pagination issues.
 - **Pull Request Creation**: When creating a pull request, use a temporary file as the body of the pull request message instead of using a lengthy bash command.
 - **Commit**: When creating a git commit, use a temporary file as the body of the commit message instead of using a lengthy bash command.
+- **Temporary File Cleanup**: **ALWAYS clean up temporary files** created during Copilot operations to keep the repository clean.
+
+## 🧹 Temporary File Management for Copilot
+
+### **⚠️ CRITICAL: Always Clean Up Temporary Files**
+
+Copilot frequently creates temporary files for commits, PRs, and processing. These files **MUST be deleted** after use to prevent accidental commits and maintain repository hygiene.
+
+### **Common Copilot Temporary File Patterns:**
+
+**Commit & PR Files:**
+- `commit_message.md` / `commit_message.txt` - For detailed commit messages
+- `pr_body.md` / `pr_body.txt` - For pull request descriptions  
+- `pr_body_temp.md` / `pr_body_temp.txt` - For temporary PR content
+- `*_temp.md` / `*_temp.txt` - Any file with "_temp" suffix
+
+**Processing & Draft Files:**
+- `Copilot-Processing.md` - Processing status and task tracking
+- `copilot_*.md` / `copilot_*.txt` - Copilot-generated content files
+- `temp_*.md` / `temp_*.txt` - Files with "temp_" prefix
+- `draft_*.md` / `draft_*.txt` - Draft content files
+
+**Directory Patterns:**
+- `.copilot/` - Copilot working directories
+- `.ai_temp/` - AI assistant temporary directories
+
+### **🔧 Cleanup Best Practices:**
+
+1. **After Every Commit**: `rm commit_message.md commit_message.txt 2>/dev/null || true`
+2. **After Every PR**: `rm pr_body*.md pr_body*.txt 2>/dev/null || true`
+3. **Regular Cleanup**: `rm *_temp.* temp_*.* draft_*.* copilot_*.* 2>/dev/null || true`
+4. **Check Before Push**: `git status` to verify no temporary files are staged
+
+### **✅ Cleanup Command Examples:**
+
+```bash
+# Clean up commit message files
+rm commit_message.md 2>/dev/null || true
+
+# Clean up PR body files  
+rm pr_body*.md pr_body*.txt 2>/dev/null || true
+
+# Clean up all temporary patterns
+rm *_temp.* temp_*.* draft_*.* copilot_*.* 2>/dev/null || true
+
+# Comprehensive cleanup (safe - ignores missing files)
+rm commit_message.* pr_body*.* *_temp.* temp_*.* draft_*.* copilot_*.* 2>/dev/null || true
+```
+
+**Note**: These patterns are already included in `.gitignore`, but manual cleanup prevents workspace clutter and ensures no accidental staging.
 - **Terraform**:
   - Do not run `terraform plan`, or `terraform apply` because terraform variables are initialized by github secrets during a workflow run.
 - **Cloud-init**: Edit scripts in `cloud-init/` for VM setup.
@@ -42,7 +92,7 @@ These commands will be **REJECTED** by GitHub and cause workflow violations:
 ```bash
 # NEVER RUN THESE - THEY WILL FAIL:
 git push origin main
-git push --force origin main  
+git push --force origin main
 git push -f origin main
 git push --set-upstream origin main
 # ANY direct push to main branch
@@ -54,7 +104,7 @@ git push --set-upstream origin main
    - **WHY**: No exceptions exist - ALL changes must go through PR process
    - **CONSEQUENCE**: Direct pushes get rejected with `GH013: Repository rule violations`
 
-2. **📋 RULE**: AI assistants must follow the same workflow as humans  
+2. **📋 RULE**: AI assistants must follow the same workflow as humans
    - **WHY**: Branch protection doesn't distinguish between human and AI commits
    - **CONSEQUENCE**: Violations require manual recovery and workflow cleanup
 
@@ -70,16 +120,22 @@ git checkout -b feature/my-changes
 
 # Step 2: Make your changes and commit
 git add .
-git commit -m "description of changes"
+git commit -F commit_message.md  # Use temporary file for detailed messages
 
-# Step 3: Push feature branch (this is ALLOWED)
+# Step 3: Clean up commit temporary files
+rm commit_message.md 2>/dev/null || true
+
+# Step 4: Push feature branch (this is ALLOWED)
 git push origin feature/my-changes
 
-# Step 4: Create pull request via GitHub CLI
+# Step 5: Create pull request via GitHub CLI
 export GH_PAGER=  # Disable pager first!
 gh pr create --title "My Changes" --body-file pr_body.md
 
-# Step 5: Merge via GitHub interface after approval
+# Step 6: Clean up PR temporary files  
+rm pr_body.md 2>/dev/null || true
+
+# Step 7: Merge via GitHub interface after approval
 # (Never push directly to main)
 ```
 
