@@ -36,14 +36,9 @@ resource "kubernetes_namespace" "docs" {
   }
 }
 
-resource "random_password" "salt" {
-  length  = 8
-  special = false
-  #override_special = "!@#%&*()-_=+[]{}<>:?"
-}
-
 resource "htpasswd_password" "hash" {
   password = var.htpasswd
+  salt     = substr(sha256("${var.htusername}-${var.dns_zone}"), 0, 8)
 }
 
 resource "kubernetes_secret" "htpasswd_secret" {
