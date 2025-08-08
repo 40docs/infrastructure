@@ -719,6 +719,71 @@ kubectl get pods -n <namespace> -w
 
 ## 📚 Additional Resources
 
+## 🔐 Certificate Management & Renewal with cert-manager (cmctl)
+
+This infrastructure uses cert-manager for automated TLS certificate management. In some cases, you may need to manually inspect, troubleshoot, or renew certificates using the `cmctl` CLI and Kubernetes tools.
+
+### Common Tasks
+
+#### 1. List Certificates in a Namespace
+```bash
+kubectl get certificates -n <namespace>
+# Example:
+kubectl get certificates -n docs
+```
+
+#### 2. Inspect Certificate Status with cmctl
+```bash
+cmctl status certificate <certificate-name> --namespace <namespace>
+# Example:
+cmctl status certificate docs-tls --namespace docs
+```
+
+#### 3. Force Certificate Renewal
+```bash
+cmctl renew <certificate-name> --namespace <namespace>
+# Example:
+cmctl renew docs-tls --namespace docs
+```
+
+#### 4. Check cert-manager Controller Logs
+```bash
+kubectl logs -n cert-manager deploy/cert-manager
+```
+
+#### 5. Troubleshoot Certificate Events
+```bash
+kubectl describe certificate <certificate-name> -n <namespace>
+# Example:
+kubectl describe certificate docs-tls -n docs
+```
+
+### Example: Full Certificate Renewal Workflow
+
+```bash
+# 1. List certificates in the docs namespace
+kubectl get certificates -n docs
+
+# 2. Check the status of the docs-tls certificate
+cmctl status certificate docs-tls --namespace docs
+
+# 3. Force renewal if needed
+cmctl renew docs-tls --namespace docs
+
+# 4. Confirm renewal and check new validity dates
+cmctl status certificate docs-tls --namespace docs
+
+# 5. If issues, inspect events and logs
+kubectl describe certificate docs-tls -n docs
+kubectl logs -n cert-manager deploy/cert-manager
+```
+
+### Notes
+- `cmctl` is the official CLI for cert-manager. It complements kubectl for certificate lifecycle management.
+- Use `kubectl` for general resource inspection and event troubleshooting.
+- Always check certificate events and cert-manager logs if renewal does not succeed.
+- For more, see: [cert-manager documentation](https://cert-manager.io/docs/), [cmctl usage](https://cert-manager.io/docs/usage/cmctl/)
+
 - [Azure NVA High Availability Guide](https://learn.microsoft.com/en-us/azure/architecture/networking/guide/network-virtual-appliance-high-availability)
 - [FortiWeb Azure Deployment Guide](https://docs.fortinet.com/document/fortiweb-public-cloud)
 - [AKS Best Practices](https://learn.microsoft.com/en-us/azure/aks/best-practices)
