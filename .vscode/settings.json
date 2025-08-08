@@ -1,4 +1,5 @@
 {
+  "chat.mcp.autostart": true,
   "chat.modeFilesLocations": {
     "chatmodes": true
   },
