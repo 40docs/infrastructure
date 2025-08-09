@@ -87,7 +87,7 @@ resource "azurerm_lb" "hub_nva_lb" {
     azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
 
-  name                = "hub-nva-lb"
+  name                = "hub-nva-lb-${random_string.vm_suffix.result}"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   sku                 = "Standard"
@@ -110,7 +110,7 @@ resource "azurerm_lb" "hub_nva_lb" {
 resource "azurerm_lb_backend_address_pool" "hub_nva_backend_pools" {
   for_each = var.hub_nva_high_availability ? { for vip in local.vip_configs : vip.name => vip if vip.enabled } : {}
 
-  name            = "hub-nva-backend-pool-${each.key}"
+  name            = "hub-nva-backend-pool-${each.key}-${random_string.vm_suffix.result}"
   loadbalancer_id = azurerm_lb.hub_nva_lb[0].id
 }
 
@@ -118,7 +118,7 @@ resource "azurerm_lb_backend_address_pool" "hub_nva_backend_pools" {
 resource "azurerm_lb_probe" "hub_nva_health_probe" {
   count = var.hub_nva_high_availability ? 1 : 0
 
-  name                = "hub-nva-health-probe"
+  name                = "hub-nva-health-probe-${random_string.vm_suffix.result}"
   loadbalancer_id     = azurerm_lb.hub_nva_lb[0].id
   protocol            = "Http"
   port                = 8080 # FortiWeb admin/health port
@@ -135,12 +135,12 @@ resource "azurerm_lb_probe" "hub_nva_health_probe" {
 resource "azurerm_public_ip" "hub_nva_ha_management_public_ips" {
   for_each = var.hub_nva_high_availability && var.management_public_ip ? { for idx, instance in local.nva_instances : instance.name => instance } : {}
 
-  name                = "hub-nva-ha-${each.key}-management-public-ip"
+  name                = "hub-nva-ha-${each.key}-management-public-ip-${random_string.vm_suffix.result}"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  domain_name_label   = "management-ha-${each.key}-${azurerm_resource_group.azure_resource_group.name}"
+  domain_name_label   = "management-ha-${each.key}-${azurerm_resource_group.azure_resource_group.name}-${random_string.vm_suffix.result}"
 
   tags = merge(local.standard_tags, {
     Role = "FortiWeb-HA-Management-${each.key}"
@@ -158,7 +158,7 @@ resource "azurerm_network_interface" "hub_nva_external_interfaces" {
     azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
 
-  name                           = "hub-nva-${each.key}-external-nic"
+  name                           = "hub-nva-${each.key}-external-nic-${random_string.vm_suffix.result}"
   location                       = azurerm_resource_group.azure_resource_group.location
   resource_group_name            = azurerm_resource_group.azure_resource_group.name
   accelerated_networking_enabled = true
@@ -185,7 +185,7 @@ resource "azurerm_network_interface" "hub_nva_internal_interfaces" {
     azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
 
-  name                = "hub-nva-${each.key}-internal-nic"
+  name                = "hub-nva-${each.key}-internal-nic-${random_string.vm_suffix.result}"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   # Disable accelerated networking on internal NICs to avoid VM size restriction
@@ -312,7 +312,7 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
 resource "azurerm_lb_rule" "hub_nva_app_rules" {
   for_each = var.hub_nva_high_availability ? { for vip in local.vip_configs : vip.name => vip if vip.enabled } : {}
 
-  name                           = "rule-${each.key}"
+  name                           = "rule-${each.key}-${random_string.vm_suffix.result}"
   loadbalancer_id                = azurerm_lb.hub_nva_lb[0].id
   protocol                       = "Tcp"
   frontend_port                  = each.value.port
