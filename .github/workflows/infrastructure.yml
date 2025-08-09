@@ -162,26 +162,29 @@ jobs:
 
       - name: Create String Output
         id: tf-plan-string
+        continue-on-error: true
         run: |
-          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          TERRAFORM_PLAN=$(terraform show -no-color tfplan | head -200)  # Limit to first 200 lines
           delimiter="$(openssl rand -hex 8)"
           {
             echo "summary<<${delimiter}"
-            echo "## Terraform Plan Output"
+            echo "## Terraform Plan Output (First 200 lines)"
             echo "<details><summary>Click to expand</summary>"
             echo ""
             echo '```terraform'
             echo "$TERRAFORM_PLAN"
             echo '```'
             echo "</details>"
+            echo "Full plan available in tfplan artifact"
             echo "${delimiter}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Publish Terraform Plan to Task Summary
+        continue-on-error: true
         env:
           SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
         run: |
-          echo "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+          echo "$SUMMARY" >> "$GITHUB_STEP_SUMMARY" || echo "Plan too large for summary, check artifacts"
 
   apply:
     name: Terraform Apply
