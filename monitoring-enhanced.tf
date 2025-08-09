@@ -138,11 +138,11 @@ resource "azurerm_monitor_metric_alert" "fortiweb_memory_alert" {
 resource "azurerm_monitor_metric_alert" "aks_node_cpu_alert" {
   name                = "aks-node-cpu-alert"
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-  scopes              = [azurerm_kubernetes_cluster.aks_cluster.id]
+  scopes              = [azurerm_kubernetes_cluster.kubernetes_cluster.id]
   description         = "Alert when AKS node CPU utilization is high"
   severity            = 2
   frequency           = "PT1M"
-  window_size         = "PT10M"
+  window_size         = "PT15M"
   enabled             = true
 
   criteria {
@@ -164,7 +164,7 @@ resource "azurerm_monitor_metric_alert" "aks_node_cpu_alert" {
 resource "azurerm_monitor_metric_alert" "aks_pod_restart_alert" {
   name                = "aks-pod-restart-alert"
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-  scopes              = [azurerm_kubernetes_cluster.aks_cluster.id]
+  scopes              = [azurerm_kubernetes_cluster.kubernetes_cluster.id]
   description         = "Alert when pods are restarting frequently"
   severity            = 1
   frequency           = "PT1M"
@@ -259,13 +259,22 @@ resource "azurerm_storage_account" "nsg_flow_logs" {
   tags = local.standard_tags
 }
 
+# Network Watcher for flow logs
+resource "azurerm_network_watcher" "network_watcher" {
+  name                = "network-watcher"
+  location            = azurerm_resource_group.azure_resource_group.location
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+
+  tags = local.standard_tags
+}
+
 # Network Watcher Flow Logs for hub NSG
 resource "azurerm_network_watcher_flow_log" "hub_nsg_flow_log" {
   network_watcher_name = azurerm_network_watcher.network_watcher.name
   resource_group_name  = azurerm_network_watcher.network_watcher.resource_group_name
   name                 = "hub-nsg-flow-log"
 
-  network_security_group_id = azurerm_network_security_group.hub_external_nsg.id
+  network_security_group_id = azurerm_network_security_group.hub_external_network_security_group.id
   storage_account_id        = azurerm_storage_account.nsg_flow_logs.id
   enabled                   = true
 
@@ -348,19 +357,19 @@ resource "azurerm_log_analytics_saved_search" "network_traffic_analysis" {
 # Monitoring Dashboard
 #===============================================================================
 
-# Create monitoring dashboard
-resource "azurerm_portal_dashboard" "platform_dashboard" {
-  name                = "${var.project_name}-monitoring-dashboard"
-  resource_group_name = azurerm_resource_group.azure_resource_group.name
-  location            = azurerm_resource_group.azure_resource_group.location
-
-  dashboard_properties = templatefile("${path.module}/templates/monitoring-dashboard.json", {
-    subscription_id         = data.azurerm_client_config.current.subscription_id
-    resource_group_name    = azurerm_resource_group.azure_resource_group.name
-    workspace_id           = azurerm_log_analytics_workspace.platform_workspace.id
-    application_insights_id = azurerm_application_insights.platform_insights.id
-    aks_cluster_id         = azurerm_kubernetes_cluster.aks_cluster.id
-  })
-
-  tags = local.standard_tags
-}
+# Create monitoring dashboard - COMMENTED OUT: Missing template file
+# resource "azurerm_portal_dashboard" "platform_dashboard" {
+#   name                = "${var.project_name}-monitoring-dashboard"
+#   resource_group_name = azurerm_resource_group.azure_resource_group.name
+#   location            = azurerm_resource_group.azure_resource_group.location
+#
+#   dashboard_properties = templatefile("${path.module}/templates/monitoring-dashboard.json", {
+#     subscription_id         = data.azurerm_client_config.current.subscription_id
+#     resource_group_name    = azurerm_resource_group.azure_resource_group.name
+#     workspace_id           = azurerm_log_analytics_workspace.platform_workspace.id
+#     application_insights_id = azurerm_application_insights.platform_insights.id
+#     aks_cluster_id         = azurerm_kubernetes_cluster.kubernetes_cluster.id
+#   })
+#
+#   tags = local.standard_tags
+# }
