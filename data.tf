@@ -9,7 +9,7 @@
 data "azurerm_client_config" "current" {}
 
 data "azurerm_public_ip" "hub_nva_management_public_ip" {
-  count               = var.management_public_ip ? 1 : 0
+  count               = !var.hub_nva_high_availability && var.management_public_ip ? 1 : 0
   name                = azurerm_public_ip.hub_nva_management_public_ip[0].name
   resource_group_name = azurerm_resource_group.azure_resource_group.name
 }
