@@ -221,11 +221,19 @@ resource "azurerm_network_interface_backend_address_pool_association" "hub_nva_l
   backend_address_pool_id = azurerm_lb_backend_address_pool.hub_nva_backend_pools[each.value.app].id
 }
 
+# Random suffix to avoid name conflicts with orphaned VMs from failed deployments
+resource "random_string" "vm_suffix" {
+  length  = 6
+  upper   = false
+  special = false
+  numeric = true
+}
+
 # FortiWeb Virtual Machines
 resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
   for_each = var.hub_nva_high_availability ? { for idx, instance in local.nva_instances : instance.name => instance } : {}
 
-  name                            = "hub-nva-${each.key}"
+  name                            = "hub-nva-${each.key}-${random_string.vm_suffix.result}"
   resource_group_name             = azurerm_resource_group.azure_resource_group.name
   location                        = azurerm_resource_group.azure_resource_group.location
   size                            = var.production_environment ? "Standard_F4s_v2" : "Standard_F2s_v2"
