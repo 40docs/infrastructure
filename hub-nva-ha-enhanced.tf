@@ -158,6 +158,14 @@ resource "azurerm_network_interface" "hub_nva_external_interfaces" {
     azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
 
+  # Force recreation when random suffix changes
+  lifecycle {
+    create_before_destroy = false
+    replace_triggered_by = [
+      random_string.vm_suffix.keepers
+    ]
+  }
+
   name                           = "hub-nva-${each.key}-external-nic-${random_string.vm_suffix.result}"
   location                       = azurerm_resource_group.azure_resource_group.location
   resource_group_name            = azurerm_resource_group.azure_resource_group.name
@@ -184,6 +192,14 @@ resource "azurerm_network_interface" "hub_nva_internal_interfaces" {
     azurerm_network_interface.hub_nva_internal_network_interface,
     azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
+
+  # Force recreation when random suffix changes
+  lifecycle {
+    create_before_destroy = false
+    replace_triggered_by = [
+      random_string.vm_suffix.keepers
+    ]
+  }
 
   name                = "hub-nva-${each.key}-internal-nic-${random_string.vm_suffix.result}"
   location            = azurerm_resource_group.azure_resource_group.location
@@ -232,7 +248,8 @@ resource "random_string" "vm_suffix" {
   # This ensures clean slate when old resources have conflicts
   keepers = {
     # Update this timestamp to force all HA resources to be recreated
-    deployment_id = "20250809-171000"
+    # Updated to force complete recreation and resolve persistent NIC conflicts
+    deployment_id = "20250809-171400"
   }
 }
 
@@ -246,6 +263,14 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
   size                            = var.production_environment ? "Standard_F4s_v2" : "Standard_F2s_v2"
   zone                            = each.value.zone
   disable_password_authentication = false #tfsec:ignore:AVD-AZU-0039
+
+  # Force recreation when random suffix changes
+  lifecycle {
+    create_before_destroy = false
+    replace_triggered_by = [
+      random_string.vm_suffix.keepers
+    ]
+  }
 
   # Enhanced identity for monitoring and management
   identity {
