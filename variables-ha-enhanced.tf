@@ -8,7 +8,8 @@
 variable "hub_nva_high_availability" {
   type        = bool
   description = "Enable high availability deployment with multiple FortiWeb instances across availability zones"
-  default     = true
+  # Temporarily disabled to clear conflicting HA resources from state
+  default     = false
 }
 
 variable "hub_nva_admin_username" {
