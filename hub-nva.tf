@@ -151,7 +151,8 @@ resource "azurerm_network_interface" "hub_nva_internal_network_interface" {
     name                          = "hub-nva-internal_ip_configuration"
     private_ip_address_allocation = "Static"
     # Use a dedicated IP for single instance to avoid conflict with HA secondary (10.0.0.37)
-    private_ip_address = "10.0.0.35" # Different IP than HA secondary (10.0.0.37)
+    # Must be >= 10.0.0.36 as first 4 IPs (10.0.0.32-35) are reserved by Azure
+    private_ip_address = "10.0.0.36" # Different IP than HA secondary (10.0.0.37)
     subnet_id          = azurerm_subnet.hub_internal_subnet.id
   }
 

@@ -311,6 +311,14 @@ resource "azurerm_log_analytics_saved_search" "fortiweb_performance" {
     | render timechart
   EOT
 
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes if this resource already exists
+      name,
+      query
+    ]
+  }
+
   tags = local.standard_tags
 }
 
@@ -328,6 +336,14 @@ resource "azurerm_log_analytics_saved_search" "app_error_analysis" {
     | order by count_ desc
     | limit 20
   EOT
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes if this resource already exists
+      name,
+      query
+    ]
+  }
 
   tags = local.standard_tags
 }
@@ -347,6 +363,14 @@ resource "azurerm_log_analytics_saved_search" "network_traffic_analysis" {
     | order by count_ desc
     | limit 50
   EOT
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes if this resource already exists
+      name,
+      query
+    ]
+  }
 
   tags = local.standard_tags
 }
