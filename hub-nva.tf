@@ -12,9 +12,9 @@
 # - Virtual machine instance running FortiWeb
 #===============================================================================
 
-# Public IP for NVA management access
+# Public IP for NVA management access (single instance only)
 resource "azurerm_public_ip" "hub_nva_management_public_ip" {
-  count = var.management_public_ip ? 1 : 0
+  count = !var.hub_nva_high_availability && var.management_public_ip ? 1 : 0
 
   name                = "hub-nva-management-public-ip"
   location            = azurerm_resource_group.azure_resource_group.location
@@ -26,9 +26,9 @@ resource "azurerm_public_ip" "hub_nva_management_public_ip" {
   tags = local.standard_tags
 }
 
-# DNS CNAME record for NVA management
+# DNS CNAME record for NVA management (single instance only)
 resource "azurerm_dns_cname_record" "hub_nva" {
-  count = var.management_public_ip ? 1 : 0
+  count = !var.hub_nva_high_availability && var.management_public_ip ? 1 : 0
 
   name                = "hub-nva"
   zone_name           = azurerm_dns_zone.dns_zone.name
@@ -39,8 +39,10 @@ resource "azurerm_dns_cname_record" "hub_nva" {
   tags = local.standard_tags
 }
 
-# Availability set for NVA high availability
+# Availability set for NVA (single instance only)
 resource "azurerm_availability_set" "hub_nva_availability_set" {
+  count = !var.hub_nva_high_availability ? 1 : 0
+
   name                         = "hub-nva-availability-set"
   location                     = azurerm_resource_group.azure_resource_group.location
   resource_group_name          = azurerm_resource_group.azure_resource_group.name
@@ -109,8 +111,10 @@ locals {
   ]
 }
 
-# External network interface for hub NVA
+# External network interface for hub NVA (single instance only)
 resource "azurerm_network_interface" "hub_nva_external_network_interface" {
+  count = !var.hub_nva_high_availability ? 1 : 0
+
   name                           = "hub-nva-external_network_interface"
   location                       = azurerm_resource_group.azure_resource_group.location
   resource_group_name            = azurerm_resource_group.azure_resource_group.name
@@ -132,8 +136,10 @@ resource "azurerm_network_interface" "hub_nva_external_network_interface" {
   tags = local.standard_tags
 }
 
-# Internal network interface for hub NVA
+# Internal network interface for hub NVA (single instance only)
 resource "azurerm_network_interface" "hub_nva_internal_network_interface" {
+  count = !var.hub_nva_high_availability ? 1 : 0
+
   name                           = "hub-nva-internal_network_interface"
   location                       = azurerm_resource_group.azure_resource_group.location
   resource_group_name            = azurerm_resource_group.azure_resource_group.name
@@ -150,8 +156,10 @@ resource "azurerm_network_interface" "hub_nva_internal_network_interface" {
   tags = local.standard_tags
 }
 
-# Linux Virtual Machine running FortiWeb NVA
+# Linux Virtual Machine running FortiWeb NVA (single instance only)
 resource "azurerm_linux_virtual_machine" "hub_nva_virtual_machine" {
+  count = !var.hub_nva_high_availability ? 1 : 0
+
   #checkov:skip=CKV_AZURE_178: Allow Fortigate to present HTTPS login UI instead of SSH
   #checkov:skip=CKV_AZURE_149: Allow Fortigate to present HTTPS login UI instead of SSH
   #checkov:skip=CKV_AZURE_1: Allow Fortigate to present HTTPS login UI instead of SSH
@@ -159,13 +167,13 @@ resource "azurerm_linux_virtual_machine" "hub_nva_virtual_machine" {
   depends_on                      = [null_resource.marketplace_agreement]
   name                            = "hub-nva_virtual_machine"
   computer_name                   = "hub-nva"
-  availability_set_id             = azurerm_availability_set.hub_nva_availability_set.id
+  availability_set_id             = azurerm_availability_set.hub_nva_availability_set[0].id
   admin_username                  = var.hub_nva_username
   disable_password_authentication = false #tfsec:ignore:AVD-AZU-0039
   admin_password                  = var.hub_nva_password
   location                        = azurerm_resource_group.azure_resource_group.location
   resource_group_name             = azurerm_resource_group.azure_resource_group.name
-  network_interface_ids           = [azurerm_network_interface.hub_nva_external_network_interface.id, azurerm_network_interface.hub_nva_internal_network_interface.id]
+  network_interface_ids           = [azurerm_network_interface.hub_nva_external_network_interface[0].id, azurerm_network_interface.hub_nva_internal_network_interface[0].id]
   size                            = var.production_environment ? local.vm_image[var.hub_nva_image].size : local.vm_image[var.hub_nva_image].size-dev
   allow_extension_operations      = false
 
