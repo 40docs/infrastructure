@@ -14,7 +14,7 @@ variable "hub_nva_high_availability" {
 variable "hub_nva_admin_username" {
   type        = string
   description = "Admin username for FortiWeb NVA instances"
-  default     = "admin"
+  default     = "azureadmin"
   
   validation {
     condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_-]{2,63}$", var.hub_nva_admin_username))

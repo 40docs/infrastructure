@@ -14,8 +14,8 @@ resource "azurerm_log_analytics_workspace" "platform_workspace" {
   name                = "${var.project_name}-logs-${var.environment}"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-  sku                 = var.production_environment ? "PerGB2018" : "Free"
-  retention_in_days   = var.production_environment ? 90 : 7
+  sku                 = var.production_environment ? "PerGB2018" : "PerGB2018"
+  retention_in_days   = var.production_environment ? 90 : 30
   
   daily_quota_gb = var.production_environment ? 50 : 0.5
 
@@ -48,9 +48,12 @@ resource "azurerm_monitor_action_group" "critical_alerts" {
     email_address = var.owner_email
   }
 
-  webhook_receiver {
-    name        = "teams-webhook"
-    service_uri = var.teams_webhook_url
+  dynamic "webhook_receiver" {
+    for_each = var.teams_webhook_url != "" ? [1] : []
+    content {
+      name        = "teams-webhook"
+      service_uri = var.teams_webhook_url
+    }
   }
 
   tags = local.standard_tags
