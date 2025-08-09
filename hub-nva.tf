@@ -121,7 +121,8 @@ resource "azurerm_network_interface" "hub_nva_external_network_interface" {
   accelerated_networking_enabled = true
 
   dynamic "ip_configuration" {
-    for_each = [for ip in local.ip_configurations : ip if ip.condition]
+    # Only include IP configurations when NOT in HA mode
+    for_each = !var.hub_nva_high_availability ? [for ip in local.ip_configurations : ip if ip.condition] : []
 
     content {
       name                          = ip_configuration.value.name
@@ -149,8 +150,9 @@ resource "azurerm_network_interface" "hub_nva_internal_network_interface" {
   ip_configuration {
     name                          = "hub-nva-internal_ip_configuration"
     private_ip_address_allocation = "Static"
-    private_ip_address            = var.hub_nva_gateway
-    subnet_id                     = azurerm_subnet.hub_internal_subnet.id
+    # Use a dedicated IP for single instance to avoid conflict with HA secondary (10.0.0.37)
+    private_ip_address = "10.0.0.35" # Different IP than HA secondary (10.0.0.37)
+    subnet_id          = azurerm_subnet.hub_internal_subnet.id
   }
 
   tags = local.standard_tags

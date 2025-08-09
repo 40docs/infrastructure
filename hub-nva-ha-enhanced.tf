@@ -80,6 +80,13 @@ locals {
 resource "azurerm_lb" "hub_nva_lb" {
   count = var.hub_nva_high_availability ? 1 : 0
 
+  # Ensure single-instance resources are destroyed first to avoid IP conflicts
+  depends_on = [
+    azurerm_network_interface.hub_nva_external_network_interface,
+    azurerm_network_interface.hub_nva_internal_network_interface,
+    azurerm_linux_virtual_machine.hub_nva_virtual_machine
+  ]
+
   name                = "hub-nva-lb"
   location            = azurerm_resource_group.azure_resource_group.location
   resource_group_name = azurerm_resource_group.azure_resource_group.name
@@ -142,7 +149,14 @@ resource "azurerm_public_ip" "hub_nva_ha_management_public_ips" {
 
 # Network interfaces for each NVA instance
 resource "azurerm_network_interface" "hub_nva_external_interfaces" {
-  for_each = { for idx, instance in local.nva_instances : instance.name => instance }
+  for_each = var.hub_nva_high_availability ? { for idx, instance in local.nva_instances : instance.name => instance } : {}
+
+  # Ensure single-instance resources are destroyed first to avoid IP conflicts
+  depends_on = [
+    azurerm_network_interface.hub_nva_external_network_interface,
+    azurerm_network_interface.hub_nva_internal_network_interface,
+    azurerm_linux_virtual_machine.hub_nva_virtual_machine
+  ]
 
   name                           = "hub-nva-${each.key}-external-nic"
   location                       = azurerm_resource_group.azure_resource_group.location
@@ -155,14 +169,21 @@ resource "azurerm_network_interface" "hub_nva_external_interfaces" {
     private_ip_address_allocation = "Static"
     private_ip_address            = each.value.private_ip
     primary                       = true
-    public_ip_address_id          = var.hub_nva_high_availability && var.management_public_ip ? azurerm_public_ip.hub_nva_ha_management_public_ips[each.key].id : null
+    public_ip_address_id          = var.management_public_ip ? azurerm_public_ip.hub_nva_ha_management_public_ips[each.key].id : null
   }
 
   tags = local.standard_tags
 }
 
 resource "azurerm_network_interface" "hub_nva_internal_interfaces" {
-  for_each = { for idx, instance in local.nva_instances : instance.name => instance }
+  for_each = var.hub_nva_high_availability ? { for idx, instance in local.nva_instances : instance.name => instance } : {}
+
+  # Ensure single-instance resources are destroyed first to avoid IP conflicts
+  depends_on = [
+    azurerm_network_interface.hub_nva_external_network_interface,
+    azurerm_network_interface.hub_nva_internal_network_interface,
+    azurerm_linux_virtual_machine.hub_nva_virtual_machine
+  ]
 
   name                           = "hub-nva-${each.key}-internal-nic"
   location                       = azurerm_resource_group.azure_resource_group.location
@@ -173,10 +194,8 @@ resource "azurerm_network_interface" "hub_nva_internal_interfaces" {
     name                          = "internal-config"
     subnet_id                     = azurerm_subnet.hub_internal_subnet.id
     private_ip_address_allocation = "Static"
-    # Use correct internal subnet range - hub_internal_subnet is 10.0.0.32/27
     # For HA: primary=10.0.0.36, secondary=10.0.0.37 (within internal subnet range)
-    # For single: use calculated IP within internal subnet
-    private_ip_address = var.hub_nva_high_availability ? (each.key == "primary" ? "10.0.0.36" : "10.0.0.37") : "10.0.0.36"
+    private_ip_address = each.key == "primary" ? "10.0.0.36" : "10.0.0.37"
   }
 
   tags = local.standard_tags
@@ -193,7 +212,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "hub_nva_l
 
 # FortiWeb Virtual Machines
 resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
-  for_each = { for idx, instance in local.nva_instances : instance.name => instance }
+  for_each = var.hub_nva_high_availability ? { for idx, instance in local.nva_instances : instance.name => instance } : {}
 
   name                            = "hub-nva-${each.key}"
   resource_group_name             = azurerm_resource_group.azure_resource_group.name
