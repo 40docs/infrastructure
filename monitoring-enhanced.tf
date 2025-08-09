@@ -16,7 +16,7 @@ resource "azurerm_log_analytics_workspace" "platform_workspace" {
   resource_group_name = azurerm_resource_group.azure_resource_group.name
   sku                 = var.production_environment ? "PerGB2018" : "PerGB2018"
   retention_in_days   = var.production_environment ? 90 : 30
-  
+
   daily_quota_gb = var.production_environment ? 50 : 0.5
 
   tags = local.standard_tags
@@ -49,10 +49,10 @@ resource "azurerm_monitor_action_group" "critical_alerts" {
   }
 
   dynamic "webhook_receiver" {
-    for_each = var.teams_webhook_url != "" ? [1] : []
+    for_each = toset(length(var.teams_webhook_url) > 0 ? [var.teams_webhook_url] : [])
     content {
       name        = "teams-webhook"
-      service_uri = var.teams_webhook_url
+      service_uri = webhook_receiver.value
     }
   }
 
@@ -123,7 +123,7 @@ resource "azurerm_monitor_metric_alert" "fortiweb_memory_alert" {
     metric_name      = "Available Memory Bytes"
     aggregation      = "Average"
     operator         = "LessThan"
-    threshold        = 536870912  # 512 MB
+    threshold        = 536870912 # 512 MB
   }
 
   action {
@@ -224,7 +224,7 @@ resource "azurerm_monitor_metric_alert" "app_response_time_alert" {
     metric_name      = "requests/duration"
     aggregation      = "Average"
     operator         = "GreaterThan"
-    threshold        = 5000  # 5 seconds
+    threshold        = 5000 # 5 seconds
 
     # Note: Removing dimension filter as request/name is not a valid dimension for requests/duration
     # Application Insights will aggregate across all requests for the application
@@ -263,7 +263,7 @@ resource "azurerm_storage_account" "nsg_flow_logs" {
 # Network Watcher data source - use existing Network Watcher (Azure creates one by default per region)
 data "azurerm_network_watcher" "network_watcher" {
   name                = "NetworkWatcher_${azurerm_resource_group.azure_resource_group.location}"
-  resource_group_name = "NetworkWatcherRG"  # Default resource group created by Azure
+  resource_group_name = "NetworkWatcherRG" # Default resource group created by Azure
 }
 
 # Network Watcher Flow Logs for hub NSG
@@ -302,7 +302,7 @@ resource "azurerm_log_analytics_saved_search" "fortiweb_performance" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform_workspace.id
   category                   = "Security"
   display_name               = "FortiWeb Performance Metrics"
-  
+
   query = <<-EOT
     Perf
     | where Computer contains "hub-nva"
@@ -320,7 +320,7 @@ resource "azurerm_log_analytics_saved_search" "app_error_analysis" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform_workspace.id
   category                   = "Application"
   display_name               = "Application Error Analysis"
-  
+
   query = <<-EOT
     AppExceptions
     | where TimeGenerated > ago(24h)
@@ -338,7 +338,7 @@ resource "azurerm_log_analytics_saved_search" "network_traffic_analysis" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform_workspace.id
   category                   = "Network"
   display_name               = "Network Traffic Analysis"
-  
+
   query = <<-EOT
     AzureNetworkAnalytics_CL
     | where TimeGenerated > ago(1h)
