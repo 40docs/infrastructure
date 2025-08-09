@@ -226,11 +226,9 @@ resource "azurerm_monitor_metric_alert" "app_response_time_alert" {
     operator         = "GreaterThan"
     threshold        = 5000  # 5 seconds
 
-    dimension {
-      name     = "request/name"
-      operator = "Include"
-      values   = [each.key]
-    }
+    # Note: Removing dimension filter as request/name is not a valid dimension for requests/duration
+    # Application Insights will aggregate across all requests for the application
+    # For more granular filtering, would need to use Log Analytics queries instead
   }
 
   action {
@@ -262,19 +260,16 @@ resource "azurerm_storage_account" "nsg_flow_logs" {
   tags = local.standard_tags
 }
 
-# Network Watcher for flow logs
-resource "azurerm_network_watcher" "network_watcher" {
-  name                = "network-watcher"
-  location            = azurerm_resource_group.azure_resource_group.location
-  resource_group_name = azurerm_resource_group.azure_resource_group.name
-
-  tags = local.standard_tags
+# Network Watcher data source - use existing Network Watcher (Azure creates one by default per region)
+data "azurerm_network_watcher" "network_watcher" {
+  name                = "NetworkWatcher_${azurerm_resource_group.azure_resource_group.location}"
+  resource_group_name = "NetworkWatcherRG"  # Default resource group created by Azure
 }
 
 # Network Watcher Flow Logs for hub NSG
 resource "azurerm_network_watcher_flow_log" "hub_nsg_flow_log" {
-  network_watcher_name = azurerm_network_watcher.network_watcher.name
-  resource_group_name  = azurerm_network_watcher.network_watcher.resource_group_name
+  network_watcher_name = data.azurerm_network_watcher.network_watcher.name
+  resource_group_name  = data.azurerm_network_watcher.network_watcher.resource_group_name
   name                 = "hub-nsg-flow-log"
 
   network_security_group_id = azurerm_network_security_group.hub_external_network_security_group.id
