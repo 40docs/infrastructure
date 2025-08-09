@@ -83,7 +83,7 @@ resource "azurerm_monitor_metric_alert" "fortiweb_cpu_alert" {
 
   name                = "fortiweb-${each.key}-cpu-alert"
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-  scopes              = [azurerm_linux_virtual_machine.hub_nva_instances[each.key].id]
+  scopes              = [var.hub_nva_high_availability ? azurerm_linux_virtual_machine.hub_nva_instances[each.key].id : azurerm_linux_virtual_machine.hub_nva_virtual_machine[0].id]
   description         = "Alert when FortiWeb ${each.key} CPU utilization exceeds threshold"
   severity            = 2
   frequency           = "PT1M"
@@ -111,7 +111,7 @@ resource "azurerm_monitor_metric_alert" "fortiweb_memory_alert" {
 
   name                = "fortiweb-${each.key}-memory-alert"
   resource_group_name = azurerm_resource_group.azure_resource_group.name
-  scopes              = [azurerm_linux_virtual_machine.hub_nva_instances[each.key].id]
+  scopes              = [var.hub_nva_high_availability ? azurerm_linux_virtual_machine.hub_nva_instances[each.key].id : azurerm_linux_virtual_machine.hub_nva_virtual_machine[0].id]
   description         = "Alert when FortiWeb ${each.key} available memory is low"
   severity            = 2
   frequency           = "PT1M"
