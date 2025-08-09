@@ -227,6 +227,13 @@ resource "random_string" "vm_suffix" {
   upper   = false
   special = false
   numeric = true
+  
+  # Add a keeper to force regeneration when we need to replace all HA resources
+  # This ensures clean slate when old resources have conflicts
+  keepers = {
+    # Update this timestamp to force all HA resources to be recreated
+    deployment_id = "20250809-171000"
+  }
 }
 
 # FortiWeb Virtual Machines
