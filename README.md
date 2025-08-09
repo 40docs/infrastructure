@@ -814,3 +814,7 @@ kubectl logs -n cert-manager deploy/cert-manager
 ```bash
 sudo cloud-init schema --system
 ```
+
+## References
+
+- https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#linux-distributions
