@@ -185,10 +185,12 @@ resource "azurerm_network_interface" "hub_nva_internal_interfaces" {
     azurerm_linux_virtual_machine.hub_nva_virtual_machine
   ]
 
-  name                           = "hub-nva-${each.key}-internal-nic"
-  location                       = azurerm_resource_group.azure_resource_group.location
-  resource_group_name            = azurerm_resource_group.azure_resource_group.name
-  accelerated_networking_enabled = true
+  name                = "hub-nva-${each.key}-internal-nic"
+  location            = azurerm_resource_group.azure_resource_group.location
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  # Disable accelerated networking on internal NICs to avoid VM size restriction
+  # Standard_F2s_v2 VMs can only have one NIC with accelerated networking
+  accelerated_networking_enabled = false
 
   ip_configuration {
     name                          = "internal-config"
@@ -287,7 +289,7 @@ resource "azurerm_lb_rule" "hub_nva_app_rules" {
   frontend_ip_configuration_name = "frontend-${each.key}"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.hub_nva_backend_pool[0].id]
   probe_id                       = azurerm_lb_probe.hub_nva_health_probe[0].id
-  enable_floating_ip             = false
+  enable_floating_ip             = true # Required for FortiWeb VIP handling
   idle_timeout_in_minutes        = 4
   load_distribution              = "SourceIPProtocol" # Session persistence
 }
@@ -304,12 +306,8 @@ resource "azurerm_monitor_diagnostic_setting" "hub_nva_lb_diagnostics" {
   target_resource_id         = azurerm_lb.hub_nva_lb[0].id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform_workspace.id
 
-  enabled_log {
-    category = "LoadBalancerAlertEvent"
-  }
-
-  # Note: LoadBalancerProbeHealthStatus category is not supported in Azure Load Balancer diagnostics
-  # Health probe status is available through metrics instead
+  # Note: Azure Load Balancer does not support log categories, only metrics
+  # LoadBalancerAlertEvent and LoadBalancerProbeHealthStatus are not supported
 
   enabled_metric {
     category = "AllMetrics"
