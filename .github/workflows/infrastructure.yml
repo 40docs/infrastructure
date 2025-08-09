@@ -84,14 +84,15 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
         run: |
           echo "Removing orphaned Kubernetes resources from state..."
-          # Remove Kubernetes namespace resources that no longer exist
-          terraform state list | grep 'kubernetes_namespace\.' | while read resource; do
+          
+          # Remove all Kubernetes resources that depend on the deleted cluster
+          terraform state list | grep -E '^kubernetes_' | while read resource; do
             echo "Attempting to remove $resource from state..."
             terraform state rm "$resource" || echo "Resource $resource not found in state"
           done
           
           # Remove Flux resources that depend on non-existent cluster
-          terraform state list | grep 'flux_bootstrap_git\.' | while read resource; do
+          terraform state list | grep -E '^flux_' | while read resource; do
             echo "Attempting to remove $resource from state..."
             terraform state rm "$resource" || echo "Resource $resource not found in state"
           done
