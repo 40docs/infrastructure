@@ -199,13 +199,13 @@ resource "azurerm_monitor_metric_alert" "aks_pod_restart_alert" {
 # HTTP response time alert for applications
 resource "azurerm_monitor_metric_alert" "app_response_time_alert" {
   for_each = {
-    docs      = var.application_docs
-    dvwa      = var.application_dvwa
-    ollama    = var.application_ollama
-    extractor = var.application_extractor
+    for app, enabled in {
+      docs      = var.application_docs
+      dvwa      = var.application_dvwa
+      ollama    = var.application_ollama
+      extractor = var.application_extractor
+    } : app => app if enabled
   }
-
-  count = each.value ? 1 : 0
 
   name                = "${each.key}-response-time-alert"
   resource_group_name = azurerm_resource_group.azure_resource_group.name

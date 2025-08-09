@@ -193,16 +193,16 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
   }
 
   source_image_reference {
-    publisher = local.vm_images.fortiweb.publisher
-    offer     = local.vm_images.fortiweb.offer
-    sku       = local.vm_images.fortiweb.sku
-    version   = local.vm_images.fortiweb.version
+    publisher = local.vm_image.fortiweb.publisher
+    offer     = local.vm_image.fortiweb.offer
+    sku       = local.vm_image.fortiweb.sku
+    version   = local.vm_image.fortiweb.version
   }
 
   plan {
-    publisher = local.vm_images.fortiweb.publisher
-    product   = local.vm_images.fortiweb.offer
-    name      = local.vm_images.fortiweb.sku
+    publisher = local.vm_image.fortiweb.publisher
+    product   = local.vm_image.fortiweb.offer
+    name      = local.vm_image.fortiweb.sku
   }
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init/fortiweb-ha.conf", {
@@ -214,8 +214,7 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
     var_spoke_virtual_network_address_prefix = var.spoke_virtual_network_address_prefix
     var_instance_role                        = each.key
     var_cluster_priority                     = each.value.priority
-    var_peer_ip                             = var.hub_nva_high_availability && each.key == "primary" ? 
-      local.nva_instances[1].private_ip : (var.hub_nva_high_availability ? local.nva_instances[0].private_ip : "")
+    var_peer_ip                             = var.hub_nva_high_availability && each.key == "primary" ? local.nva_instances[1].private_ip : (var.hub_nva_high_availability ? local.nva_instances[0].private_ip : "")
   }))
 
   tags = merge(local.standard_tags, {
@@ -265,9 +264,8 @@ resource "azurerm_monitor_diagnostic_setting" "hub_nva_lb_diagnostics" {
     category = "LoadBalancerProbeHealthStatus"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 
