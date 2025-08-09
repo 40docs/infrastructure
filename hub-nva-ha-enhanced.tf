@@ -106,11 +106,11 @@ resource "azurerm_lb" "hub_nva_lb" {
   tags = local.standard_tags
 }
 
-# Load Balancer Backend Pool
-resource "azurerm_lb_backend_address_pool" "hub_nva_backend_pool" {
-  count = var.hub_nva_high_availability ? 1 : 0
+# Load Balancer Backend Pool for each application
+resource "azurerm_lb_backend_address_pool" "hub_nva_backend_pools" {
+  for_each = var.hub_nva_high_availability ? { for vip in local.vip_configs : vip.name => vip if vip.enabled } : {}
 
-  name            = "hub-nva-backend-pool"
+  name            = "hub-nva-backend-pool-${each.key}"
   loadbalancer_id = azurerm_lb.hub_nva_lb[0].id
 }
 
@@ -203,13 +203,22 @@ resource "azurerm_network_interface" "hub_nva_internal_interfaces" {
   tags = local.standard_tags
 }
 
-# Associate NICs with load balancer backend pool (HA mode only)
-resource "azurerm_network_interface_backend_address_pool_association" "hub_nva_lb_association" {
-  for_each = var.hub_nva_high_availability ? { for idx, instance in local.nva_instances : instance.name => instance } : {}
+# Associate NICs with load balancer backend pools (HA mode only)
+# Each NIC needs to be associated with all backend pools since FortiWeb handles routing
+resource "azurerm_network_interface_backend_address_pool_association" "hub_nva_lb_associations" {
+  for_each = var.hub_nva_high_availability ? {
+    for pair in setproduct(
+      [for idx, instance in local.nva_instances : instance.name],
+      [for vip in local.vip_configs : vip.name if vip.enabled]
+      ) : "${pair[0]}-${pair[1]}" => {
+      instance = pair[0]
+      app      = pair[1]
+    }
+  } : {}
 
-  network_interface_id    = azurerm_network_interface.hub_nva_external_interfaces[each.key].id
+  network_interface_id    = azurerm_network_interface.hub_nva_external_interfaces[each.value.instance].id
   ip_configuration_name   = "external-config"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.hub_nva_backend_pool[0].id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.hub_nva_backend_pools[each.value.app].id
 }
 
 # FortiWeb Virtual Machines
@@ -255,16 +264,29 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
     name      = local.vm_image.fortiweb.sku
   }
 
-  custom_data = base64encode(templatefile("${path.module}/cloud-init/fortiweb-ha.conf", {
-    var_admin_password                       = var.hub_nva_password
-    var_api_user_password                    = var.hub_nva_password
-    var_fqdn_management                      = var.management_public_ip ? azurerm_public_ip.hub_nva_ha_management_public_ips[each.key].fqdn : ""
-    var_dns_zone                             = var.dns_zone
-    var_privatekey                           = tls_private_key.private_key.private_key_pem
+  # Temporarily use simpler cloud-init config to avoid provisioning timeouts
+  # Switch back to HA config after basic deployment works
+  custom_data = base64encode(templatefile("${path.module}/cloud-init/fortiweb.conf", {
+    var_config_system_global_admin_sport     = local.vm_image.fortiweb.management-port
+    var_hub_external_subnet_gateway          = var.hub_external_subnet_gateway
+    var_spoke_check_internet_up_ip           = var.spoke_check_internet_up_ip
+    var_spoke_default_gateway                = cidrhost(var.hub_internal_subnet_prefix, 1)
     var_spoke_virtual_network_address_prefix = var.spoke_virtual_network_address_prefix
-    var_instance_role                        = each.key
-    var_cluster_priority                     = each.value.priority
-    var_peer_ip                              = var.hub_nva_high_availability && each.key == "primary" ? local.nva_instances[1].private_ip : (var.hub_nva_high_availability ? local.nva_instances[0].private_ip : "")
+    var_spoke_virtual_network_subnet         = cidrhost(var.spoke_virtual_network_address_prefix, 0)
+    var_spoke_virtual_network_netmask        = cidrnetmask(var.spoke_virtual_network_address_prefix)
+    var_spoke_aks_node_ip                    = var.spoke_aks_node_ip
+    var_hub_nva_vip_docs                     = var.hub_nva_vip_docs
+    var_hub_nva_vip_ollama                   = var.hub_nva_vip_ollama
+    var_hub_nva_vip_video                    = var.hub_nva_vip_video
+    var_hub_nva_vip_dvwa                     = var.hub_nva_vip_dvwa
+    var_hub_nva_vip_artifacts                = var.hub_nva_vip_artifacts
+    var_hub_nva_vip_extractor                = var.hub_nva_vip_extractor
+    var_hub_nva_username                     = var.hub_nva_admin_username
+    var_certificate                          = tls_self_signed_cert.self_signed_cert.cert_pem
+    var_privatekey                           = tls_private_key.private_key.private_key_pem
+    var_fwb_license_file                     = ""
+    var_fwb_license_fortiflex                = ""
+    var_spoke_aks_network                    = var.spoke_aks_subnet_prefix
   }))
 
   tags = merge(local.standard_tags, {
@@ -278,6 +300,7 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
 #===============================================================================
 
 # Load balancer rules for each enabled application (HA mode only)
+# Each application gets its own backend pool to avoid conflicts
 resource "azurerm_lb_rule" "hub_nva_app_rules" {
   for_each = var.hub_nva_high_availability ? { for vip in local.vip_configs : vip.name => vip if vip.enabled } : {}
 
@@ -287,7 +310,7 @@ resource "azurerm_lb_rule" "hub_nva_app_rules" {
   frontend_port                  = each.value.port
   backend_port                   = each.value.port
   frontend_ip_configuration_name = "frontend-${each.key}"
-  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.hub_nva_backend_pool[0].id]
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.hub_nva_backend_pools[each.key].id]
   probe_id                       = azurerm_lb_probe.hub_nva_health_probe[0].id
   enable_floating_ip             = true # Required for FortiWeb VIP handling
   idle_timeout_in_minutes        = 4
