@@ -14,25 +14,25 @@
 
 # Variables for HA configuration
 locals {
-  # FortiWeb instances configuration
+  # FortiWeb instances configuration - use different IP ranges for HA to avoid conflicts
   nva_instances = var.hub_nva_high_availability ? [
     {
       name = "primary"
       zone = "1"
-      private_ip = var.hub_nva_management_ip
+      private_ip = "10.0.0.20"  # Use different IP range to avoid conflicts with single instance
       priority = 100
     },
     {
       name = "secondary" 
       zone = "2"
-      private_ip = cidrhost(var.hub_virtual_network_address_prefix, tonumber(split(".", var.hub_nva_management_ip)[3]) + 1)
+      private_ip = "10.0.0.21"  # Sequential IP for secondary instance
       priority = 90
     }
   ] : [
     {
       name = "primary"
       zone = null
-      private_ip = var.hub_nva_management_ip
+      private_ip = var.hub_nva_management_ip  # Keep original for single instance
       priority = 100
     }
   ]
@@ -114,6 +114,22 @@ resource "azurerm_lb_probe" "hub_nva_health_probe" {
 # FortiWeb NVA Instances
 #===============================================================================
 
+# Public IPs for HA NVA instances management (separate from original single-instance management IP)
+resource "azurerm_public_ip" "hub_nva_ha_management_public_ips" {
+  for_each = var.hub_nva_high_availability && var.management_public_ip ? { for idx, instance in local.nva_instances : instance.name => instance } : {}
+
+  name                = "hub-nva-ha-${each.key}-management-public-ip"
+  location            = azurerm_resource_group.azure_resource_group.location
+  resource_group_name = azurerm_resource_group.azure_resource_group.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  domain_name_label   = "management-ha-${each.key}-${azurerm_resource_group.azure_resource_group.name}"
+
+  tags = merge(local.standard_tags, {
+    Role = "FortiWeb-HA-Management-${each.key}"
+  })
+}
+
 # Network interfaces for each NVA instance
 resource "azurerm_network_interface" "hub_nva_external_interfaces" {
   for_each = { for idx, instance in local.nva_instances : instance.name => instance }
@@ -129,7 +145,7 @@ resource "azurerm_network_interface" "hub_nva_external_interfaces" {
     private_ip_address_allocation = "Static"
     private_ip_address            = each.value.private_ip
     primary                       = true
-    public_ip_address_id         = var.management_public_ip && each.key == "primary" ? azurerm_public_ip.hub_nva_management_public_ip[0].id : null
+    public_ip_address_id         = var.hub_nva_high_availability && var.management_public_ip ? azurerm_public_ip.hub_nva_ha_management_public_ips[each.key].id : null
   }
 
   tags = local.standard_tags
@@ -147,7 +163,12 @@ resource "azurerm_network_interface" "hub_nva_internal_interfaces" {
     name                          = "internal-config"
     subnet_id                     = azurerm_subnet.hub_internal_subnet.id
     private_ip_address_allocation = "Static"
-    private_ip_address            = cidrhost(var.hub_internal_subnet_address_prefix, tonumber(split(".", each.value.private_ip)[3]))
+    # Use correct internal subnet range - hub_internal_subnet is 10.0.0.32/27
+    # For HA: primary=10.0.0.36, secondary=10.0.0.37 (within internal subnet range)
+    # For single: use calculated IP within internal subnet
+    private_ip_address            = var.hub_nva_high_availability ? 
+      (each.key == "primary" ? "10.0.0.36" : "10.0.0.37") : 
+      "10.0.0.36"  # Single instance uses first available internal IP
   }
 
   tags = local.standard_tags
@@ -224,6 +245,21 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
 }
 
 #===============================================================================
+# Load Balancer Frontend IP Configurations
+#===============================================================================
+
+# Frontend IP configurations for each enabled application (HA mode only)
+resource "azurerm_lb_frontend_ip_configuration" "hub_nva_vip_frontends" {
+  for_each = var.hub_nva_high_availability ? { for vip in local.vip_configs : vip.name => vip if vip.enabled } : {}
+
+  name                          = "frontend-${each.key}"
+  loadbalancer_id              = azurerm_lb.hub_nva_lb[0].id
+  private_ip_address_allocation = "Static"
+  private_ip_address           = each.value.private_ip
+  subnet_id                    = azurerm_subnet.hub_external_subnet.id
+}
+
+#===============================================================================
 # Load Balancer Rules and VIP Configuration
 #===============================================================================
 
@@ -242,6 +278,8 @@ resource "azurerm_lb_rule" "hub_nva_app_rules" {
   enable_floating_ip            = false
   idle_timeout_in_minutes       = 4
   load_distribution             = "SourceIPProtocol"  # Session persistence
+
+  depends_on = [azurerm_lb_frontend_ip_configuration.hub_nva_vip_frontends]
 }
 
 #===============================================================================
@@ -260,9 +298,8 @@ resource "azurerm_monitor_diagnostic_setting" "hub_nva_lb_diagnostics" {
     category = "LoadBalancerAlertEvent"
   }
 
-  enabled_log {
-    category = "LoadBalancerProbeHealthStatus"
-  }
+  # Note: LoadBalancerProbeHealthStatus category is not supported in Azure Load Balancer diagnostics
+  # Health probe status is available through metrics instead
 
   enabled_metric {
     category = "AllMetrics"
