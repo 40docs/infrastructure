@@ -237,7 +237,7 @@ resource "azurerm_linux_virtual_machine" "hub_nva_instances" {
   custom_data = base64encode(templatefile("${path.module}/cloud-init/fortiweb-ha.conf", {
     var_admin_password                       = var.hub_nva_password
     var_api_user_password                    = var.hub_nva_password
-    var_fqdn_management                      = var.management_public_ip ? azurerm_public_ip.hub_nva_management_public_ip[0].fqdn : ""
+    var_fqdn_management                      = var.management_public_ip ? azurerm_public_ip.hub_nva_ha_management_public_ips[each.key].fqdn : ""
     var_dns_zone                             = var.dns_zone
     var_privatekey                           = tls_private_key.private_key.private_key_pem
     var_spoke_virtual_network_address_prefix = var.spoke_virtual_network_address_prefix

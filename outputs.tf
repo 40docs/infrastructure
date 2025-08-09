@@ -58,10 +58,18 @@ output "dns_zone_name_servers" {
 # NVA Management Access
 output "hub_nva_management_public_ip" {
   description = "Public IP address for NVA management (if enabled)"
-  value       = var.management_public_ip ? azurerm_public_ip.hub_nva_management_public_ip[0].ip_address : null
+  value = var.management_public_ip ? (
+    var.hub_nva_high_availability ? {
+      for k, v in azurerm_public_ip.hub_nva_ha_management_public_ips : k => v.ip_address
+    } : azurerm_public_ip.hub_nva_management_public_ip[0].ip_address
+  ) : null
 }
 
 output "hub_nva_management_fqdn" {
   description = "FQDN for NVA management access (if enabled)"
-  value       = var.management_public_ip ? azurerm_public_ip.hub_nva_management_public_ip[0].fqdn : null
+  value = var.management_public_ip ? (
+    var.hub_nva_high_availability ? {
+      for k, v in azurerm_public_ip.hub_nva_ha_management_public_ips : k => v.fqdn
+    } : azurerm_public_ip.hub_nva_management_public_ip[0].fqdn
+  ) : null
 }
