@@ -98,7 +98,8 @@ locals {
 resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   depends_on = [
     azurerm_virtual_network_peering.spoke_to_hub_virtual_network_peering,
-    azurerm_linux_virtual_machine.hub_nva_virtual_machine
+    azurerm_linux_virtual_machine.hub_nva_virtual_machine,
+    azurerm_linux_virtual_machine.hub_nva_instances
   ]
   name                              = local.cluster_name
   location                          = azurerm_resource_group.azure_resource_group.location
