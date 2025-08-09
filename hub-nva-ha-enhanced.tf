@@ -254,7 +254,7 @@ resource "azurerm_monitor_diagnostic_setting" "hub_nva_lb_diagnostics" {
 
   name                       = "hub-nva-lb-diagnostics"
   target_resource_id         = azurerm_lb.hub_nva_lb[0].id
-  log_analytics_workspace_id = var.log_analytics_workspace_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.platform_workspace.id
 
   enabled_log {
     category = "LoadBalancerAlertEvent"
@@ -290,7 +290,7 @@ resource "azurerm_monitor_metric_alert" "hub_nva_health_alert" {
   }
 
   action {
-    action_group_id = var.action_group_id
+    action_group_id = azurerm_monitor_action_group.critical_alerts.id
   }
 
   tags = local.standard_tags
