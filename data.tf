@@ -5,6 +5,9 @@
 # information about existing Azure resources and configuration.
 ###############################################################
 
+# Current Azure client configuration
+data "azurerm_client_config" "current" {}
+
 data "azurerm_public_ip" "hub_nva_management_public_ip" {
   count               = var.management_public_ip ? 1 : 0
   name                = azurerm_public_ip.hub_nva_management_public_ip[0].name
