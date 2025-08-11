@@ -231,6 +231,120 @@ gh run view --log
 
 ## Development Guidelines
 
+### Git Workflow Standards (MANDATORY)
+
+**CRITICAL**: This repository has protected main branch requiring pull requests. ALL code changes MUST follow this workflow:
+
+#### Branch Protection Policy
+- **NEVER push directly to main branch** - It is protected and will reject direct pushes
+- **ALWAYS use feature branches** for any changes or commits
+- **ALWAYS create pull requests** for merging to main
+- **NO exceptions** - Even documentation changes require PR workflow
+
+#### Mandatory Git Workflow Steps
+
+1. **Create Feature Branch**: Before making any changes
+   ```bash
+   # Check current branch (should be main and clean)
+   git status
+   git pull origin main
+   
+   # Create descriptive feature branch using naming conventions
+   git checkout -b feature/description-of-changes
+   # OR git checkout -b fix/issue-description  
+   # OR git checkout -b docs/documentation-update
+   # OR git checkout -b refactor/code-improvement
+   # OR git checkout -b chore/maintenance-task
+   ```
+
+2. **Make and Commit Changes**: Work in feature branch
+   ```bash
+   # Make your changes, then stage and commit
+   git add .
+   git commit -m "descriptive commit message following conventional commits"
+   ```
+
+3. **Push Feature Branch**: Push to remote with upstream tracking
+   ```bash
+   # Push feature branch to origin
+   git push -u origin feature/description-of-changes
+   ```
+
+4. **Create Pull Request**: Use GitHub CLI for consistent PR creation
+   ```bash
+   # Create pull request with descriptive title and body
+   gh pr create --title "Brief description of changes" --body "Detailed explanation of what changed and why"
+   
+   # Example with full details:
+   gh pr create \
+     --title "Add new terraform validation rules" \
+     --body "## Summary
+   - Added variable validation for IP addresses
+   - Updated terraform formatting rules
+   - Improved error handling
+   
+   ## Testing
+   - [x] terraform fmt passes
+   - [x] terraform validate passes  
+   - [x] All security scans pass"
+   ```
+
+5. **Branch Naming Conventions**: Use consistent prefixes
+   - `feature/` - New features or enhancements
+   - `fix/` - Bug fixes and corrections
+   - `docs/` - Documentation updates
+   - `refactor/` - Code restructuring without functionality changes
+   - `chore/` - Maintenance, tooling, or administrative tasks
+
+#### Error Recovery Procedures
+
+**If you're on main branch with uncommitted changes**:
+```bash
+# Create feature branch immediately
+git stash
+git checkout -b fix/emergency-branch-creation
+git stash pop
+git add .
+git commit -m "Emergency commit to feature branch"
+git push -u origin fix/emergency-branch-creation
+gh pr create --title "Emergency fix" --body "Moved changes from main to feature branch"
+```
+
+**If you accidentally committed to main branch**:
+```bash
+# Create feature branch from current main
+git checkout -b fix/moved-from-main
+git push -u origin fix/moved-from-main
+
+# Reset main to origin
+git checkout main
+git reset --hard origin/main
+
+# Create PR from feature branch
+gh pr create --title "Moved accidental main commits" --body "These commits were accidentally made on main"
+```
+
+#### Pre-commit Checklist
+Before creating any pull request, ensure:
+- [ ] Feature branch created and checked out
+- [ ] `terraform fmt` executed and files formatted
+- [ ] `terraform init -backend=false && terraform validate` passes
+- [ ] All changes staged and committed with descriptive messages
+- [ ] Feature branch pushed to origin with upstream tracking
+- [ ] Pull request created with descriptive title and body
+- [ ] PR URL reported for review and merge
+
+#### Git Workflow Automation Rules
+
+**For Claude Code AI Assistant**:
+1. **Always check current branch** before any git operations
+2. **Never attempt to push to main** - Error immediately if detected
+3. **Auto-create feature branches** when changes are needed
+4. **Always use descriptive branch names** based on the type of work
+5. **Always create PR after pushing** feature branch
+6. **Report PR URL** to user after successful creation
+7. **Implement retry logic** for network failures during git operations
+
 ### Terraform Standards
 - **Variable Naming**: Always use `snake_case` (underscores), never `kebab-case` (hyphens)
 - **Resource Naming**: Consistent underscore naming following HashiCorp conventions
