@@ -2,6 +2,25 @@
 
 Comprehensive testing strategy for 40docs infrastructure using Terratest, validation scripts, and automated checks.
 
+## Quick Start
+
+```bash
+# Install dependencies
+make deps
+
+# Run validation tests (no Azure auth required)
+make test-validate
+
+# Run plan tests (no Azure auth required) 
+make test-plan
+
+# Run fixture tests (requires Azure auth - creates real resources)
+make test-fixture
+
+# Run all tests (requires Azure auth - creates real resources)
+make test
+```
+
 ## Testing Pyramid
 
 ```
@@ -14,6 +33,41 @@ Comprehensive testing strategy for 40docs infrastructure using Terratest, valida
   Terraform   Security  Format      Lint
   Validate    Checks    Checks      Checks
 ```
+
+## New Terratest Implementation
+
+This directory now contains a complete Terratest implementation with:
+
+- **Go Tests**: `basic_infrastructure_test.go` and `fixture_basic_test.go`
+- **Test Fixtures**: Simplified infrastructure in `fixtures/basic/`
+- **Makefile**: Easy test execution with `make` commands
+- **Test Variables**: Safe defaults in `test.tfvars`
+
+### Test Categories
+
+1. **Validation Tests** (`TestTerraformValidation`)
+   - Terraform syntax validation
+   - No Azure authentication required
+   - No resources created
+   - Fast execution (~1 minute)
+
+2. **Plan Tests** (`TestTerraformPlan`) 
+   - Terraform plan validation
+   - No Azure authentication required
+   - No resources created
+   - Medium execution (~3-5 minutes)
+
+3. **Fixture Tests** (`TestBasicFixture`)
+   - Creates real Azure resources using simplified fixture
+   - Requires Azure authentication
+   - Tests basic networking (VNets, subnets, peering)
+   - Execution time: ~15-20 minutes
+
+4. **Full Integration Tests** (`TestBasicInfrastructure`)
+   - Tests against full infrastructure codebase
+   - Requires Azure authentication
+   - Creates real resources (costs apply)
+   - Execution time: ~30-45 minutes
 
 ## Test Categories
 
