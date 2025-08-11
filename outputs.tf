@@ -61,7 +61,7 @@ output "hub_nva_management_public_ip" {
   value = var.management_public_ip ? (
     var.hub_nva_high_availability ? {
       for k, v in azurerm_public_ip.hub_nva_ha_management_public_ips : k => v.ip_address
-    } : {
+      } : {
       single = azurerm_public_ip.hub_nva_management_public_ip[0].ip_address
     }
   ) : null
@@ -72,7 +72,7 @@ output "hub_nva_management_fqdn" {
   value = var.management_public_ip ? (
     var.hub_nva_high_availability ? {
       for k, v in azurerm_public_ip.hub_nva_ha_management_public_ips : k => v.fqdn
-    } : {
+      } : {
       single = azurerm_public_ip.hub_nva_management_public_ip[0].fqdn
     }
   ) : null
