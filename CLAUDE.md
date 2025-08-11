@@ -6,6 +6,143 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **infrastructure** repository within the 40docs platform - a Terraform-based Infrastructure as Code (IaC) solution that deploys Azure resources including hub-spoke network topology with FortiWeb NVA and Azure Kubernetes Service (AKS) cluster with GitOps capabilities.
 
+## Azure CLI Integration Requirements
+
+### Authentication Verification
+**MANDATORY**: Before performing any Azure operations, Claude must:
+
+1. **Verify Azure Authentication**:
+   ```bash
+   # Check current authentication status
+   az account show
+   ```
+
+2. **Authentication Validation**:
+   - If not authenticated, guide user to authenticate:
+     ```bash
+     az login --use-device-code
+     # Or for service principals:
+     az login --service-principal -u <app-id> -p <password-or-cert> --tenant <tenant-id>
+     ```
+
+3. **Subscription Management**:
+   - Verify active subscription is correct:
+     ```bash
+     az account list --output table
+     ```
+   - If multiple subscriptions available, guide user to select appropriate one:
+     ```bash
+     az account set --subscription "<subscription-id-or-name>"
+     ```
+
+4. **Permission Validation**:
+   - Verify subscription has necessary permissions for infrastructure operations
+   - Check resource provider registrations:
+     ```bash
+     az provider list --query "[?namespace=='Microsoft.ContainerService'].{Namespace:namespace, State:registrationState}" -o table
+     az provider list --query "[?namespace=='Microsoft.Network'].{Namespace:namespace, State:registrationState}" -o table
+     az provider list --query "[?namespace=='Microsoft.Compute'].{Namespace:namespace, State:registrationState}" -o table
+     ```
+
+### Azure CLI Best Practices
+Claude must actively use `az` commands for:
+
+1. **Resource Verification and Cross-Checking**:
+   ```bash
+   # Verify resource group exists
+   az group show --name "<resource-group-name>"
+   
+   # List all resources in resource group
+   az resource list --resource-group "<resource-group-name>" --output table
+   
+   # Check specific resource status
+   az aks show --resource-group "<rg-name>" --name "<cluster-name>"
+   az network vnet show --resource-group "<rg-name>" --name "<vnet-name>"
+   ```
+
+2. **Deployment Status Validation**:
+   ```bash
+   # Check deployment history
+   az deployment group list --resource-group "<resource-group-name>" --output table
+   
+   # Get specific deployment details
+   az deployment group show --resource-group "<rg-name>" --name "<deployment-name>"
+   
+   # Monitor ongoing deployments
+   az deployment group list --resource-group "<rg-name>" --query "[?properties.provisioningState=='Running']"
+   ```
+
+3. **Network Configuration Analysis**:
+   ```bash
+   # Analyze network topology
+   az network vnet list --resource-group "<rg-name>" --output table
+   az network vnet subnet list --resource-group "<rg-name>" --vnet-name "<vnet-name>" --output table
+   
+   # Check network security groups
+   az network nsg list --resource-group "<rg-name>" --output table
+   az network nsg rule list --resource-group "<rg-name>" --nsg-name "<nsg-name>" --output table
+   
+   # Verify public IPs and DNS
+   az network public-ip list --resource-group "<rg-name>" --output table
+   az network dns zone list --resource-group "<rg-name>" --output table
+   ```
+
+4. **Security Assessment**:
+   ```bash
+   # Check VM security status
+   az vm list --resource-group "<rg-name>" --show-details --output table
+   
+   # Validate NVA status (FortiWeb)
+   az vm get-instance-view --resource-group "<rg-name>" --name "<fortiweb-vm-name>"
+   
+   # Check AKS security configuration
+   az aks show --resource-group "<rg-name>" --name "<cluster-name>" --query "aadProfile"
+   az aks show --resource-group "<rg-name>" --name "<cluster-name>" --query "networkProfile"
+   ```
+
+5. **Monitoring and Logging Review**:
+   ```bash
+   # Check diagnostic settings
+   az monitor diagnostic-settings list --resource "<resource-id>"
+   
+   # Review activity logs
+   az monitor activity-log list --resource-group "<rg-name>" --start-time "<start-time>"
+   
+   # Check metrics availability
+   az monitor metrics list-definitions --resource "<resource-id>"
+   ```
+
+### FortiWeb NVA Specific Commands
+```bash
+# Check FortiWeb VM status and configuration
+az vm show --resource-group "<rg-name>" --name "<fortiweb-vm-name>" --show-details
+
+# Verify FortiWeb network interfaces
+az vm nic list --vm-name "<fortiweb-vm-name>" --resource-group "<rg-name>"
+
+# Check FortiWeb public IP assignments
+az network public-ip list --resource-group "<rg-name>" --query "[?contains(name,'fortiweb') || contains(name,'nva')]"
+
+# Validate FortiWeb load balancer configuration (if HA setup)
+az network lb list --resource-group "<rg-name>" --output table
+az network lb probe list --resource-group "<rg-name>" --lb-name "<lb-name>"
+```
+
+### AKS Integration Commands
+```bash
+# Get AKS credentials for kubectl access
+az aks get-credentials --resource-group "<rg-name>" --name "<cluster-name>" --overwrite-existing
+
+# Check AKS cluster health
+az aks show --resource-group "<rg-name>" --name "<cluster-name>" --query "powerState"
+
+# Validate node pool status
+az aks nodepool list --resource-group "<rg-name>" --cluster-name "<cluster-name>" --output table
+
+# Check AKS addon status (monitoring, policy, etc.)
+az aks addon list --resource-group "<rg-name>" --name "<cluster-name>"
+```
+
 ## Common Development Commands
 
 ### Terraform Validation and Formatting
@@ -231,6 +368,115 @@ Each app gets dedicated VIP addresses:
 
 ## Troubleshooting Common Issues
 
+### Azure Authentication and Permissions
+```bash
+# 1. Verify current authentication status
+az account show --query "{subscriptionId:id, tenantId:tenantId, user:user.name}" --output table
+
+# 2. Check if authenticated user has required roles
+az role assignment list --assignee $(az account show --query user.name --output tsv) --scope "/subscriptions/$(az account show --query id --output tsv)" --output table
+
+# 3. Validate resource provider registrations
+az provider list --query "[?registrationState!='Registered'].{Namespace:namespace, State:registrationState}" --output table
+
+# 4. Re-register required providers if needed
+az provider register --namespace Microsoft.ContainerService
+az provider register --namespace Microsoft.Network
+az provider register --namespace Microsoft.Compute
+```
+
+### FortiWeb Marketplace and Licensing Issues
+```bash
+# Accept FortiWeb marketplace terms (required before deployment)
+az vm image terms accept --urn "fortinet:fortinet_fortiweb-vm_v5:fortinet_fw-vm:latest"
+
+# Verify marketplace terms are accepted
+az vm image terms show --urn "fortinet:fortinet_fortiweb-vm_v5:fortinet_fw-vm:latest"
+
+# List available FortiWeb SKUs and versions
+az vm image list --offer fortinet_fortiweb-vm_v5 --publisher fortinet --all --output table
+```
+
+### Network Connectivity and Routing Issues
+```bash
+# 1. Check VNet peering status
+az network vnet peering list --resource-group "<rg-name>" --vnet-name "<hub-vnet-name>" --output table
+
+# 2. Validate route tables
+az network route-table list --resource-group "<rg-name>" --output table
+az network route-table route list --resource-group "<rg-name>" --route-table-name "<route-table-name>"
+
+# 3. Check NSG rules blocking traffic
+az network nsg rule list --resource-group "<rg-name>" --nsg-name "<nsg-name>" --query "[?access=='Deny']" --output table
+
+# 4. Test network connectivity to FortiWeb
+az network watcher test-connectivity --source-resource "<vm-resource-id>" --dest-address "<fortiweb-ip>" --dest-port 443
+```
+
+### AKS Cluster Issues
+```bash
+# 1. Check AKS cluster provisioning state
+az aks show --resource-group "<rg-name>" --name "<cluster-name>" --query "provisioningState" --output tsv
+
+# 2. Validate node pool health
+az aks nodepool show --resource-group "<rg-name>" --cluster-name "<cluster-name>" --name "<nodepool-name>" --query "provisioningState"
+
+# 3. Check AKS system pods status (requires kubectl access)
+az aks get-credentials --resource-group "<rg-name>" --name "<cluster-name>" --overwrite-existing
+kubectl get pods -n kube-system
+
+# 4. Review AKS activity logs for errors
+az monitor activity-log list --resource-group "<rg-name>" --start-time $(date -u -d '1 hour ago' '+%Y-%m-%dT%H:%M:%SZ') --query "[?contains(resourceId,'aks')]"
+```
+
+### Resource Deployment Failures
+```bash
+# 1. Check recent deployment failures
+az deployment group list --resource-group "<rg-name>" --query "[?properties.provisioningState=='Failed']" --output table
+
+# 2. Get detailed error information for failed deployment
+az deployment group show --resource-group "<rg-name>" --name "<deployment-name>" --query "properties.error"
+
+# 3. Check resource quotas and limits
+az vm list-usage --location "<location>" --query "[?currentValue>=limit].{Name:localName, Current:currentValue, Limit:limit}" --output table
+
+# 4. Validate subscription limits
+az network list-usages --location "<location>" --query "[?currentValue>=limit]" --output table
+```
+
+### DNS and Certificate Issues
+```bash
+# 1. Check DNS zone and records
+az network dns zone show --resource-group "<rg-name>" --name "<dns-zone>"
+az network dns record-set list --resource-group "<rg-name>" --zone-name "<dns-zone>" --output table
+
+# 2. Validate public IP DNS settings
+az network public-ip list --resource-group "<rg-name>" --query "[].{Name:name, FQDN:dnsSettings.fqdn, IP:ipAddress}" --output table
+
+# 3. Test DNS resolution
+nslookup <application-fqdn>
+dig <application-fqdn>
+
+# 4. Check certificate status (if using cert-manager)
+kubectl get certificates -A
+kubectl describe certificate <cert-name> -n <namespace>
+```
+
+### Storage and State Backend Issues
+```bash
+# 1. Verify Terraform state storage account access
+az storage account show --resource-group "<backend-rg>" --name "<storage-account-name>"
+
+# 2. Check storage account permissions
+az storage account keys list --resource-group "<backend-rg>" --account-name "<storage-account-name>"
+
+# 3. Validate storage container exists
+az storage container show --account-name "<storage-account>" --name "<container-name>"
+
+# 4. List state files in container
+az storage blob list --account-name "<storage-account>" --container-name "<container>" --output table
+```
+
 ### Terraform Validation Errors
 ```bash
 # Check for resource reference errors
@@ -238,24 +484,18 @@ terraform validate
 
 # Common issue: Variable naming inconsistencies
 # Solution: Ensure all variables use snake_case format
-```
 
-### Azure Provider Authentication
-```bash
-# Re-authenticate if local testing needed
-az login
-az account set --subscription "subscription-id"
-
-# Accept FortiWeb marketplace terms
-az vm image terms accept --urn "fortinet:fortinet_fortiweb-vm_v5:fortinet_fw-vm:latest"
+# Check for circular dependencies
+terraform graph | dot -Tpng > terraform-graph.png
 ```
 
 ### GitHub Actions Failures
 Common causes and solutions:
-1. **Invalid Azure credentials**: Verify `AZURE_CREDENTIALS` secret
-2. **State file access**: Check Azure Storage Account permissions
-3. **Variable validation**: Ensure all required variables are set
-4. **Resource quotas**: Verify Azure subscription limits
+1. **Invalid Azure credentials**: Verify `AZURE_CREDENTIALS` secret matches az login output
+2. **State file access**: Check Azure Storage Account permissions using `az storage account show`
+3. **Variable validation**: Ensure all required variables are set in GitHub repository
+4. **Resource quotas**: Verify Azure subscription limits using `az vm list-usage`
+5. **Network policies**: Check NSG rules and route tables for connectivity issues
 
 ## Key Files for Development
 
