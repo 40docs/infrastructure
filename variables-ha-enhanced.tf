@@ -9,7 +9,7 @@ variable "hub_nva_high_availability" {
   type        = bool
   description = "Enable high availability deployment with multiple FortiWeb instances across availability zones"
   # Temporarily disabled to clear conflicting HA resources from state
-  default     = false
+  default = false
 }
 
 variable "hub_nva_admin_username" {
@@ -31,11 +31,6 @@ variable "log_analytics_workspace_id" {
   sensitive   = true
 }
 
-variable "action_group_id" {
-  type        = string
-  description = "Azure Monitor Action Group ID for alerting notifications"
-  default     = ""
-}
 
 # Enhanced Network Configuration
 variable "hub_internal_subnet_address_prefix" {
