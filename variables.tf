@@ -517,3 +517,16 @@ variable "cloudshell_auth_fqdn" {
   #    error_message = "CloudShell FQDN must be a valid domain name."
   #  }
 }
+
+# CloudShell API Keys Configuration
+variable "brave_api_key" {
+  type        = string
+  description = "API key for Brave Search integration in CloudShell"
+  sensitive   = true
+}
+
+variable "perplexity_api_key" {
+  type        = string
+  description = "API key for Perplexity AI integration in CloudShell"
+  sensitive   = true
+}
