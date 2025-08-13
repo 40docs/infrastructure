@@ -22,6 +22,7 @@ repos:
         args:
           - --args=--severity=CRITICAL,HIGH
           - --args=--config=./.trivy-config.yaml
+          - --args=--ignorefile=./.trivyignore
       - id: terraform_docs
         args: ["--hook-config=--path-to-file=README.md", "--hook-config=--add-to-existing-file=true"]
 

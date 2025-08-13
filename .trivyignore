@@ -1,0 +1,5 @@
+# Justified exceptions for public ingress
+# HTTP/HTTPS public ingress is intentional behind FortiWeb WAF and NSG allows internet by design
+AVD-AZU-0047
+# SSH may be open in CloudShell for admin access; consider JIT or Bastion later
+AVD-AZU-0050

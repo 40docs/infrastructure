@@ -1031,7 +1031,7 @@ No modules.
 | <a name="input_application_video"></a> [application\_video](#input\_application\_video) | Deploy Video application | `bool` | `true` | no |
 | <a name="input_arm_subscription_id"></a> [arm\_subscription\_id](#input\_arm\_subscription\_id) | Azure Subscription ID | `string` | n/a | yes |
 | <a name="input_brave_api_key"></a> [brave\_api\_key](#input\_brave\_api\_key) | API key for Brave Search integration in CloudShell | `string` | n/a | yes |
-| <a name="input_cloudshell"></a> [cloudshell](#input\_cloudshell) | Deploy CloudShell VM | `bool` | `false` | no |
+| <a name="input_cloudshell"></a> [cloudshell](#input\_cloudshell) | Deploy CloudShell VM | `bool` | `true` | no |
 | <a name="input_cloudshell_admin_username"></a> [cloudshell\_admin\_username](#input\_cloudshell\_admin\_username) | The username for the Cloud Shell administrator. | `string` | `"ubuntu"` | no |
 | <a name="input_cloudshell_auth_fqdn"></a> [cloudshell\_auth\_fqdn](#input\_cloudshell\_auth\_fqdn) | FQDN for CloudShell instance (used for Entra ID redirect URIs) | `string` | `"cloudshell.example.com"` | no |
 | <a name="input_cloudshell_directory_client_id"></a> [cloudshell\_directory\_client\_id](#input\_cloudshell\_directory\_client\_id) | The client ID of the Azure Active Directory application. | `string` | n/a | yes |
