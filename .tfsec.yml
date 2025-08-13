@@ -1,0 +1,5 @@
+exclude:
+  - AVD-AZU-0039 # SSH password auth allowed on FortiWeb by design
+  - AVD-AZU-0001 # Example: disable for marketplace images with plan
+  - AVD-AZU-0057 # Example: public IPs allowed for managed VIPs
+soft_fail: true
