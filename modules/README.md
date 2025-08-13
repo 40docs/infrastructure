@@ -40,14 +40,14 @@ modules/
 ```hcl
 module "network" {
   source = "./modules/network-hub-spoke"
-  
+
   resource_group_name = var.resource_group_name
   location           = var.location
   environment        = var.environment
-  
+
   hub_address_prefix   = "10.0.0.0/24"
   spoke_address_prefix = "10.1.0.0/16"
-  
+
   tags = local.standard_tags
 }
 ```
@@ -56,14 +56,14 @@ module "network" {
 ```hcl
 module "fortiweb_ha" {
   source = "./modules/fortiweb-ha"
-  
+
   resource_group_name = var.resource_group_name
   location           = var.location
-  
+
   subnet_id          = module.network.hub_external_subnet_id
   high_availability  = var.production_environment
   instance_size      = var.production_environment ? "Standard_F4s_v2" : "Standard_F2s_v2"
-  
+
   tags = local.standard_tags
 }
 ```
@@ -104,7 +104,7 @@ The existing monolithic configuration will be gradually refactored into modules:
 
 Each module includes:
 - Terraform validation tests
-- Terratest integration tests  
+- Terratest integration tests
 - Example configurations
 - Documentation validation
 

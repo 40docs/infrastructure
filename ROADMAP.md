@@ -2,17 +2,17 @@
 
 ## Current Release: v1.0.0-single-nva ✅
 
-**Status**: Stable, Production-Ready  
-**Architecture**: Single FortiWeb NVA (non-HA)  
-**Applications**: docs, dvwa  
-**Deployment**: Successful with ~100 Azure resources  
+**Status**: Stable, Production-Ready
+**Architecture**: Single FortiWeb NVA (non-HA)
+**Applications**: docs, dvwa
+**Deployment**: Successful with ~100 Azure resources
 
 ---
 
 ## Next Release: v1.1.0-fortiweb-ha 🚧
 
-**Target**: Q4 2024 / Q1 2025  
-**Focus**: High Availability FortiWeb Implementation  
+**Target**: Q4 2024 / Q1 2025
+**Focus**: High Availability FortiWeb Implementation
 
 ### 🎯 Primary Objectives
 - [ ] **Multi-Zone HA**: Deploy FortiWeb instances across Azure Availability Zones
@@ -27,7 +27,7 @@
 Current: Single NVA (10.0.0.36)
 Target:  HA Pair
 ├── Primary NVA: 10.0.0.37 (Zone 1)
-├── Secondary NVA: 10.0.0.38 (Zone 2) 
+├── Secondary NVA: 10.0.0.38 (Zone 2)
 └── VIP Management: 10.0.0.39-10.0.0.50
 ```
 
@@ -69,7 +69,7 @@ Target:  HA Pair
    - [ ] Create HA test environment
    - [ ] Validate failover scenarios
    - [ ] Performance testing under load
-   
+
 2. **Integration Testing**
    - [ ] Application connectivity during failover
    - [ ] SSL/TLS certificate handling
@@ -92,7 +92,7 @@ Target:  HA Pair
 
 ### v1.2.0-enhanced-monitoring (Future)
 - [ ] Enhanced observability with custom dashboards
-- [ ] Advanced alerting and notification systems  
+- [ ] Advanced alerting and notification systems
 - [ ] Performance metrics and SLA monitoring
 - [ ] Security event correlation and response
 
@@ -121,7 +121,7 @@ Target:  HA Pair
 ### HA Implementation Strategy
 Given the complexity observed in previous HA attempts, the approach for v1.1.0 will be:
 1. **Research Phase**: Deep dive into Azure HA networking patterns
-2. **Prototype**: Small-scale HA testing environment  
+2. **Prototype**: Small-scale HA testing environment
 3. **Incremental**: Step-by-step HA feature implementation
 4. **Validation**: Extensive testing before production deployment
 

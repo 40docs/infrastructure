@@ -51,10 +51,10 @@ Claude must actively use `az` commands for:
    ```bash
    # Verify resource group exists
    az group show --name "<resource-group-name>"
-   
+
    # List all resources in resource group
    az resource list --resource-group "<resource-group-name>" --output table
-   
+
    # Check specific resource status
    az aks show --resource-group "<rg-name>" --name "<cluster-name>"
    az network vnet show --resource-group "<rg-name>" --name "<vnet-name>"
@@ -64,10 +64,10 @@ Claude must actively use `az` commands for:
    ```bash
    # Check deployment history
    az deployment group list --resource-group "<resource-group-name>" --output table
-   
+
    # Get specific deployment details
    az deployment group show --resource-group "<rg-name>" --name "<deployment-name>"
-   
+
    # Monitor ongoing deployments
    az deployment group list --resource-group "<rg-name>" --query "[?properties.provisioningState=='Running']"
    ```
@@ -77,11 +77,11 @@ Claude must actively use `az` commands for:
    # Analyze network topology
    az network vnet list --resource-group "<rg-name>" --output table
    az network vnet subnet list --resource-group "<rg-name>" --vnet-name "<vnet-name>" --output table
-   
+
    # Check network security groups
    az network nsg list --resource-group "<rg-name>" --output table
    az network nsg rule list --resource-group "<rg-name>" --nsg-name "<nsg-name>" --output table
-   
+
    # Verify public IPs and DNS
    az network public-ip list --resource-group "<rg-name>" --output table
    az network dns zone list --resource-group "<rg-name>" --output table
@@ -91,10 +91,10 @@ Claude must actively use `az` commands for:
    ```bash
    # Check VM security status
    az vm list --resource-group "<rg-name>" --show-details --output table
-   
+
    # Validate NVA status (FortiWeb)
    az vm get-instance-view --resource-group "<rg-name>" --name "<fortiweb-vm-name>"
-   
+
    # Check AKS security configuration
    az aks show --resource-group "<rg-name>" --name "<cluster-name>" --query "aadProfile"
    az aks show --resource-group "<rg-name>" --name "<cluster-name>" --query "networkProfile"
@@ -104,10 +104,10 @@ Claude must actively use `az` commands for:
    ```bash
    # Check diagnostic settings
    az monitor diagnostic-settings list --resource "<resource-id>"
-   
+
    # Review activity logs
    az monitor activity-log list --resource-group "<rg-name>" --start-time "<start-time>"
-   
+
    # Check metrics availability
    az monitor metrics list-definitions --resource "<resource-id>"
    ```
@@ -248,10 +248,10 @@ gh run view --log
    # Check current branch (should be main and clean)
    git status
    git pull origin main
-   
+
    # Create descriptive feature branch using naming conventions
    git checkout -b feature/description-of-changes
-   # OR git checkout -b fix/issue-description  
+   # OR git checkout -b fix/issue-description
    # OR git checkout -b docs/documentation-update
    # OR git checkout -b refactor/code-improvement
    # OR git checkout -b chore/maintenance-task
@@ -274,7 +274,7 @@ gh run view --log
    ```bash
    # Create pull request with descriptive title and body
    gh pr create --title "Brief description of changes" --body "Detailed explanation of what changed and why"
-   
+
    # Example with full details:
    gh pr create \
      --title "Add new terraform validation rules" \
@@ -282,10 +282,10 @@ gh run view --log
    - Added variable validation for IP addresses
    - Updated terraform formatting rules
    - Improved error handling
-   
+
    ## Testing
    - [x] terraform fmt passes
-   - [x] terraform validate passes  
+   - [x] terraform validate passes
    - [x] All security scans pass"
    ```
 

@@ -11,7 +11,7 @@ make deps
 # Run validation tests (no Azure auth required)
 make test-validate
 
-# Run plan tests (no Azure auth required) 
+# Run plan tests (no Azure auth required)
 make test-plan
 
 # Run fixture tests (requires Azure auth - creates real resources)
@@ -51,7 +51,7 @@ This directory now contains a complete Terratest implementation with:
    - No resources created
    - Fast execution (~1 minute)
 
-2. **Plan Tests** (`TestTerraformPlan`) 
+2. **Plan Tests** (`TestTerraformPlan`)
    - Terraform plan validation
    - No Azure authentication required
    - No resources created
@@ -73,7 +73,7 @@ This directory now contains a complete Terratest implementation with:
 
 ### 1. Static Analysis Tests
 - **Terraform Validation**: Syntax and configuration validation
-- **Security Scanning**: tfsec, Checkov, Trivy security analysis  
+- **Security Scanning**: tfsec, Checkov, Trivy security analysis
 - **Code Quality**: terraform fmt, tflint validation
 - **Documentation**: README and comment validation
 
@@ -136,7 +136,7 @@ cd test/unit
 go test -v -timeout 30m
 
 # Integration tests (requires existing infrastructure)
-cd test/integration  
+cd test/integration
 go test -v -timeout 60m
 ```
 
@@ -235,7 +235,7 @@ Test resources use consistent naming:
 4. **Realistic Data**: Use production-like data for meaningful tests
 
 ### Performance
-1. **Test Duration**: Unit tests <5min, Integration tests <30min, E2E <60min  
+1. **Test Duration**: Unit tests <5min, Integration tests <30min, E2E <60min
 2. **Resource Limits**: Limit concurrent Azure resource creation
 3. **Caching**: Cache Terraform providers and modules
 4. **Cleanup**: Aggressive cleanup to avoid cost accumulation
