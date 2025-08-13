@@ -124,10 +124,12 @@ jobs:
             fi
           fi
 
-          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
-          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
-          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "valid=$VALID"
+            echo -e "issues<<EOF"
+            echo -e "$ISSUES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
   # Job 2: Validate Repository Structure
   validate-repository-structure:
@@ -209,12 +211,14 @@ jobs:
             fi
           fi
 
-          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
-          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
-          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-          echo "terraform_files=$TERRAFORM_FILES" >> "$GITHUB_OUTPUT"
-          echo "k8s_applications=$K8S_APPS" >> "$GITHUB_OUTPUT"
+          {
+            echo "valid=$VALID"
+            echo -e "issues<<EOF"
+            echo -e "$ISSUES"
+            echo "EOF"
+            echo "terraform_files=$TERRAFORM_FILES"
+            echo "k8s_applications=$K8S_APPS"
+          } >> "$GITHUB_OUTPUT"
 
   # Job 3: Validate YAML Syntax and Workflows
   validate-yaml-syntax:
@@ -284,10 +288,12 @@ jobs:
             VALID="false"
           fi
 
-          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
-          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
-          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "valid=$VALID"
+            echo -e "issues<<EOF"
+            echo -e "$ISSUES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
   # Job 4: Analyze Project Patterns
   analyze-project-patterns:
@@ -385,11 +391,13 @@ jobs:
             fi
           fi
 
-          echo "valid=$VALID" >> "$GITHUB_OUTPUT"
-          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
-          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-          echo "security_scanning=$SECURITY_SCANNING" >> "$GITHUB_OUTPUT"
+          {
+            echo "valid=$VALID"
+            echo -e "issues<<EOF"
+            echo -e "$ISSUES"
+            echo "EOF"
+            echo "security_scanning=$SECURITY_SCANNING"
+          } >> "$GITHUB_OUTPUT"
 
   # Job 5: Repository Configuration (only in configure/full-setup modes)
   configure-repository:
@@ -429,10 +437,12 @@ jobs:
           echo "⚠️  Repository configuration requires admin permissions"
           echo "    Please apply these settings manually in repository settings"
 
-          echo "applied=$APPLIED" >> "$GITHUB_OUTPUT"
-          echo -e "issues<<EOF" >> "$GITHUB_OUTPUT"
-          echo -e "$ISSUES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "applied=$APPLIED"
+            echo -e "issues<<EOF"
+            echo -e "$ISSUES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
   # Job 6: Generate Comprehensive Report
   generate-report:
@@ -601,9 +611,11 @@ jobs:
 
       - name: Add Report to Job Summary
         run: |
-          echo "## 📋 Copilot Setup Validation Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          cat reports/copilot-setup-report.md >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## 📋 Copilot Setup Validation Results"
+            echo ""
+            cat reports/copilot-setup-report.md
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Job 7: Comment on PR (if applicable)
   comment-on-pr:
