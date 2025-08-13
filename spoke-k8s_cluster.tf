@@ -151,6 +151,13 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     load_balancer_sku = "standard"
     pod_cidr          = var.spoke_aks_pod_cidr
   }
+  # Restrict API server to CloudShell public IP when CloudShell is enabled
+  dynamic "api_server_access_profile" {
+    for_each = var.cloudshell ? [1] : []
+    content {
+      authorized_ip_ranges = ["${azurerm_public_ip.cloudshell_public_ip[0].ip_address}/32"]
+    }
+  }
   # System-assigned managed identity
   identity {
     type = "SystemAssigned"

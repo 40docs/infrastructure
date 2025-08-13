@@ -61,7 +61,7 @@ variable "arm_subscription_id" {
 variable "cloudshell" {
   type        = bool
   description = "Deploy CloudShell VM"
-  default     = false
+  default     = true
 }
 
 # DNS Configuration

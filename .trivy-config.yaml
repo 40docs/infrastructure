@@ -1,0 +1,14 @@
+vulnerability:
+  ignore-unfixed: true
+  severity: [CRITICAL, HIGH]
+
+misconfiguration:
+  include-non-failures: false
+  severity: [CRITICAL, HIGH]
+
+# Map tfsec-equivalent checks to trivy policy where applicable
+# You can add ignore rules here if certain findings are acceptable by design
+# e.g.
+# ignore-policy:
+#   - id: AZU001 # example ID
+#     reason: "Justification here"
