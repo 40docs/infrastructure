@@ -151,11 +151,23 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     load_balancer_sku = "standard"
     pod_cidr          = var.spoke_aks_pod_cidr
   }
-  # Restrict API server to CloudShell public IP when CloudShell is enabled
+  # Restrict API server to CloudShell public IP and GitHub Actions when CloudShell is enabled
   dynamic "api_server_access_profile" {
     for_each = var.cloudshell ? [1] : []
     content {
-      authorized_ip_ranges = ["${azurerm_public_ip.cloudshell_public_ip[0].ip_address}/32"]
+      authorized_ip_ranges = concat(
+        ["${azurerm_public_ip.cloudshell_public_ip[0].ip_address}/32"],
+        [
+          # GitHub Actions IP ranges - major blocks
+          "4.0.0.0/8",        # GitHub Actions primary range
+          "20.0.0.0/8",       # Additional GitHub Actions range
+          "52.0.0.0/8",       # Azure/GitHub Actions range
+          "140.82.112.0/20",  # GitHub.com range
+          "143.55.64.0/20",   # GitHub Actions range
+          "185.199.108.0/22", # GitHub Pages/Actions
+          "192.30.252.0/22"   # GitHub API range
+        ]
+      )
     }
   }
   # System-assigned managed identity
