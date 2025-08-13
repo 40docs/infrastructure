@@ -34,7 +34,7 @@ make deps
 make test-validate
 ```
 
-### 3. Run Plan Tests  
+### 3. Run Plan Tests
 ```bash
 # Test Terraform planning (no resources created)
 make test-plan
@@ -76,7 +76,7 @@ az account show
 make test-fixture
 ```
 
-### 4. Run Full Integration Tests  
+### 4. Run Full Integration Tests
 ```bash
 # Tests against full infrastructure (costs more)
 # Cost: ~$20-50 for 45 minutes
@@ -246,13 +246,13 @@ cd test/
 make deps
 ✅ Installing Go dependencies...
 
-# Quick validation 
+# Quick validation
 make test-validate
 ✅ Running validation tests...
 ✅ PASS: TestTerraformValidation (45s)
 
 # Plan testing
-make test-plan  
+make test-plan
 ✅ Running plan tests...
 ✅ PASS: TestTerraformPlan (3m21s)
 

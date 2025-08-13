@@ -211,5 +211,3 @@ resource "azurerm_kubernetes_cluster_extension" "flux_extension" {
     "notification-controller.enabled"     = true
   }
 }
-
-

@@ -137,4 +137,3 @@ resource "null_resource" "trigger_docs_builder_workflow" {
     command = "gh workflow run docs-builder --repo ${var.github_org}/${var.docs_builder_repo_name} --ref main"
   }
 }
-

@@ -8,7 +8,7 @@ help:
 	@echo "  deps          - Install Go dependencies"
 	@echo "  test          - Run all tests"
 	@echo "  test-basic    - Run basic infrastructure tests (requires Azure auth)"
-	@echo "  test-fixture  - Run fixture tests (requires Azure auth)"  
+	@echo "  test-fixture  - Run fixture tests (requires Azure auth)"
 	@echo "  test-validate - Run validation tests (no Azure auth required)"
 	@echo "  test-plan     - Run plan tests (no Azure auth required)"
 	@echo "  clean         - Clean up test artifacts"
@@ -76,7 +76,7 @@ dev-plan:
 	cd .. && terraform plan -var-file="test/test.tfvars"
 
 # Continuous Integration targets
-ci-validate: 
+ci-validate:
 	@echo "CI: Running validation tests..."
 	go test -v -timeout 5m -run TestTerraformValidation
 

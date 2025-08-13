@@ -1,7 +1,7 @@
 ---
 applyTo: '**/*.ps1,**/*.psm1'
 description: 'PowerShell cmdlet and scripting best practices based on Microsoft guidelines'
----  
+---
 
 # PowerShell Cmdlet Development Guidelines
 
@@ -87,19 +87,19 @@ function Set-ResourceConfiguration {
     param(
         [Parameter(Mandatory)]
         [string]$Name,
-        
+
         [Parameter()]
         [ValidateSet('Dev', 'Test', 'Prod')]
         [string]$Environment = 'Dev',
-        
+
         [Parameter()]
         [switch]$Force,
-        
+
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string[]]$Tags
     )
-    
+
     process {
         # Logic here
     }
@@ -157,7 +157,7 @@ function Update-ResourceStatus {
     process {
         # Process each resource individually
         Write-Verbose "Processing resource: $Name"
-        
+
         $resource = [PSCustomObject]@{
             Name = $Name
             Status = $Status
@@ -236,7 +236,7 @@ function Remove-UserAccount {
             $shouldProcessMessage = "Remove user account '$Username'"
             if ($Force -or $PSCmdlet.ShouldProcess($Username, $shouldProcessMessage)) {
                 Write-Verbose "Removing user account: $Username"
-                
+
                 # Main operation
                 Remove-ADUser -Identity $Username -ErrorAction Stop
                 Write-Warning "User account '$Username' has been removed"
@@ -305,11 +305,11 @@ function New-Resource {
         [ValidateSet('Development', 'Production')]
         [string]$Environment = 'Development'
     )
-    
+
     begin {
         Write-Verbose "Starting resource creation process"
     }
-    
+
     process {
         try {
             if ($PSCmdlet.ShouldProcess($Name, "Create new resource")) {
@@ -325,7 +325,7 @@ function New-Resource {
             Write-Error "Failed to create resource: $_"
         }
     }
-    
+
     end {
         Write-Verbose "Completed resource creation process"
     }

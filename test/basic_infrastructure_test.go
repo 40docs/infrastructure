@@ -22,7 +22,7 @@ func TestTerraformValidation(t *testing.T) {
 
 	// Initialize without backend
 	terraform.RunTerraformCommand(t, terraformOptions, "init", "-backend=false")
-	
+
 	// Run terraform validate (no variables needed for syntax validation)
 	terraform.RunTerraformCommand(t, terraformOptions, "validate")
 }
