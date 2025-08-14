@@ -20,16 +20,17 @@ jobs:
     
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write        # Allow pushing suggested changes
+      pull-requests: write   # Allow creating review comments and suggestions
+      issues: write          # Allow creating issues from review findings
       id-token: write
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0  # Full history for better code analysis
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Claude Code Review
         id: claude-review
@@ -67,10 +68,17 @@ jobs:
           #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' && 
           #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
           #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
-          
-          # Optional: Add specific tools for running tests or linting
-          # allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck)"
-          
+
+          # Tools for comprehensive code review and testing
+          allowed_tools: |
+            Bash(terraform fmt --check),
+            Bash(terraform validate),
+            Bash(trivy config *),
+            Bash(tflint *),
+            Bash(git diff *),
+            Bash(git log *),
+            Bash(az *)
+
           # Optional: Skip review for certain conditions
           # if: |
           #   !contains(github.event.pull_request.title, '[skip-review]') &&
