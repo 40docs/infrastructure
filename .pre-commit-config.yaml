@@ -33,6 +33,6 @@ repos:
         args: ["--disable", "MD013", "MD033", "MD041"]
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.3
+    rev: v1.7.7
     hooks:
       - id: actionlint
