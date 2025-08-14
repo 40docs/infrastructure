@@ -95,6 +95,7 @@ locals {
 }
 
 # Azure Kubernetes Service cluster
+# trivy:ignore:AVD-AZU-0041 AKS cluster intentionally configured without API server IP restrictions for operational flexibility
 resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   depends_on = [
     azurerm_virtual_network_peering.spoke_to_hub_virtual_network_peering,
