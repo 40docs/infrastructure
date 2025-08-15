@@ -236,6 +236,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         var_admin_username           = var.cloudshell_admin_username
         var_brave_api_key            = var.brave_api_key
         var_perplexity_api_key       = var.perplexity_api_key
+        var_claude_code_oauth_token  = var.claude_code_oauth_token
       }
     )
   )
