@@ -530,3 +530,9 @@ variable "perplexity_api_key" {
   description = "API key for Perplexity AI integration in CloudShell"
   sensitive   = true
 }
+
+variable "claude_code_oauth_token" {
+  type        = string
+  description = "OAuth token for Claude Code authentication in CloudShell"
+  sensitive   = true
+}
