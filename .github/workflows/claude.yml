@@ -19,34 +19,25 @@ jobs:
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
-      contents: write        # Changed to write - allows pushing branches
-      pull-requests: write   # Changed to write - allows creating PRs
-      issues: write          # Changed to write - allows commenting
+      contents: read
+      pull-requests: read
+      issues: read
       id-token: write
-      actions: read          # Required for Claude to read CI results on PRs
+      actions: read # Required for Claude to read CI results on PRs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better git operations
-          token: ${{ secrets.GITHUB_TOKEN }}  # Ensures push permissions
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "Claude Code Bot"
-          git config --global user.email "claude-bot@40docs.com"
+          fetch-depth: 1
 
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@beta
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # Permissions for PR creation and CI results
+          # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
-            contents: write
-            pull-requests: write
-            issues: write
             actions: read
           
           # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4.1)
@@ -57,44 +48,17 @@ jobs:
           
           # Optional: Trigger when specific user is assigned to an issue
           # assignee_trigger: "claude-bot"
-
-          # Allow Claude to run git and gh CLI commands for PR creation
-          allowed_tools: |
-            Bash(git add *),
-            Bash(git commit *),
-            Bash(git branch *),
-            Bash(git checkout *),
-            Bash(git push *),
-            Bash(git pull *),
-            Bash(git status),
-            Bash(git diff *),
-            Bash(git log *),
-            Bash(gh pr create *),
-            Bash(gh pr list),
-            Bash(gh issue *),
-            Bash(terraform fmt),
-            Bash(terraform validate),
-            Bash(terraform init *),
-            Bash(az *)
-
-          # Custom instructions for PR workflow and repository standards
-          custom_instructions: |
-            When making code changes:
-            1. Always create a feature branch before making changes
-            2. Use descriptive branch names (feature/*, fix/*, docs/*, chore/*)
-            3. Commit changes with clear conventional commit messages
-            4. Push feature branch to origin
-            5. Create pull request using gh CLI
-            6. Never push directly to main branch - it's protected
-
-            Repository standards:
-            - Follow Terraform best practices
-            - Run terraform fmt before committing
-            - Ensure trivy security scans pass
-            - Update documentation when needed
-
-          # Environment variables for git and Azure operations
-          claude_env: |
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Optional: Allow Claude to run specific commands
+          # allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
+          
+          # Optional: Add custom instructions for Claude to customize its behavior for your project
+          # custom_instructions: |
+          #   Follow our coding standards
+          #   Ensure all new code has tests
+          #   Use TypeScript for new files
+          
+          # Optional: Custom environment variables for Claude
+          # claude_env: |
+          #   NODE_ENV: test
 
