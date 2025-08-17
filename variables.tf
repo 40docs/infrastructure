@@ -531,8 +531,8 @@ variable "perplexity_api_key" {
   sensitive   = true
 }
 
-variable "claude_code_oauth_token" {
+variable "anthropic_api_key" {
   type        = string
-  description = "OAuth token for Claude Code authentication in CloudShell"
+  description = "Anthropic API key for Claude Code authentication in CloudShell"
   sensitive   = true
 }

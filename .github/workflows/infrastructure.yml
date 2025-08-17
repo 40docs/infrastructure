@@ -145,7 +145,7 @@ jobs:
           TF_VAR_letsencrypt_url: ${{ vars.LETSENCRYPT_URL }}
           TF_VAR_brave_api_key: ${{ secrets.BRAVE_API_KEY }}
           TF_VAR_perplexity_api_key: ${{ secrets.PERPLEXITY_API_KEY }}
-          TF_VAR_claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          TF_VAR_anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           TF_IN_AUTOMATION: true
         run: |
           export exitcode=0
@@ -271,7 +271,7 @@ jobs:
           TF_VAR_letsencrypt_url: ${{ vars.LETSENCRYPT_URL }}
           TF_VAR_brave_api_key: ${{ secrets.BRAVE_API_KEY }}
           TF_VAR_perplexity_api_key: ${{ secrets.PERPLEXITY_API_KEY }}
-          TF_VAR_claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          TF_VAR_anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           TF_IN_AUTOMATION: true
           GH_TOKEN: ${{ secrets.PAT }}
         run: terraform apply -auto-approve tfplan
@@ -373,7 +373,7 @@ jobs:
           TF_VAR_letsencrypt_url: ${{ vars.LETSENCRYPT_URL }}
           TF_VAR_brave_api_key: ${{ secrets.BRAVE_API_KEY }}
           TF_VAR_perplexity_api_key: ${{ secrets.PERPLEXITY_API_KEY }}
-          TF_VAR_claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          TF_VAR_anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           TF_IN_AUTOMATION: true
         run: |
           terraform destroy -auto-approve
