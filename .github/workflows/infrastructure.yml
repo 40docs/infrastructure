@@ -146,6 +146,8 @@ jobs:
           TF_VAR_brave_api_key: ${{ secrets.BRAVE_API_KEY }}
           TF_VAR_perplexity_api_key: ${{ secrets.PERPLEXITY_API_KEY }}
           TF_VAR_anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          TF_VAR_runner_group: ${{ vars.RUNNER_GROUP }}
+          TF_VAR_runner_labels: ${{ vars.RUNNER_LABELS }}
           TF_IN_AUTOMATION: true
         run: |
           export exitcode=0
@@ -272,6 +274,8 @@ jobs:
           TF_VAR_brave_api_key: ${{ secrets.BRAVE_API_KEY }}
           TF_VAR_perplexity_api_key: ${{ secrets.PERPLEXITY_API_KEY }}
           TF_VAR_anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          TF_VAR_runner_group: ${{ vars.RUNNER_GROUP }}
+          TF_VAR_runner_labels: ${{ vars.RUNNER_LABELS }}
           TF_IN_AUTOMATION: true
           GH_TOKEN: ${{ secrets.PAT }}
         run: terraform apply -auto-approve tfplan
@@ -374,6 +378,8 @@ jobs:
           TF_VAR_brave_api_key: ${{ secrets.BRAVE_API_KEY }}
           TF_VAR_perplexity_api_key: ${{ secrets.PERPLEXITY_API_KEY }}
           TF_VAR_anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          TF_VAR_runner_group: ${{ vars.RUNNER_GROUP }}
+          TF_VAR_runner_labels: ${{ vars.RUNNER_LABELS }}
           TF_IN_AUTOMATION: true
         run: |
           terraform destroy -auto-approve

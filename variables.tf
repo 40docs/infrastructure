@@ -8,6 +8,18 @@
 # See .github/instructions/terraform.instructions.md for details.
 ###############################################################
 
+variable "runner_group" {
+  type        = string
+  default     = "Default"
+  description = "GitHub Actions runner group name in your org (must exist)"
+}
+
+variable "runner_labels" {
+  type        = string
+  default     = "self-hosted,linux,x64,build,ubuntu"
+  description = "Comma-separated labels to attach to the runner"
+}
+
 # Application Configuration
 variable "application_artifacts" {
   type        = bool
