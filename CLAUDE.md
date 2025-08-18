@@ -143,6 +143,66 @@ az aks nodepool list --resource-group "<rg-name>" --cluster-name "<cluster-name>
 az aks addon list --resource-group "<rg-name>" --name "<cluster-name>"
 ```
 
+### CLOUDSHELL VM Detection and Diagnostics
+**MANDATORY**: Claude must detect if running on the infrastructure's CLOUDSHELL VM by checking hostname:
+
+1. **Hostname Detection**:
+   ```bash
+   # Check if running on CLOUDSHELL VM
+   hostname
+   ```
+   - If hostname returns `CLOUDSHELL`, then Claude is running on the cloudshell_vm deployed by cloudshell.tf
+   - This VM has computer_name configured as "CLOUDSHELL" (cloudshell.tf:255)
+
+2. **Cloud-init Log Access** (Only when hostname is CLOUDSHELL):
+   ```bash
+   # View complete cloud-init execution logs
+   cat /var/log/cloud-init-output.log
+
+   # Monitor cloud-init logs in real-time
+   tail -f /var/log/cloud-init-output.log
+
+   # Check cloud-init status and completion
+   cloud-init status
+
+   # View cloud-init configuration that was applied
+   cat /var/log/cloud-init.log
+   ```
+
+3. **CLOUDSHELL VM Diagnostics**:
+   ```bash
+   # Check VM metadata and configuration
+   sudo dmidecode -s system-product-name
+   curl -H "Metadata:true" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq
+
+   # Verify attached data disks (home, docker, ollama)
+   lsblk
+   df -h
+
+   # Check GPU status (VM has NVIDIA V100 GPUs)
+   nvidia-smi
+
+   # Verify Kubernetes credentials are available
+   kubectl cluster-info
+
+   # Check Docker status and containers
+   docker ps
+   docker images
+   ```
+
+4. **Infrastructure Context** (When running on CLOUDSHELL):
+   - VM is deployed with Standard_NC12s_v3 size (12 vCPU, 224 GB RAM, 2x V100 GPUs)
+   - Has direct access to AKS cluster with kubectl configured
+   - Contains SSH keys, API keys, and infrastructure secrets via cloud-init
+   - Connected to cloudshell_network (10.0.1.0/24) separate from hub-spoke topology
+   - Has internet access via public IP with DNS record (cloudshell.domain.com)
+
+**Usage Guidelines**:
+- When hostname is CLOUDSHELL, Claude has privileged access to infrastructure logs and diagnostics
+- Can troubleshoot deployment issues using cloud-init logs
+- Has full kubectl access to AKS cluster for application debugging
+- Can use Azure CLI with pre-configured credentials for resource management
+
 ## Common Development Commands
 
 ### Terraform Validation and Formatting
