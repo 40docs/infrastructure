@@ -818,7 +818,7 @@ sudo cloud-init schema --system
 ## References
 
 - https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#linux-distributions
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -1017,11 +1017,13 @@ No modules.
 | [azurerm_public_ip.hub_nva_vip_ollama_public_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/public_ip) | data source |
 | [azurerm_public_ip.hub_nva_vip_pretix_public_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/public_ip) | data source |
 | [azurerm_user_assigned_identity.cert_manager_data](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) | data source |
+| [github_actions_organization_registration_token.org](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/actions_organization_registration_token) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_anthropic_api_key"></a> [anthropic\_api\_key](#input\_anthropic\_api\_key) | Anthropic API key for Claude Code authentication in CloudShell | `string` | n/a | yes |
 | <a name="input_application_artifacts"></a> [application\_artifacts](#input\_application\_artifacts) | Deploy Artifacts application | `bool` | `true` | no |
 | <a name="input_application_docs"></a> [application\_docs](#input\_application\_docs) | Deploy Docs application | `bool` | `true` | no |
 | <a name="input_application_dvwa"></a> [application\_dvwa](#input\_application\_dvwa) | Deploy DVWA (Damn Vulnerable Web Application) | `bool` | `true` | no |
@@ -1103,6 +1105,8 @@ No modules.
 | <a name="input_production_environment"></a> [production\_environment](#input\_production\_environment) | Whether this is a production environment (affects resource sizing and configuration) | `bool` | `true` | no |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name for tagging and resource naming | `string` | n/a | yes |
 | <a name="input_response_time_alert_threshold_ms"></a> [response\_time\_alert\_threshold\_ms](#input\_response\_time\_alert\_threshold\_ms) | Application response time threshold in milliseconds for alerts | `number` | `5000` | no |
+| <a name="input_runner_group"></a> [runner\_group](#input\_runner\_group) | GitHub Actions runner group name in your org (must exist) | `string` | `"Default"` | no |
+| <a name="input_runner_labels"></a> [runner\_labels](#input\_runner\_labels) | Comma-separated labels to attach to the runner | `string` | `"self-hosted,linux,x64,build,ubuntu"` | no |
 | <a name="input_spoke_aks_node_ip"></a> [spoke\_aks\_node\_ip](#input\_spoke\_aks\_node\_ip) | Spoke Container Server IP Address | `string` | `"10.1.1.4"` | no |
 | <a name="input_spoke_aks_pod_cidr"></a> [spoke\_aks\_pod\_cidr](#input\_spoke\_aks\_pod\_cidr) | Spoke k8s pod cidr. | `string` | `"10.244.0.0/16"` | no |
 | <a name="input_spoke_aks_subnet_name"></a> [spoke\_aks\_subnet\_name](#input\_spoke\_aks\_subnet\_name) | Spoke aks Subnet Name. | `string` | `"spoke-aks-subnet"` | no |
@@ -1128,4 +1132,4 @@ No modules.
 | <a name="output_resource_group_location"></a> [resource\_group\_location](#output\_resource\_group\_location) | Location of the created resource group |
 | <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name) | Name of the created resource group |
 | <a name="output_spoke_virtual_network_id"></a> [spoke\_virtual\_network\_id](#output\_spoke\_virtual\_network\_id) | ID of the spoke virtual network |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
