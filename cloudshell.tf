@@ -258,7 +258,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         var_brave_api_key            = var.brave_api_key
         var_perplexity_api_key       = var.perplexity_api_key
         var_anthropic_api_key        = var.anthropic_api_key
-        var_reg_token                = data.github_actions_organization_registration_token.org.token
+        var_github_token             = var.github_token # Used to generate fresh registration token at runtime
         var_github_org               = var.github_org
         var_runner_group             = var.runner_group
         var_runner_labels            = var.runner_labels
@@ -318,5 +318,5 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cloudshell_ollama_disk_
   #write_accelerator_enabled = true
 }
 
-data "github_actions_organization_registration_token" "org" {
-}
+# Registration token is now generated at runtime using GitHub API
+# This prevents token expiration issues during cloud-init execution
