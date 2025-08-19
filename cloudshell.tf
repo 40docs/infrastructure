@@ -197,6 +197,30 @@ resource "azurerm_managed_disk" "cloudshell_ollama_disk" {
 
 locals {
   kubeconfig = var.cloudshell ? base64encode(azurerm_kubernetes_cluster.kubernetes_cluster.kube_config_raw) : ""
+
+  # GPU-enabled VM size detection
+  # Azure VM sizes that have GPUs and require NVIDIA software installation
+  gpu_enabled_vm_sizes = [
+    "Standard_NC6s_v3",          # 1x V100
+    "Standard_NC12s_v3",         # 2x V100
+    "Standard_NC24s_v3",         # 4x V100
+    "Standard_NC24ads_A100_v4",  # 1x A100
+    "Standard_NC48ads_A100_v4",  # 2x A100
+    "Standard_NC96ads_A100_v4",  # 4x A100
+    "Standard_ND40rs_v2",        # 8x V100
+    "Standard_ND96asr_v4",       # 8x A100
+    "Standard_ND96amsr_A100_v4", # 8x A100 MIG
+    "Standard_NV6",              # 1x M60
+    "Standard_NV12",             # 2x M60
+    "Standard_NV24",             # 4x M60
+    "Standard_NV12s_v3",         # 1x M60
+    "Standard_NV24s_v3",         # 2x M60
+    "Standard_NV48s_v3",         # 4x M60
+  ]
+
+  # Determine if selected VM size has GPU
+  cloudshell_vm_size = "Standard_NC12s_v3" # Change this to configure VM size
+  has_gpu            = var.cloudshell ? contains(local.gpu_enabled_vm_sizes, local.cloudshell_vm_size) : false
 }
 
 resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
@@ -206,14 +230,11 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
   resource_group_name   = azurerm_resource_group.azure_resource_group.name
   network_interface_ids = [azurerm_network_interface.cloudshell_nic[count.index].id]
 
-  # GPU-enabled VM size for AI/ML workloads with NVIDIA Tesla V100 GPUs
-  # Cloud-init includes nvidia-container-toolkit and proper GPU device permissions
-  size = "Standard_NC12s_v3" # 12 vCPU, 224 GB RAM, 2x V100 16GB GPUs (32GB total)
-  #size = "Standard_NC6s_v3" # 6 vCPU, 112 GB RAM, 1x V100 16GB GPU
-  #size = "Standard_NC24s_v3" # 24 vCPU, 448 GB RAM, 4x V100 16GB GPUs
-  #size = "Standard_NC24ads_A100_v4" # 24 vCPU, 220 GB RAM, 1x A100 80GB GPU (requires quota)
-  #size                  = "Standard_M16ms" # 16 vCPU, 384 GB RAM
-  #size = "Standard_D4s_v3" # 4 vCPU, 16 GB RAM
+  # VM size configured in locals.cloudshell_vm_size - GPU software installed conditionally
+  # Change local.cloudshell_vm_size to configure VM size and GPU capabilities
+  # GPU VMs: Standard_NC*_v3, Standard_ND*_v2, Standard_NV*_v3 series
+  # CPU VMs: Standard_D*s_v3, Standard_B*, Standard_F* series
+  size = local.cloudshell_vm_size
   identity {
     type = "SystemAssigned"
   }
@@ -241,6 +262,7 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         var_github_org               = var.github_org
         var_runner_group             = var.runner_group
         var_runner_labels            = var.runner_labels
+        var_has_gpu                  = local.has_gpu
       }
     )
   )
