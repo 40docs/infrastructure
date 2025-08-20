@@ -712,3 +712,5 @@ resource "flux_bootstrap_git" "<app>" {
 ```
 
 This infrastructure provides a robust, scalable platform for the 40docs ecosystem with comprehensive security, monitoring, and automation capabilities.
+
+- sync to github with a PR and then merge the PR
