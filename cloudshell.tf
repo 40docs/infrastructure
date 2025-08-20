@@ -219,7 +219,7 @@ locals {
   ]
 
   # Determine if selected VM size has GPU
-  cloudshell_vm_size = "Standard_NC12s_v3" # Change this to configure VM size
+  cloudshell_vm_size = "Standard_D4s_v3" # Change this to configure VM size
   has_gpu            = var.cloudshell ? contains(local.gpu_enabled_vm_sizes, local.cloudshell_vm_size) : false
 }
 

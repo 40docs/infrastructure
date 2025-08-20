@@ -1017,7 +1017,6 @@ No modules.
 | [azurerm_public_ip.hub_nva_vip_ollama_public_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/public_ip) | data source |
 | [azurerm_public_ip.hub_nva_vip_pretix_public_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/public_ip) | data source |
 | [azurerm_user_assigned_identity.cert_manager_data](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) | data source |
-| [github_actions_organization_registration_token.org](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/actions_organization_registration_token) | data source |
 
 ## Inputs
 
