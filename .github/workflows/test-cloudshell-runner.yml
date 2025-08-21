@@ -20,7 +20,7 @@ permissions:
 jobs:
   test-runner:
     name: "Test CLOUDSHELL Self-Hosted Runner"
-    runs-on: self-hosted
+    runs-on: CLOUDSHELL
     timeout-minutes: 10
 
     steps:
