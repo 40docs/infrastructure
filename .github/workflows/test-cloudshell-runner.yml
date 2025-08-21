@@ -20,10 +20,7 @@ permissions:
 jobs:
   test-runner:
     name: "Test CLOUDSHELL Self-Hosted Runner"
-    runs-on: 
-      - self-hosted
-      - cloudshell
-      - azure
+    runs-on: self-hosted
     timeout-minutes: 10
 
     steps:
