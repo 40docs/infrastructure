@@ -1,0 +1,166 @@
+name: "Test CLOUDSHELL Runner"
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_message:
+        description: 'Custom test message'
+        required: false
+        default: 'Hello from CLOUDSHELL runner!'
+        type: string
+  push:
+    paths:
+      - '.github/workflows/test-cloudshell-runner.yml'
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-runner:
+    name: "Test CLOUDSHELL Self-Hosted Runner"
+    runs-on: 
+      - self-hosted
+      - cloudshell
+      - azure
+    timeout-minutes: 10
+
+    steps:
+      - name: "Runner Information"
+        run: |
+          echo "🖥️  Runner Information"
+          echo "===================="
+          echo "Hostname: $(hostname)"
+          echo "OS: $(uname -a)"
+          echo "User: $(whoami)"
+          echo "Working Directory: $(pwd)"
+          echo "Home Directory: $HOME"
+          echo "PATH: $PATH"
+          echo ""
+          
+      - name: "System Resources"
+        run: |
+          echo "💾 System Resources"
+          echo "=================="
+          echo "Memory Usage:"
+          free -h
+          echo ""
+          echo "Disk Usage:"
+          df -h | head -10
+          echo ""
+          echo "CPU Info:"
+          lscpu | grep -E "Model name|CPU\(s\)|Architecture"
+          echo ""
+
+      - name: "Network Connectivity"
+        run: |
+          echo "🌐 Network Connectivity"
+          echo "====================="
+          echo "Public IP:"
+          curl -s https://api.ipify.org || echo "Unable to get public IP"
+          echo ""
+          echo "GitHub API connectivity:"
+          curl -s https://api.github.com/zen || echo "Unable to reach GitHub API"
+          echo ""
+
+      - name: "GPU Check (if available)"
+        run: |
+          echo "🎮 GPU Information"
+          echo "================="
+          if command -v nvidia-smi >/dev/null 2>&1; then
+            echo "NVIDIA GPU detected:"
+            nvidia-smi
+          else
+            echo "No NVIDIA GPU detected or nvidia-smi not available"
+          fi
+          echo ""
+
+      - name: "Azure CLI Test"
+        run: |
+          echo "☁️  Azure CLI Test"
+          echo "================="
+          if command -v az >/dev/null 2>&1; then
+            echo "Azure CLI version:"
+            az version --output table
+            echo ""
+            echo "Azure account info:"
+            az account show --query "{subscriptionId:id, tenantId:tenantId, user:user.name}" --output table || echo "Not logged into Azure"
+          else
+            echo "Azure CLI not available"
+          fi
+          echo ""
+
+      - name: "Docker Test"
+        run: |
+          echo "🐳 Docker Test"
+          echo "=============="
+          if command -v docker >/dev/null 2>&1; then
+            echo "Docker version:"
+            docker --version
+            echo ""
+            echo "Docker info:"
+            docker info --format "{{.ServerVersion}}" || echo "Docker daemon not running"
+            echo ""
+            echo "Running containers:"
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" || echo "Cannot list containers"
+          else
+            echo "Docker not available"
+          fi
+          echo ""
+
+      - name: "Kubernetes Test"
+        run: |
+          echo "⎈  Kubernetes Test"
+          echo "=================="
+          if command -v kubectl >/dev/null 2>&1; then
+            echo "kubectl version:"
+            kubectl version --client --output=yaml
+            echo ""
+            echo "Cluster info:"
+            kubectl cluster-info || echo "Not connected to cluster"
+            echo ""
+            echo "Available nodes:"
+            kubectl get nodes || echo "Cannot list nodes"
+          else
+            echo "kubectl not available"
+          fi
+          echo ""
+
+      - name: "Development Tools Test"
+        run: |
+          echo "🛠️  Development Tools"
+          echo "===================="
+          echo "Terraform version:"
+          terraform version || echo "Terraform not available"
+          echo ""
+          echo "Node.js version:"
+          node --version || echo "Node.js not available"
+          echo ""
+          echo "Python version:"
+          python3 --version || echo "Python not available"
+          echo ""
+          echo "Go version:"
+          go version || echo "Go not available"
+          echo ""
+
+      - name: "Custom Test Message"
+        run: |
+          echo "📨 Custom Message"
+          echo "================="
+          echo "${{ inputs.test_message || 'Hello from CLOUDSHELL runner!' }}"
+          echo ""
+          echo "✅ CLOUDSHELL runner test completed successfully!"
+          echo "Timestamp: $(date)"
+          echo "Runner completed job: ${{ github.job }}"
+          echo "Workflow run ID: ${{ github.run_id }}"
+
+      - name: "Runner Service Status"
+        run: |
+          echo "🔧 Runner Service Status"
+          echo "======================="
+          echo "GitHub Actions runner service status:"
+          systemctl status "actions.runner.40docs.$(hostname)" --no-pager || echo "Service status unavailable"
+          echo ""
+          echo "Runner processes:"
+          ps aux | grep -E "(Runner|runsvc)" | grep -v grep || echo "No runner processes found"
