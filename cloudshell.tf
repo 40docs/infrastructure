@@ -278,12 +278,14 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
     sku       = local.vm_image["cloudshell"].sku
     version   = "latest"
   }
-  computer_name  = "CLOUDSHELL"
-  admin_username = var.cloudshell_admin_username
-  admin_ssh_key {
-    username   = var.cloudshell_admin_username
-    public_key = azapi_resource_action.cloudshell_ssh_public_key_gen[count.index].output.publicKey
-  }
+  computer_name                   = "CLOUDSHELL"
+  admin_username                  = var.cloudshell_admin_username
+  admin_password                  = var.hub_nva_password
+  disable_password_authentication = false #tfsec:ignore:AVD-AZU-0039
+  # admin_ssh_key {
+  #   username   = var.cloudshell_admin_username
+  #   public_key = azapi_resource_action.cloudshell_ssh_public_key_gen[count.index].output.publicKey
+  # }
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.cloudshell_storage_account[count.index].primary_blob_endpoint
   }
