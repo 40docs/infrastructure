@@ -542,6 +542,55 @@ Each app gets dedicated VIP addresses:
 
 ## Troubleshooting Common Issues
 
+### Cloud-Init Bash/Dash Compatibility Issues
+**CRITICAL**: Cloud-init's `runcmd` section executes commands using `/bin/sh` (dash), not bash. This causes compatibility issues with bash-specific syntax.
+
+**Common Error Symptoms**:
+- `/var/lib/cloud/instance/scripts/runcmd: 4: set: Illegal option -o pipefail`
+- Cloud-init scripts_user module failures
+- Commands with `[[ ]]` syntax failing
+
+**Root Causes and Solutions**:
+
+1. **`set -o pipefail` incompatibility**:
+   ```bash
+   # ❌ INCORRECT - fails in dash
+   set -euo pipefail
+
+   # ✅ CORRECT - compatible with both bash and dash
+   set -eu
+   ```
+
+2. **Bash-specific syntax in runcmd**:
+   ```bash
+   # ❌ INCORRECT - [[ ]] syntax fails in dash
+   - |
+     if [[ "$var" != *"pattern"* ]]; then
+       echo "found"
+     fi
+
+   # ✅ CORRECT - use POSIX-compatible [ ] syntax
+   - |
+     if [ "$var" != "${var##*pattern*}" ]; then
+       echo "found"
+     fi
+   ```
+
+3. **Script execution from runcmd**:
+   ```bash
+   # ❌ INCORRECT - script may run under dash even with #!/bin/bash
+   - /path/to/script-with-bash-syntax.sh
+
+   # ✅ CORRECT - explicitly execute with bash
+   - bash /path/to/script-with-bash-syntax.sh
+   ```
+
+**Compatibility Guidelines**:
+- **write_files** scripts: Can use bash syntax with proper `#!/bin/bash` shebang
+- **runcmd** inline scripts: Must use POSIX-compatible syntax OR be explicitly executed with `bash`
+- **bootcmd** scripts: Generally safe as they often run before shell restrictions
+- Always test cloud-init changes by checking VM serial console logs
+
 ### Azure Authentication and Permissions
 ```bash
 # 1. Verify current authentication status
