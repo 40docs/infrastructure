@@ -219,7 +219,7 @@ locals {
   ]
 
   # Determine if selected VM size has GPU
-  cloudshell_vm_size = "Standard_D4s_v3" # Change this to configure VM size
+  cloudshell_vm_size = "Standard_D8s_v3" # 32GB RAM - fixes Claude Code OOM kills (was Standard_D4s_v3 16GB)
   has_gpu            = var.cloudshell ? contains(local.gpu_enabled_vm_sizes, local.cloudshell_vm_size) : false
 }
 
