@@ -69,6 +69,24 @@ variable "arm_subscription_id" {
   description = "Azure Subscription ID"
 }
 
+variable "arm_client_id" {
+  type        = string
+  description = "Azure Service Principal Client ID"
+  sensitive   = true
+}
+
+variable "arm_client_secret" {
+  type        = string
+  description = "Azure Service Principal Client Secret"
+  sensitive   = true
+}
+
+variable "arm_tenant_id" {
+  type        = string
+  description = "Azure Service Principal Tenant ID"
+  sensitive   = true
+}
+
 # CloudShell Configuration
 variable "cloudshell" {
   type        = bool
