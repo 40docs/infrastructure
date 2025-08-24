@@ -108,6 +108,9 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           TF_VAR_arm_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_arm_client_id: ${{ secrets.ARM_CLIENT_ID }}
+          TF_VAR_arm_client_secret: ${{ secrets.ARM_CLIENT_SECRET }}
+          TF_VAR_arm_tenant_id: ${{ secrets.ARM_TENANT_ID }}
           TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
           TF_VAR_location: ${{ vars.LOCATION }}
           TF_VAR_github_token: ${{ secrets.PAT }}
@@ -236,6 +239,9 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           TF_VAR_arm_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_arm_client_id: ${{ secrets.ARM_CLIENT_ID }}
+          TF_VAR_arm_client_secret: ${{ secrets.ARM_CLIENT_SECRET }}
+          TF_VAR_arm_tenant_id: ${{ secrets.ARM_TENANT_ID }}
           TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
           TF_VAR_location: ${{ vars.LOCATION }}
           TF_VAR_github_token: ${{ secrets.PAT }}
@@ -340,6 +346,9 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           TF_VAR_arm_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_arm_client_id: ${{ secrets.ARM_CLIENT_ID }}
+          TF_VAR_arm_client_secret: ${{ secrets.ARM_CLIENT_SECRET }}
+          TF_VAR_arm_tenant_id: ${{ secrets.ARM_TENANT_ID }}
           TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
           TF_VAR_location: ${{ vars.LOCATION }}
           TF_VAR_github_token: ${{ secrets.PAT }}

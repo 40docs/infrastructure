@@ -1030,7 +1030,10 @@ No modules.
 | <a name="input_application_ollama"></a> [application\_ollama](#input\_application\_ollama) | Deploy Ollama application | `bool` | `true` | no |
 | <a name="input_application_signup"></a> [application\_signup](#input\_application\_signup) | Deploy Signup application | `bool` | `false` | no |
 | <a name="input_application_video"></a> [application\_video](#input\_application\_video) | Deploy Video application | `bool` | `true` | no |
+| <a name="input_arm_client_id"></a> [arm\_client\_id](#input\_arm\_client\_id) | Azure Service Principal Client ID | `string` | n/a | yes |
+| <a name="input_arm_client_secret"></a> [arm\_client\_secret](#input\_arm\_client\_secret) | Azure Service Principal Client Secret | `string` | n/a | yes |
 | <a name="input_arm_subscription_id"></a> [arm\_subscription\_id](#input\_arm\_subscription\_id) | Azure Subscription ID | `string` | n/a | yes |
+| <a name="input_arm_tenant_id"></a> [arm\_tenant\_id](#input\_arm\_tenant\_id) | Azure Service Principal Tenant ID | `string` | n/a | yes |
 | <a name="input_brave_api_key"></a> [brave\_api\_key](#input\_brave\_api\_key) | API key for Brave Search integration in CloudShell | `string` | n/a | yes |
 | <a name="input_cloudshell"></a> [cloudshell](#input\_cloudshell) | Deploy CloudShell VM | `bool` | `true` | no |
 | <a name="input_cloudshell_admin_username"></a> [cloudshell\_admin\_username](#input\_cloudshell\_admin\_username) | The username for the Cloud Shell administrator. | `string` | `"ubuntu"` | no |

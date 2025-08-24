@@ -196,7 +196,6 @@ resource "azurerm_managed_disk" "cloudshell_ollama_disk" {
 }
 
 locals {
-  kubeconfig = var.cloudshell ? base64encode(azurerm_kubernetes_cluster.kubernetes_cluster.kube_config_raw) : ""
 
   # GPU-enabled VM size detection
   # Azure VM sizes that have GPUs and require NVIDIA software installation
@@ -253,7 +252,12 @@ resource "azurerm_linux_virtual_machine" "cloudshell_vm" {
         var_forticnapp_subaccount    = var.forticnapp_subaccount
         var_forticnapp_api_key       = var.forticnapp_api_key
         var_forticnapp_api_secret    = var.forticnapp_api_secret
-        var_kubeconfig               = local.kubeconfig
+        var_arm_subscription_id      = var.arm_subscription_id
+        var_arm_client_id            = var.arm_client_id
+        var_arm_client_secret        = var.arm_client_secret
+        var_arm_tenant_id            = var.arm_tenant_id
+        var_aks_resource_group       = azurerm_resource_group.azure_resource_group.name
+        var_aks_cluster_name         = azurerm_kubernetes_cluster.kubernetes_cluster.name
         var_admin_username           = var.cloudshell_admin_username
         var_brave_api_key            = var.brave_api_key
         var_perplexity_api_key       = var.perplexity_api_key
