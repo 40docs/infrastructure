@@ -1,0 +1,58 @@
+name: "Test CLOUDSHELL Runner"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/runner-test.yml'
+    branches:
+      - main
+  schedule:
+    # Run daily at 2 AM UTC to verify CLOUDSHELL runner is operational
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  test-cloudshell:
+    name: "CLOUDSHELL Runner Test"
+    runs-on: CLOUDSHELL
+    timeout-minutes: 5
+
+    steps:
+      - name: "Runner Status"
+        run: |
+          echo "Testing CLOUDSHELL GitHub Actions Runner"
+          echo "========================================"
+          echo "Hostname: $(hostname)"
+          echo "User: $(whoami)"
+          echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S %Z')"
+          echo ""
+
+      - name: "Service Check"
+        run: |
+          echo "Runner Service Status:"
+          if systemctl is-active --quiet "actions.runner.40docs.CLOUDSHELL"; then
+            echo "✅ Runner service is active and running"
+          else
+            echo "❌ Runner service is not active"
+            exit 1
+          fi
+          echo ""
+
+      - name: "GitHub Connectivity"
+        run: |
+          echo "GitHub API Test:"
+          if curl -s https://api.github.com/zen; then
+            echo "✅ Successfully connected to GitHub API"
+          else
+            echo "❌ Failed to connect to GitHub API"
+            exit 1
+          fi
+          echo ""
+
+      - name: "Test Complete"
+        run: |
+          echo "✅ CLOUDSHELL runner is working properly!"
+          echo "Workflow Run ID: ${{ github.run_id }}"
