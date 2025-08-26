@@ -1,274 +1,58 @@
-name: "Runner Test Suite"
+name: "Test CLOUDSHELL Runner"
 
 on:
   workflow_dispatch:
-    inputs:
-      runner_type:
-        description: 'Runner type to test'
-        required: false
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - cloudshell
-          - github-hosted
-      test_message:
-        description: 'Custom test message'
-        required: false
-        default: 'Testing runners!'
-        type: string
-      verbose:
-        description: 'Enable verbose output'
-        required: false
-        default: true
-        type: boolean
   push:
     paths:
       - '.github/workflows/runner-test.yml'
     branches:
       - main
   schedule:
-    # Run daily at 2 AM UTC to verify runners are operational
+    # Run daily at 2 AM UTC to verify CLOUDSHELL runner is operational
     - cron: '0 2 * * *'
 
 permissions:
   contents: read
 
 jobs:
-  # Test CLOUDSHELL self-hosted runner
-  test-cloudshell-runner:
-    name: "Test CLOUDSHELL Self-Hosted Runner"
-    if: ${{ inputs.runner_type == 'all' || inputs.runner_type == 'cloudshell' || github.event_name == 'schedule' }}
+  test-cloudshell:
+    name: "CLOUDSHELL Runner Test"
     runs-on: CLOUDSHELL
-    timeout-minutes: 10
-
-    steps:
-      - name: "🏃 Runner Identification"
-        run: |
-          echo "## 🏃 CLOUDSHELL Runner Test Starting"
-          echo "==========================================="
-          echo "Runner Type: Self-Hosted (CLOUDSHELL)"
-          echo "Hostname: $(hostname)"
-          echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-          echo "Workflow Run: ${{ github.run_id }}"
-          echo ""
-
-      - name: "📊 System Information"
-        if: ${{ inputs.verbose == true || github.event_name == 'schedule' }}
-        run: |
-          echo "### System Details"
-          echo "OS: $(uname -a)"
-          echo "User: $(whoami)"
-          echo "Working Directory: $(pwd)"
-          echo "Home Directory: $HOME"
-          echo ""
-          echo "### CPU Information"
-          lscpu | grep -E "Model name|CPU\(s\)|Thread|Core|Socket|Architecture" || true
-          echo ""
-          echo "### Memory Information"
-          free -h
-          echo ""
-          echo "### Disk Space"
-          df -h / /home /var/lib/docker 2>/dev/null | head -10
-          echo ""
-
-      - name: "🎮 GPU Detection"
-        if: ${{ inputs.verbose == true || github.event_name == 'schedule' }}
-        run: |
-          echo "### GPU Information"
-          if command -v nvidia-smi >/dev/null 2>&1; then
-            echo "✅ NVIDIA GPU Detected"
-            nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv
-          else
-            echo "ℹ️  No NVIDIA GPU detected"
-          fi
-          echo ""
-
-      - name: "🌐 Network Connectivity"
-        run: |
-          echo "### Network Tests"
-          echo "GitHub API connectivity:"
-          if curl -s https://api.github.com/zen; then
-            echo " ✅ GitHub API reachable"
-          else
-            echo " ❌ GitHub API unreachable"
-          fi
-          echo ""
-          echo "DNS Resolution test:"
-          if nslookup github.com >/dev/null 2>&1; then
-            echo " ✅ DNS working"
-          else
-            echo " ❌ DNS issues detected"
-          fi
-          echo ""
-
-      - name: "🛠️ Tool Availability"
-        if: ${{ inputs.verbose == true || github.event_name == 'schedule' }}
-        run: |
-          echo "### Development Tools"
-          declare -A tools=(
-            ["Docker"]="docker --version"
-            ["Kubernetes"]="kubectl version --client --short 2>/dev/null"
-            ["Terraform"]="terraform version -json 2>/dev/null | jq -r .terraform_version"
-            ["Azure CLI"]="az version --output tsv 2>/dev/null | head -1"
-            ["GitHub CLI"]="gh version 2>/dev/null | head -1"
-            ["Node.js"]="node --version"
-            ["Python"]="python3 --version | cut -d' ' -f2"
-            ["Go"]="go version | cut -d' ' -f3"
-          )
-          
-          for tool in "${!tools[@]}"; do
-            if output=$(eval "${tools[$tool]}" 2>/dev/null); then
-              echo "✅ $tool: $output"
-            else
-              echo "❌ $tool: Not available"
-            fi
-          done
-          echo ""
-
-      - name: "☁️ Azure Connectivity"
-        run: |
-          echo "### Azure Status"
-          if command -v az >/dev/null 2>&1; then
-            if az account show >/dev/null 2>&1; then
-              echo "✅ Azure CLI authenticated"
-              az account show --query "{Subscription:name, ID:id}" --output table
-            else
-              echo "⚠️  Azure CLI not authenticated"
-            fi
-          else
-            echo "❌ Azure CLI not installed"
-          fi
-          echo ""
-
-      - name: "🔧 Runner Service Health"
-        run: |
-          echo "### Runner Service Status"
-          service_name="actions.runner.40docs.CLOUDSHELL"
-          if systemctl is-active --quiet "$service_name"; then
-            echo "✅ Runner service is active"
-            systemctl status "$service_name" --no-pager --lines=5
-          else
-            echo "❌ Runner service is not active"
-          fi
-          echo ""
-          echo "### Runner Configuration"
-          if [ -f /home/ubuntu/actions-runner/.runner ]; then
-            echo "✅ Runner configured"
-            cat /home/ubuntu/actions-runner/.runner | jq -r '.agentName, .poolName' | xargs -I {} echo "  - {}"
-          else
-            echo "⚠️  Runner configuration not found"
-          fi
-          echo ""
-
-      - name: "📨 Test Message"
-        run: |
-          echo "### Custom Test Message"
-          echo "${{ inputs.test_message }}"
-          echo ""
-          echo "✅ **CLOUDSHELL runner test completed successfully!**"
-          echo ""
-
-  # Test GitHub-hosted runner for comparison
-  test-github-hosted-runner:
-    name: "Test GitHub-Hosted Runner"
-    if: ${{ inputs.runner_type == 'all' || inputs.runner_type == 'github-hosted' }}
-    runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-      - name: "🏃 Runner Identification"
+      - name: "Runner Status"
         run: |
-          echo "## 🏃 GitHub-Hosted Runner Test Starting"
-          echo "==========================================="
-          echo "Runner Type: GitHub-Hosted (ubuntu-latest)"
+          echo "Testing CLOUDSHELL GitHub Actions Runner"
+          echo "========================================"
           echo "Hostname: $(hostname)"
-          echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-          echo "Workflow Run: ${{ github.run_id }}"
-          echo ""
-
-      - name: "📊 System Information"
-        if: ${{ inputs.verbose == true }}
-        run: |
-          echo "### System Details"
-          echo "OS: $(uname -a)"
           echo "User: $(whoami)"
-          echo ""
-          echo "### Resources"
-          echo "CPU Cores: $(nproc)"
-          echo "Memory: $(free -h | grep Mem | awk '{print $2}')"
-          echo "Disk: $(df -h / | tail -1 | awk '{print $2}')"
+          echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S %Z')"
           echo ""
 
-      - name: "🌐 Network Connectivity"
+      - name: "Service Check"
         run: |
-          echo "### Network Tests"
-          echo "GitHub API connectivity:"
-          if curl -s https://api.github.com/zen; then
-            echo " ✅ GitHub API reachable"
+          echo "Runner Service Status:"
+          if systemctl is-active --quiet "actions.runner.40docs.CLOUDSHELL"; then
+            echo "✅ Runner service is active and running"
           else
-            echo " ❌ GitHub API unreachable"
-          fi
-          echo ""
-
-      - name: "📨 Test Message"
-        run: |
-          echo "### Custom Test Message"
-          echo "${{ inputs.test_message }}"
-          echo ""
-          echo "✅ **GitHub-hosted runner test completed successfully!**"
-          echo ""
-
-  # Summary job to compare runners
-  test-summary:
-    name: "Test Summary"
-    needs: [test-cloudshell-runner, test-github-hosted-runner]
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-
-    steps:
-      - name: "📋 Test Results Summary"
-        run: |
-          echo "## 📋 Runner Test Suite Summary"
-          echo "================================"
-          echo ""
-          echo "### Test Results"
-          
-          # Check CLOUDSHELL runner result
-          cloudshell_result="${{ needs.test-cloudshell-runner.result }}"
-          if [ "$cloudshell_result" = "success" ]; then
-            echo "✅ CLOUDSHELL Runner: **PASSED**"
-          elif [ "$cloudshell_result" = "skipped" ]; then
-            echo "⏭️  CLOUDSHELL Runner: Skipped"
-          else
-            echo "❌ CLOUDSHELL Runner: **FAILED**"
-          fi
-          
-          # Check GitHub-hosted runner result
-          github_result="${{ needs.test-github-hosted-runner.result }}"
-          if [ "$github_result" = "success" ]; then
-            echo "✅ GitHub-Hosted Runner: **PASSED**"
-          elif [ "$github_result" = "skipped" ]; then
-            echo "⏭️  GitHub-Hosted Runner: Skipped"
-          else
-            echo "❌ GitHub-Hosted Runner: **FAILED**"
-          fi
-          
-          echo ""
-          echo "### Test Configuration"
-          echo "- Trigger: ${{ github.event_name }}"
-          echo "- Runner Type: ${{ inputs.runner_type || 'all' }}"
-          echo "- Verbose: ${{ inputs.verbose || 'true' }}"
-          echo "- Workflow Run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-          echo ""
-          
-          # Overall status
-          if [ "$cloudshell_result" = "success" ] || [ "$github_result" = "success" ]; then
-            echo "### ✅ Overall Status: **PASSED**"
-            echo "At least one runner is operational."
-          else
-            echo "### ❌ Overall Status: **FAILED**"
-            echo "No runners completed successfully."
+            echo "❌ Runner service is not active"
             exit 1
           fi
+          echo ""
+
+      - name: "GitHub Connectivity"
+        run: |
+          echo "GitHub API Test:"
+          if curl -s https://api.github.com/zen; then
+            echo "✅ Successfully connected to GitHub API"
+          else
+            echo "❌ Failed to connect to GitHub API"
+            exit 1
+          fi
+          echo ""
+
+      - name: "Test Complete"
+        run: |
+          echo "✅ CLOUDSHELL runner is working properly!"
+          echo "Workflow Run ID: ${{ github.run_id }}"
