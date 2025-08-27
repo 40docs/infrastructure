@@ -155,7 +155,7 @@ jobs:
           echo "Runner Test Summary"
           echo "==================="
           echo ""
-          
+
           if [ "${{ needs.test-cloudshell-specific.result }}" == "success" ]; then
             echo "✅ CLOUDSHELL (uppercase) runner: PASSED"
           elif [ "${{ needs.test-cloudshell-specific.result }}" == "skipped" ]; then
@@ -163,7 +163,7 @@ jobs:
           else
             echo "❌ CLOUDSHELL (uppercase) runner: FAILED or NOT AVAILABLE"
           fi
-          
+
           if [ "${{ needs.test-cloudshell-lowercase.result }}" == "success" ]; then
             echo "✅ cloudshell (lowercase) runner: PASSED"
           elif [ "${{ needs.test-cloudshell-lowercase.result }}" == "skipped" ]; then
@@ -171,7 +171,7 @@ jobs:
           else
             echo "❌ cloudshell (lowercase) runner: FAILED or NOT AVAILABLE"
           fi
-          
+
           if [ "${{ needs.test-self-hosted.result }}" == "success" ]; then
             echo "✅ self-hosted runner: PASSED"
           elif [ "${{ needs.test-self-hosted.result }}" == "skipped" ]; then
@@ -179,7 +179,7 @@ jobs:
           else
             echo "❌ self-hosted runner: FAILED or NOT AVAILABLE"
           fi
-          
+
           echo ""
           echo "Note: At least one runner configuration should be working."
           echo "The CLOUDSHELL VM registers with both 'CLOUDSHELL' and 'cloudshell' labels."
