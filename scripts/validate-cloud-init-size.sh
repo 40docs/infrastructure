@@ -1,6 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
+# Cloud-init Template Size Validation Script
+#
+# This script validates that cloud-init templates stay within Azure's custom data size limits
+# to prevent deployment failures. It interpolates templates with realistic sample values
+# and calculates the actual Base64-encoded size that would be sent to Azure.
+#
+# Recent improvements:
+# - Added support for all template variables including Azure ARM and AKS variables
+# - Enhanced handling of Terraform's indent() function for SSH keys
+# - More accurate size calculations with realistic sample data
+# - Better error reporting with specific optimization suggestions
+#
 # Azure VM Custom Data Limits
 AZURE_LIMIT=87380
 SAFETY_THRESHOLD=90  # 90% of limit = 78,642 characters
@@ -111,18 +123,34 @@ interpolate_template() {
     echo "$sample_kubeconfig" > "${temp_file}.kubeconfig"
     sed -i.bak "s|\${var_kubeconfig}|$(cat "${temp_file}.kubeconfig")|g" "$temp_file"
 
-    # Replace SSH keys (suppress sed errors for multiline content)
+    # Handle Terraform indent() function for SSH keys
+    # indent(4, var_ssh_host_rsa_private) -> 4-space indented RSA key
     echo "$sample_rsa_key" > "${temp_file}.rsa"
+    echo "$sample_rsa_key" | sed 's/^/    /' > "${temp_file}.rsa_indented"
+    sed -i.bak "s|\${indent(4, var_ssh_host_rsa_private)}|$(cat "${temp_file}.rsa_indented" | tr '\n' '\001' | sed 's/\001/\\n/g')|g" "$temp_file" 2>/dev/null || true
     sed -i.bak "s|\${var_ssh_host_rsa_private}|$(cat "${temp_file}.rsa")|g" "$temp_file" 2>/dev/null || true
     sed -i.bak "s|\${var_ssh_host_rsa_public}|ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8test1234567890|g" "$temp_file"
 
+    echo "$sample_rsa_key" | sed 's/^/    /' > "${temp_file}.rsa_pub_indented"
+    sed -i.bak "s|\${indent(4, var_ssh_host_rsa_public)}|$(cat "${temp_file}.rsa_pub_indented" | tr '\n' '\001' | sed 's/\001/\\n/g')|g" "$temp_file" 2>/dev/null || true
+
     echo "$sample_ecdsa_key" > "${temp_file}.ecdsa"
+    echo "$sample_ecdsa_key" | sed 's/^/    /' > "${temp_file}.ecdsa_indented"
+    sed -i.bak "s|\${indent(4, var_ssh_host_ecdsa_private)}|$(cat "${temp_file}.ecdsa_indented" | tr '\n' '\001' | sed 's/\001/\\n/g')|g" "$temp_file" 2>/dev/null || true
     sed -i.bak "s|\${var_ssh_host_ecdsa_private}|$(cat "${temp_file}.ecdsa")|g" "$temp_file" 2>/dev/null || true
     sed -i.bak "s|\${var_ssh_host_ecdsa_public}|ecdsa-sha2-nistp521 AAAAEtest|g" "$temp_file"
 
+    echo "ecdsa-sha2-nistp521 AAAAEtest" | sed 's/^/    /' > "${temp_file}.ecdsa_pub_indented"
+    sed -i.bak "s|\${indent(4, var_ssh_host_ecdsa_public)}|$(cat "${temp_file}.ecdsa_pub_indented" | tr '\n' '\001' | sed 's/\001/\\n/g')|g" "$temp_file" 2>/dev/null || true
+
     echo "$sample_ed25519_key" > "${temp_file}.ed25519"
+    echo "$sample_ed25519_key" | sed 's/^/    /' > "${temp_file}.ed25519_indented"
+    sed -i.bak "s|\${indent(4, var_ssh_host_ed25519_private)}|$(cat "${temp_file}.ed25519_indented" | tr '\n' '\001' | sed 's/\001/\\n/g')|g" "$temp_file" 2>/dev/null || true
     sed -i.bak "s|\${var_ssh_host_ed25519_private}|$(cat "${temp_file}.ed25519")|g" "$temp_file" 2>/dev/null || true
     sed -i.bak "s|\${var_ssh_host_ed25519_public}|ssh-ed25519 AAAAtest|g" "$temp_file"
+
+    echo "ssh-ed25519 AAAAtest" | sed 's/^/    /' > "${temp_file}.ed25519_pub_indented"
+    sed -i.bak "s|\${indent(4, var_ssh_host_ed25519_public)}|$(cat "${temp_file}.ed25519_pub_indented" | tr '\n' '\001' | sed 's/\001/\\n/g')|g" "$temp_file" 2>/dev/null || true
 
     # Replace other variables with realistic values
     sed -i.bak "s|\${var_directory_tenant_id}|12345678-1234-1234-1234-123456789012|g" "$temp_file"
@@ -140,6 +168,14 @@ interpolate_template() {
     sed -i.bak "s|\${var_runner_group}|default|g" "$temp_file"
     sed -i.bak "s|\${var_runner_labels}|self-hosted,linux,x64,gpu|g" "$temp_file"
     sed -i.bak "s|\${var_has_gpu}|true|g" "$temp_file"
+
+    # Add missing Azure and AKS variables
+    sed -i.bak "s|\${var_arm_subscription_id}|12345678-9012-3456-7890-123456789012|g" "$temp_file"
+    sed -i.bak "s|\${var_arm_client_id}|87654321-4321-4321-4321-210987654321|g" "$temp_file"
+    sed -i.bak "s|\${var_arm_client_secret}|test-arm-client-secret-1234567890abcdefghijklmnopqrstuvwxyz|g" "$temp_file"
+    sed -i.bak "s|\${var_arm_tenant_id}|11111111-2222-3333-4444-555555555555|g" "$temp_file"
+    sed -i.bak "s|\${var_aks_resource_group}|test-resource-group-aks-cluster-eastus|g" "$temp_file"
+    sed -i.bak "s|\${var_aks_cluster_name}|test-aks-cluster-eastus-001-production|g" "$temp_file"
 
     # Catch any remaining variables
     sed -i.bak "s|\${var_[a-zA-Z_]*}|sample-value-123456789012345|g" "$temp_file"
@@ -218,6 +254,9 @@ validate_template() {
         error "  2. Splitting configuration into multiple scripts"
         error "  3. Removing unnecessary packages or commands"
         error "  4. Using Azure VM Extensions instead of cloud-init"
+        error "  5. Externalizing npm package installations to download scripts"
+        error "  6. Reducing Ollama model list or using post-deployment downloads"
+        error "  7. Simplifying SSH security hardening configurations"
         return 1
     elif [[ $base64_size -gt $(( AZURE_LIMIT * 80 / 100 )) ]]; then
         warn "⚠️  WARNING: Template is approaching size limits"
