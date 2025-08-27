@@ -16,7 +16,7 @@ variable "runner_group" {
 
 variable "runner_labels" {
   type        = string
-  default     = "self-hosted,linux,x64,build,ubuntu"
+  default     = "CLOUDSHELL,cloudshell,self-hosted,linux"
   description = "Comma-separated labels to attach to the runner"
 }
 
