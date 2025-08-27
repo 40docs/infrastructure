@@ -1,0 +1,17 @@
+name: Test UPPERCASE CLOUDSHELL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-uppercase:
+    name: "Test CLOUDSHELL (uppercase)"
+    runs-on: CLOUDSHELL
+    timeout-minutes: 2
+    
+    steps:
+      - name: "Test runner"
+        run: |
+          echo "✅ CLOUDSHELL (uppercase) runner is working!"
+          echo "Hostname: $(hostname)"
+          echo "Labels that matched: CLOUDSHELL"
