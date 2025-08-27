@@ -14,9 +14,38 @@ power_state:
 bootcmd:
   - mkdir -p /home /var/lib/docker /root/.ollama
   - |
-format_and_mount(){local lun="$1" label="$2" mount_point="$3" always_format="$4";local dev="/dev/disk/azure/scsi1/lun$lun";local part="$dev-part1";for i in $(seq 1 30);do if [ -b "$dev" ];then break;fi;sleep 2;done;if [ "$always_format" = "yes" ];then if mount | grep -q "$part";then umount -f "$part" >/dev/null 2>&1||true;fi;wipefs -a "$dev" >/dev/null 2>&1||true;parted -s "$dev" mklabel gpt mkpart primary ext4 0% 100%;mkfs.ext4 -F "$part" -L "$label";else if ! blkid "$part" >/dev/null 2>&1;then parted -s "$dev" mklabel gpt mkpart primary ext4 0% 100%;mkfs.ext4 -F "$part" -L "$label";fi;fi;}
+    format_and_mount() {
+      local lun="$1" label="$2" mount_point="$3" always_format="$4"
+      local dev="/dev/disk/azure/scsi1/lun$lun"
+      local part="$dev-part1"
 
-format_and_mount 0 homefs /home yes;format_and_mount 1 dockerfs /var/lib/docker no;format_and_mount 2 ollamafs /root/.ollama no
+      for i in $(seq 1 30)
+      do
+        if [ -b "$dev" ]; then
+          break
+        fi
+        sleep 2
+      done
+
+      if [ "$always_format" = "yes" ]; then
+        if mount | grep -q "$part"; then
+          umount -f "$part" 2>&1 | grep -E "(unmounted|not mounted)" || true
+        fi
+        wipefs -a "$dev" 2>&1 | grep -E "(wiped|erased)" || true
+        parted -s "$dev" mklabel gpt mkpart primary ext4 0% 100%
+        mkfs.ext4 -F "$part" -L "$label"
+      else
+        if ! blkid "$part" >/dev/null 2>&1; then
+          parted -s "$dev" mklabel gpt mkpart primary ext4 0% 100%
+          mkfs.ext4 -F "$part" -L "$label"
+        fi
+      fi
+
+    }
+
+    format_and_mount 0 homefs /home yes
+    format_and_mount 1 dockerfs /var/lib/docker no
+    format_and_mount 2 ollamafs /root/.ollama no
 
 mounts:
   - ["LABEL=homefs", "/home", "ext4", "defaults,nofail", "0", "2"]
@@ -679,7 +708,7 @@ write_files:
       nvm use --delete-prefix "v24.4.1" 2>&1 | grep -E "(Now using|not found)" || true
       npm config set loglevel error
 
-PACKAGES="@openai/codex @anaisbetts/mcp-installer @modelcontextprotocol/server-memory @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-brave-search @modelcontextprotocol/server-sequential-thinking @azure/mcp@latest @21st-dev/magic@latest @qwen-code/qwen-code@latest @chongdashu/cc-statusline@latest bash-language-server claude-auto-commit cwebp @devcontainers/cli dockerfile-language-server-nodejs eslint eslint-config-prettier gatsby-cli javascript-typescript-langserver jsonlint markdownlint markdownlint-cli markdownlint-cli2 newman opal-security playwright prettier puppeteer setup-eslint-config sql-language-server stylelint-config-prettier svgo terminalizer unified-language-server vscode-css-languageserver-bin vscode-html-languageserver-bin vscode-json-languageserver-bin yaml-language-server"
+      PACKAGES="@openai/codex @anaisbetts/mcp-installer @modelcontextprotocol/server-memory @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-brave-search @modelcontextprotocol/server-sequential-thinking @azure/mcp@latest @21st-dev/magic@latest @qwen-code/qwen-code@latest @chongdashu/cc-statusline@latest bash-language-server claude-auto-commit cwebp @devcontainers/cli dockerfile-language-server-nodejs eslint eslint-config-prettier gatsby-cli javascript-typescript-langserver jsonlint markdownlint markdownlint-cli markdownlint-cli2 newman opal-security playwright prettier puppeteer setup-eslint-config sql-language-server stylelint-config-prettier svgo terminalizer unified-language-server vscode-css-languageserver-bin vscode-html-languageserver-bin vscode-json-languageserver-bin yaml-language-server"
 
       echo "Installing npm packages globally..."
       for PKG in $PACKAGES
@@ -693,38 +722,480 @@ PACKAGES="@openai/codex @anaisbetts/mcp-installer @modelcontextprotocol/server-m
       find / -maxdepth 1 -type f \( -name "=0.22" -o -name "=1.12" -o -name "=2.0" -o -name "'=0.22'" \) -delete 2>&1 | grep -E "(removed|deleted)" || true
       exit 0
 
-packages:[alsa-utils,ansible-lint,apache2-utils,apparmor,fail2ban,ufw,apt-file,apt-transport-https,asciidoctor,aspnetcore-runtime-9.0,autoconf,azure-cli,bash-completion,bat,binfmt-support,build-essential,ca-certificates,cabextract,cmake,cockpit,code,code-insiders,containerd.io,curl,dnsutils,docker-buildx-plugin,docker-ce,docker-ce-cli,docker-ce-rootless-extras,docker-compose-plugin,dos2unix,dotnet-sdk-6.0,dotnet-sdk-8.0,dotnet-sdk-9.0,dpkg,dpkg-dev,ffmpeg,file,fontconfig,fonts-powerline,frei0r-plugins,fuse3,fzf,g++,gh,git,gnupg,golang-go,google-chrome-stable,google-cloud-cli,graphviz,gstreamer1.0-libav,gstreamer1.0-plugins-bad,gstreamer1.0-plugins-base,gstreamer1.0-plugins-good,gstreamer1.0-plugins-ugly,gstreamer1.0-vaapi,hwloc,imagemagick,inkscape,iputils-ping,jq,kubectl,ladspa-sdk,libapache2-mod-php,libappindicator3-1,libavif-dev,libc6,libdbusmenu-glib4,libdbusmenu-gtk3-4,libfftw3-bin,libfftw3-dev,libfftw3-long3,libfftw3-quad3,libfftw3-single3,libfuse2t64,libfuse3-3,libgavl2,libgcc-s1,libgif-dev,libgl1,libgl1-mesa-dri,libglu1-mesa,libglx-mesa0,libgstreamer1.0-0,libhwloc-dev,libhwloc15,libicu-dev,libicu74,liblttng-ust1t64,libmovit-dev,libnotify4,libnuma-dev,libpoppler-cpp-dev,librust-gdk-pixbuf-sys-dev,libsecret-1-0,libsecret-1-dev,libsecret-common,libslirp0,libsox-fmt-all,libssl3t64,libstdc++6,libunwind8,libvidstab-dev,libvulkan1,libyelp-dev,locales,locales-all,lsb-release,lsd,make,melt,mesa-utils,mesa-utils-bin,mesa-vulkan-drivers,mtr,nmap,nodejs,npm,php,php-cgi,php-cli,php-mysql,php-pgsql,pigz,pkexec,pkg-config,policykit-1,poppler-utils,postgresql,postgresql-contrib,powershell,python3-full,python3-pip,python3-venv,qemu-user-static,shellcheck,skopeo,slirp4netns,snapd,software-properties-common,sox,sqlite3,squashfs-tools,swh-plugins,tcpdump,terraform,tesseract-ocr,tini,tofrodos,trivy,ubuntu-drivers-common,unzip,vim,vim-syntastic,vlc,weasyprint,wget,xdg-utils,xvfb,yamllint,yelp-tools,yq,zlib1g,zsh%{ if var_has_gpu ~},nvidia-container-toolkit,nvidia-driver-575,nvtop%{ endif ~}]
+packages:
+  - alsa-utils
+  - ansible-lint
+  - apache2-utils
+  - apparmor
+  - fail2ban
+  - ufw
+  - apt-file
+  - apt-transport-https
+  - asciidoctor
+  - aspnetcore-runtime-9.0
+  - autoconf
+  - azure-cli
+  - bash-completion
+  - bat
+  - binfmt-support
+  - build-essential
+  - ca-certificates
+  - cabextract
+  - cmake
+  - cockpit
+  - code
+  - code-insiders
+  - containerd.io
+  - curl
+  - dnsutils
+  - docker-buildx-plugin
+  - docker-ce
+  - docker-ce-cli
+  - docker-ce-rootless-extras
+  - docker-compose-plugin
+  - dos2unix
+  - dotnet-sdk-6.0
+  - dotnet-sdk-8.0
+  - dotnet-sdk-9.0
+  - dpkg
+  - dpkg-dev
+  - ffmpeg
+  - file
+  - fontconfig
+  - fonts-powerline
+  - frei0r-plugins
+  - fuse3
+  - fzf
+  - g++
+  - gh
+  - git
+  - gnupg
+  - golang-go
+  - google-chrome-stable
+  - google-cloud-cli
+  - graphviz
+  - gstreamer1.0-libav
+  - gstreamer1.0-plugins-bad
+  - gstreamer1.0-plugins-base
+  - gstreamer1.0-plugins-good
+  - gstreamer1.0-plugins-ugly
+  - gstreamer1.0-vaapi
+  - hwloc
+  - imagemagick
+  - inkscape
+  - iputils-ping
+  - jq
+  - kubectl
+  - ladspa-sdk
+  - libapache2-mod-php
+  - libappindicator3-1
+  - libavif-dev
+  - libc6
+  - libdbusmenu-glib4
+  - libdbusmenu-gtk3-4
+  - libfftw3-bin
+  - libfftw3-dev
+  - libfftw3-long3
+  - libfftw3-quad3
+  - libfftw3-single3
+  - libfuse2t64
+  - libfuse3-3
+  - libgavl2
+  - libgcc-s1
+  - libgif-dev
+  - libgl1
+  - libgl1-mesa-dri
+  - libglu1-mesa
+  - libglx-mesa0
+  - libgstreamer1.0-0
+  - libhwloc-dev
+  - libhwloc15
+  - libicu-dev
+  - libicu74
+  - liblttng-ust1t64
+  - libmovit-dev
+  - libnotify4
+  - libnuma-dev
+  - libpoppler-cpp-dev
+  - librust-gdk-pixbuf-sys-dev
+  - libsecret-1-0
+  - libsecret-1-dev
+  - libsecret-common
+  - libslirp0
+  - libsox-fmt-all
+  - libssl3t64
+  - libstdc++6
+  - libunwind8
+  - libvidstab-dev
+  - libvulkan1
+  - libyelp-dev
+  - locales
+  - locales-all
+  - lsb-release
+  - lsd
+  - make
+  - melt
+  - mesa-utils
+  - mesa-utils-bin
+  - mesa-vulkan-drivers
+  - mtr
+  - nmap
+  - nodejs
+  - npm
+  - php
+  - php-cgi
+  - php-cli
+  - php-mysql
+  - php-pgsql
+  - pigz
+  - pkexec
+  - pkg-config
+  - policykit-1
+  - poppler-utils
+  - postgresql
+  - postgresql-contrib
+  - powershell
+  - python3-full
+  - python3-pip
+  - python3-venv
+  - qemu-user-static
+  - shellcheck
+  - skopeo
+  - slirp4netns
+  - snapd
+  - software-properties-common
+  - sox
+  - sqlite3
+  - squashfs-tools
+  - swh-plugins
+  - tcpdump
+  - terraform
+  - tesseract-ocr
+  - tini
+  - tofrodos
+  - trivy
+  - ubuntu-drivers-common
+  - unzip
+  - vim
+  - vim-syntastic
+  - vlc
+  - weasyprint
+  - wget
+  - xdg-utils
+  - xvfb
+  - yamllint
+  - yelp-tools
+  - yq
+  - zlib1g
+  - zsh
+
+%{ if var_has_gpu ~}
+  - nvidia-container-toolkit
+  - nvidia-driver-575
+  - nvtop
+%{ endif ~}
 
 runcmd:
   - |
-    set -eu;mkdir -p /root/.{local/bin,dotnet/tools,cargo/bin} /root/go/bin;export PATH="/root/.local/bin:/root/.dotnet/tools:/root/.cargo/bin:/root/go/bin:/usr/local/bin:/usr/local/lib/node_modules/.bin:/usr/lib/node_modules/.bin:$PATH";for shell in .profile .bashrc;do grep -q "CloudShell PATH" /root/$shell 2>/dev/null || echo 'export PATH="$HOME/.local/bin:$HOME/.dotnet/tools:$HOME/.cargo/bin:$HOME/go/bin:/usr/local/bin:$PATH"' >> /root/$shell;done
+    set -eu
+
+    mkdir -p /root/.local/bin /root/.dotnet/tools /root/.cargo/bin /root/go/bin
+    export PATH="/root/.local/bin:/root/.dotnet/tools:/root/.cargo/bin:/root/go/bin:/usr/local/bin:/usr/local/lib/node_modules/.bin:/usr/lib/node_modules/.bin:$PATH"
+    for shell in .profile .bashrc; do
+      grep -q "CloudShell PATH" /root/$shell 2>/dev/null || echo 'export PATH="$HOME/.local/bin:$HOME/.dotnet/tools:$HOME/.cargo/bin:$HOME/go/bin:/usr/local/bin:$PATH"' >> /root/$shell
+    done
   - |
-    DEBIAN_FRONTEND=noninteractive apt install authd -y;snap install authd-msentraid;systemctl stop authd authd.socket ssh systemd-logind ssh.socket;snap stop authd-msentraid;mkdir -p /etc/authd/brokers.d/;chmod 700 /etc/authd /etc/authd/brokers.d;cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/brokers.d/msentraid.conf;sed -i -e 's|issuer = https://login.microsoftonline.com/<ISSUER_ID>/v2.0|issuer = "https://login.microsoftonline.com/${var_directory_tenant_id}/v2.0"|' -e 's|client_id = <CLIENT_ID>|client_id = "${var_directory_client_id}"|' /var/snap/authd-msentraid/current/broker.conf;sed -i 's/^#allowed_users = OWNER$/allowed_users = ALL/' /var/snap/authd-msentraid/current/broker.conf;echo 'ssh_allowed_suffixes = @fortinet-us.com' >> /var/snap/authd-msentraid/current/broker.conf;rm -rf /var/lib/authd;mkdir -p /var/lib/authd;chmod 700 /var/lib/authd;systemctl start authd;timeout 10 bash -c 'until systemctl is-active authd >/dev/null 2>&1;do sleep 0.5;done' || true;snap start authd-msentraid;systemctl start ssh systemd-logind ssh.socket
+    DEBIAN_FRONTEND=noninteractive apt install authd -y
+    snap install authd-msentraid
+    systemctl stop authd authd.socket ssh systemd-logind ssh.socket
+    snap stop authd-msentraid
+    mkdir -p /etc/authd/brokers.d/
+    chmod 700 /etc/authd
+    chmod 700 /etc/authd/brokers.d
+    cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/brokers.d/msentraid.conf
+    sed -i \
+      -e 's|issuer = https://login.microsoftonline.com/<ISSUER_ID>/v2.0|issuer = "https://login.microsoftonline.com/${var_directory_tenant_id}/v2.0"|' \
+      -e 's|client_id = <CLIENT_ID>|client_id = "${var_directory_client_id}"|' \
+      /var/snap/authd-msentraid/current/broker.conf
+    sed -i 's/^#allowed_users = OWNER$/allowed_users = ALL/' /var/snap/authd-msentraid/current/broker.conf
+    echo 'ssh_allowed_suffixes = @fortinet-us.com' >> /var/snap/authd-msentraid/current/broker.conf
+    rm -rf /var/lib/authd
+    mkdir -p /var/lib/authd
+    chmod 700 /var/lib/authd
+    systemctl start authd
+    timeout 10 bash -c 'until systemctl is-active authd >/dev/null 2>&1
+    do
+        sleep 0.5
+    done' || true
+    snap start authd-msentraid
+    systemctl start ssh systemd-logind ssh.socket
   - |
-    systemctl stop systemd-logind getty@tty1.service || true;umount /etc/skel /home/.skel || true;rm -rf /etc/skel /home/.skel;mkdir -p /etc/skel /home/.skel;chmod 755 /etc/skel /home/.skel;chown root:root /etc/skel /home/.skel;grep -q "/home/.skel /etc/skel" /etc/fstab || echo "/home/.skel /etc/skel none bind 0 0" >> /etc/fstab;mount --bind /home/.skel /etc/skel;systemctl start systemd-logind || true
+    systemctl stop systemd-logind || true
+    systemctl stop getty@tty1.service || true
+    umount /etc/skel || true
+    umount /home/.skel || true
+    rm -rf /etc/skel /home/.skel
+    mkdir -p /etc/skel /home/.skel
+    chmod 755 /etc/skel /home/.skel
+    chown root:root /etc/skel /home/.skel
+    if ! grep -q "/home/.skel /etc/skel" /etc/fstab; then
+      echo "/home/.skel /etc/skel none bind 0 0" >> /etc/fstab
+    fi
+    mount --bind /home/.skel /etc/skel
+    systemctl start systemd-logind || true
   - |
-    OS=$(go env GOOS);ARCH=$(go env GOARCH);curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_$${OS}_$${ARCH};chmod +x cmctl;mv cmctl /usr/local/bin
+    OS=$(go env GOOS)
+    ARCH=$(go env GOARCH)
+    curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_$${OS}_$${ARCH}
+    chmod +x cmctl
+    mv cmctl /usr/local/bin
   - |
-    curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3;chmod 700 /tmp/get_helm.sh;export HOME=/root && /tmp/get_helm.sh;rm -f /tmp/get_helm.sh;mkdir -p /root/.local/state/vs-kubernetes/tools/helm/linux-amd64;ln -sf /usr/local/bin/helm /root/.local/state/vs-kubernetes/tools/helm/linux-amd64/helm
+    curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    chmod 700 /tmp/get_helm.sh
+    export HOME=/root && /tmp/get_helm.sh
+    rm -f /tmp/get_helm.sh
+    mkdir -p /root/.local/state/vs-kubernetes/tools/helm/linux-amd64
+    ln -sf /usr/local/bin/helm /root/.local/state/vs-kubernetes/tools/helm/linux-amd64/helm
   - |
-    git clone --recurse-submodules https://github.com/40docs/.github.git /root/40docs && cd /root/40docs && [ -f ./install.sh ] && chmod +x ./install.sh && ./install.sh;cd - || true
+    if git clone --recurse-submodules https://github.com/40docs/.github.git /root/40docs; then
+      cd /root/40docs
+      if [ -f ./install.sh ]
+      then
+          chmod +x ./install.sh
+          ./install.sh
+      fi
+      cd -
+    fi
   - |
-    [ ! -d /root/.tfenv ] && git clone --depth=1 https://github.com/tfutils/tfenv.git /root/.tfenv && chmod +x /root/.tfenv/bin/tfenv && for shell in .bashrc .zshrc .profile;do echo 'export PATH="$HOME/.tfenv/bin:$PATH"' >> /root/$shell;done || (cd /root/.tfenv && git pull 2>&1 | grep -E "(Updating|Already|Fast-forward)" && cd -) || true
+    if [ ! -d /root/.tfenv ]
+    then
+      if git clone --depth=1 https://github.com/tfutils/tfenv.git /root/.tfenv; then
+        chmod +x /root/.tfenv/bin/tfenv || true
+        for shell in .bashrc .zshrc .profile; do
+          echo 'export PATH="$HOME/.tfenv/bin:$PATH"' >> /root/$shell
+        done
+      fi
+    else
+      cd /root/.tfenv && git pull 2>&1 | grep -E "(Updating|Already|Fast-forward)" || true && cd -
+    fi
   - |
-    export HOME=/root;curl -fsSL https://claude.ai/install.sh | bash -s 1.0.81;CL="/root/.local/bin/claude";CT=$(readlink "$CL" || true);[ -n "$CT" ] && [ -e "$CT" ] && ln -sf $(realpath --relative-to="$(dirname "$CL")" "$CT") "$CL";echo "export ENABLE_BACKGROUND_TASKS=1" >> /root/.{bashrc,zshrc}
+    export HOME=/root
+    curl -fsSL https://claude.ai/install.sh | bash -s 1.0.81
+    CLAUDE_LINK="/root/.local/bin/claude"
+    CLAUDE_TARGET=$(readlink "$CLAUDE_LINK" || true)
+    if [ -n "$CLAUDE_TARGET" ] && [ -e "$CLAUDE_TARGET" ]
+    then
+      REL_TARGET=$(realpath --relative-to="$(dirname "$CLAUDE_LINK")" "$CLAUDE_TARGET")
+      ln -sf "$REL_TARGET" "$CLAUDE_LINK"
+    fi
+    echo "export ENABLE_BACKGROUND_TASKS=1" >> /root/.bashrc
+    echo "export ENABLE_BACKGROUND_TASKS=1" >> /root/.zshrc
   - |
-    git clone https://github.com/40docs/dotfiles.git /root/dotfiles && cd /root/dotfiles && export NVM_DIR="/usr/local/nvm" DOTFILES_USER=root HOME=/root SKIP_TFENV_INSTALL=1 MESLO_FONTS_INSTALLED=true && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && [ -f ./install.sh ] && chmod +x ./install.sh && bash install.sh --cloud-init;cd - || true
+    if git clone https://github.com/40docs/dotfiles.git /root/dotfiles; then
+      cd /root/dotfiles
+      export NVM_DIR="/usr/local/nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+      export DOTFILES_USER=root HOME=/root SKIP_TFENV_INSTALL=1 MESLO_FONTS_INSTALLED=true
+      [ -f ./install.sh ] && { chmod +x ./install.sh
+                                bash install.sh --cloud-init
+                              } || true
+      cd -
+    fi
   - |
-    export NVM_DIR="/usr/local/nvm";[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh";command -v npm >/dev/null 2>&1 && ! npm list -g @azure/mcp --depth=0 >/dev/null 2>&1 && npm cache clear --force && npm install -g --unsafe-perm @azure/mcp-linux-x64 @azure/mcp || true
+    export NVM_DIR="/usr/local/nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    if command -v npm >/dev/null 2>&1; then
+      if ! npm list -g @azure/mcp --depth=0 >/dev/null 2>&1; then
+        echo "Installing Azure MCP packages..."
+        npm cache clear --force 2>&1 | grep -E "(npm|cache)" || true
+        npm install -g --unsafe-perm @azure/mcp-linux-x64 2>&1 | grep -E "(added|updated|WARN|ERR)" || echo "Azure MCP x64 installation may have failed"
+        npm install -g --unsafe-perm @azure/mcp 2>&1 | grep -E "(added|updated|WARN|ERR)" || echo "Azure MCP installation may have failed"
+      fi
+    fi
   - |
-    [ -n "${var_arm_client_id}" ] && [ -n "${var_arm_client_secret}" ] && [ -n "${var_arm_tenant_id}" ] && [ -n "${var_aks_resource_group}" ] && [ -n "${var_aks_cluster_name}" ] && az login --service-principal --username "${var_arm_client_id}" --password "${var_arm_client_secret}" --tenant "${var_arm_tenant_id}" --output none && az account set --subscription "${var_arm_subscription_id}" --output none && mkdir -p /root/.kube/ && chmod 700 /root/.kube/ && az aks get-credentials --resource-group "${var_aks_resource_group}" --name "${var_aks_cluster_name}" --file /root/.kube/config --overwrite-existing --output none && chmod 400 /root/.kube/config && for shell in .bashrc .profile .zshrc;do echo 'export KUBECONFIG=$HOME/.kube/config' >> /root/$shell;done && kubectl cluster-info --request-timeout=30s || true
+    if [ -n "${var_arm_client_id}" ] && [ -n "${var_arm_client_secret}" ] && [ -n "${var_arm_tenant_id}" ] && [ -n "${var_aks_resource_group}" ] && [ -n "${var_aks_cluster_name}" ]
+    then
+      echo "Setting up dynamic Azure authentication for AKS cluster access..."
+
+      az login --service-principal \
+        --username "${var_arm_client_id}" \
+        --password "${var_arm_client_secret}" \
+        --tenant "${var_arm_tenant_id}" \
+        --output none
+
+      if [ $? -eq 0 ]; then
+        echo "✓ Azure authentication successful"
+
+        az account set --subscription "${var_arm_subscription_id}" --output none
+
+        if [ $? -eq 0 ]; then
+          echo "✓ Azure subscription context set"
+
+          mkdir -p /root/.kube/
+          chmod 700 /root/.kube/
+
+          az aks get-credentials \
+            --resource-group "${var_aks_resource_group}" \
+            --name "${var_aks_cluster_name}" \
+            --file /root/.kube/config \
+            --overwrite-existing \
+            --output none
+
+          if [ $? -eq 0 ]; then
+            echo "✓ AKS kubeconfig retrieved successfully"
+            chmod 400 /root/.kube/config
+
+            for shell in .bashrc .profile .zshrc; do
+              echo 'export KUBECONFIG=$HOME/.kube/config' >> /root/$shell
+            done
+            echo "✓ KUBECONFIG environment variable configured"
+
+            echo "Verifying Kubernetes cluster connectivity..."
+            kubectl cluster-info --request-timeout=30s 2>&1 | head -5
+            if [ $? -eq 0 ]; then
+              echo "✓ Kubernetes cluster connectivity verified"
+            else
+              echo "⚠ Warning: Could not verify cluster connectivity (cluster may still be initializing)"
+            fi
+          else
+            echo "✗ Failed to retrieve AKS credentials"
+          fi
+        else
+          echo "✗ Failed to set Azure subscription context"
+        fi
+      else
+        echo "✗ Azure authentication failed"
+      fi
+    else
+      echo "⚠ Warning: Azure credentials or AKS information not provided, skipping kubeconfig setup"
+    fi
+  - useradd -D -s "$(which zsh)"
+  - sed -i -E 's|^#?DSHELL=.*|DSHELL=/usr/bin/zsh|' /etc/adduser.conf
   - |
-    useradd -D -s "$(which zsh)";sed -i -E 's|^#?DSHELL=.*|DSHELL=/usr/bin/zsh|' /etc/adduser.conf
-  - |
-    echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | debconf-set-selections;DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get full-upgrade -y && apt-get install -y ttf-mscorefonts-installer ubuntu-restricted-extras libavcodec-extra libavcodec-extra60 ubuntu-restricted-addons unrar;dpkg --configure -a;apt-get install -f -y
+    echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | debconf-set-selections
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y
+    DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer ubuntu-restricted-extras libavcodec-extra libavcodec-extra60 ubuntu-restricted-addons unrar
+    dpkg --configure -a
+    apt-get install -f -y
   - python3 -m pip install --break-system-packages --ignore-installed urllib3 aider-install black checkov pre-commit mkdocs-material SuperClaude
   - |
-    mkdir -p /usr/share/fonts/powerline /etc/fonts/conf.avail;[ ! -f /usr/share/fonts/powerline/PowerlineSymbols.otf ] && curl -L https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf -o /usr/share/fonts/powerline/PowerlineSymbols.otf;[ ! -f /etc/fonts/conf.avail/10-powerline-symbols.conf ] && curl -L https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf -o /etc/fonts/conf.avail/10-powerline-symbols.conf;mkdir -p /usr/share/fonts/truetype/meslo /root/.local/share/fonts;FD=/usr/share/fonts/truetype/meslo;UF=/root/.local/share/fonts;has_mf(){ ls $FD/MesloLG*.ttf >/dev/null 2>&1||ls $UF/MesloLG*.ttf >/dev/null 2>&1||fc-list 2>/dev/null|grep -qi meslo;};has_mf||{ TD=$(mktemp -d);for a in 1 2 3;do curl -fsSL --connect-timeout 30 --max-time 300 https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Meslo.zip -o $TD/Meslo.zip && DS=true && break||sleep $((a*5));done;[ "$DS" = true ] && unzip $TD/Meslo.zip -d $TD && find $TD -name "MesloLG*.ttf" -exec cp {} $FD/ \; && find $TD -name "Meslo*.ttf" -exec cp {} $FD/ \; && find $TD -name "MesloLG*.ttf" -exec cp {} $UF/ \; && chmod 644 $FD/*.ttf $UF/*.ttf;rm -rf $TD;};fc-cache -f;has_mf && echo 'export MESLO_FONTS_INSTALLED=true' >> /etc/environment || true
+    mkdir -p "/usr/share/fonts/powerline"
+    if [ ! -f "/usr/share/fonts/powerline/PowerlineSymbols.otf" ]
+    then
+      curl -L https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf -o /usr/share/fonts/powerline/PowerlineSymbols.otf
+    fi
+    mkdir -p /etc/fonts/conf.avail
+    if [ ! -f "/etc/fonts/conf.avail/10-powerline-symbols.conf" ]
+    then
+      curl -L https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf -o /etc/fonts/conf.avail/10-powerline-symbols.conf
+    fi
+
+
+    echo "Starting enhanced Meslo Nerd Font installation..."
+
+    mkdir -p "/usr/share/fonts/truetype/meslo"
+    mkdir -p "/root/.local/share/fonts"
+
+    MESLO_VERSION="v3.3.0"
+    FONT_DIR="/usr/share/fonts/truetype/meslo"
+    USER_FONT_DIR="/root/.local/share/fonts"
+
+    has_meslo_fonts() {
+      if ls "$FONT_DIR"/MesloLG*.ttf >/dev/null 2>&1 || ls "$FONT_DIR"/Meslo*.ttf >/dev/null 2>&1; then
+        return 0
+      fi
+      if ls "$USER_FONT_DIR"/MesloLG*.ttf >/dev/null 2>&1 || ls "$USER_FONT_DIR"/Meslo*.ttf >/dev/null 2>&1; then
+        return 0
+      fi
+      if fc-list 2>/dev/null | grep -qi "meslo.*nerd\|MesloLG"; then
+        return 0
+      fi
+      return 1
+    }
+
+    if ! has_meslo_fonts; then
+      echo "Installing Meslo Nerd Fonts from GitHub release..."
+
+      TEMP_DIR=$(mktemp -d)
+      DOWNLOAD_SUCCESS=false
+
+      for attempt in 1 2 3; do
+        echo "Download attempt $attempt/3..."
+        if curl -fsSL --connect-timeout 30 --max-time 300 \
+           "https://github.com/ryanoasis/nerd-fonts/releases/download/$${MESLO_VERSION}/Meslo.zip" \
+           -o "$TEMP_DIR/Meslo.zip"; then
+          DOWNLOAD_SUCCESS=true
+          echo "Download successful on attempt $attempt"
+          break
+        else
+          echo "Download attempt $attempt failed, retrying in $((attempt * 5))s..."
+          [ $attempt -lt 3 ] && sleep $((attempt * 5))
+        fi
+      done
+
+      if [ "$DOWNLOAD_SUCCESS" = "true" ]; then
+        echo "Extracting and installing Meslo fonts..."
+
+        echo "Extracting Meslo fonts archive..."
+        if unzip "$TEMP_DIR/Meslo.zip" -d "$TEMP_DIR" 2>&1 | grep -E "(inflating|extracting)" | head -10; then
+          echo "Copying font files to directories..."
+          find "$TEMP_DIR" -name "MesloLGS*.ttf" -exec cp {} "$FONT_DIR/" \; 2>&1 | grep -E "(cp:|copied)" || true
+          find "$TEMP_DIR" -name "Meslo*.ttf" -exec cp {} "$FONT_DIR/" \; 2>&1 | grep -E "(cp:|copied)" || true
+          find "$TEMP_DIR" -name "MesloLGS*.ttf" -exec cp {} "$USER_FONT_DIR/" \; 2>&1 | grep -E "(cp:|copied)" || true
+          find "$TEMP_DIR" -name "Meslo*.ttf" -exec cp {} "$USER_FONT_DIR/" \; 2>&1 | grep -E "(cp:|copied)" || true
+
+          chmod 644 "$FONT_DIR"/*.ttf 2>&1 | grep -E "(changed|chmod)" || true
+          chmod 644 "$USER_FONT_DIR"/*.ttf 2>&1 | grep -E "(changed|chmod)" || true
+
+          echo "Font files installed successfully"
+        else
+          echo "ERROR: Failed to extract Meslo font archive"
+        fi
+      else
+        echo "ERROR: Failed to download Meslo fonts after 3 attempts"
+      fi
+
+      rm -rf "$TEMP_DIR"
+    else
+      echo "Meslo fonts already installed, skipping download"
+    fi
+
+    echo "Refreshing font cache..."
+    fc-cache -f /usr/share/fonts 2>&1 | grep -E "(caching|succeeded)" || true
+    fc-cache -f /root/.local/share/fonts 2>&1 | grep -E "(caching|succeeded)" || true
+    fc-cache -f 2>&1 | grep -E "(caching|succeeded)" || true
+
+    sleep 3
+
+    echo "Verifying Meslo font installation..."
+
+    VERIFICATION_SUCCESS=false
+
+    if fc-list 2>/dev/null | grep -qi "meslo.*nerd\|MesloLG"; then
+      echo "✅ Meslo fonts detected via fontconfig"
+      VERIFICATION_SUCCESS=true
+    fi
+
+    if ls "$FONT_DIR"/MesloLG*.ttf >/dev/null 2>&1; then
+      FONT_COUNT=$(ls "$FONT_DIR"/MesloLG*.ttf 2>/dev/null | wc -l)
+      echo "✅ Found $FONT_COUNT Meslo font files in system directory"
+      VERIFICATION_SUCCESS=true
+    fi
+
+    if ls "$USER_FONT_DIR"/MesloLG*.ttf >/dev/null 2>&1; then
+      USER_FONT_COUNT=$(ls "$USER_FONT_DIR"/MesloLG*.ttf 2>/dev/null | wc -l)
+      echo "✅ Found $USER_FONT_COUNT Meslo font files in user directory"
+      VERIFICATION_SUCCESS=true
+    fi
+
+    if [ "$VERIFICATION_SUCCESS" = "true" ]; then
+      echo "✅ Meslo Nerd Font installation completed successfully"
+      echo 'export MESLO_FONTS_INSTALLED=true' >> /etc/environment
+    else
+      echo "⚠️  WARNING: Meslo fonts installed but verification failed"
+      echo "This may indicate font cache issues - fonts might still work"
+    fi
   - |
     export HOME=/root
     echo "Installing Lacework CLI..."
@@ -745,7 +1216,143 @@ runcmd:
       systemctl start ollama.service && systemctl enable ollama.service
 
 
-      wr(){ local a=1;while [ $a -le 30 ];do ollama list >/dev/null 2>&1 && return 0;sleep 5;a=$((a+1));done;return 1;};dm(){ local m="$1" r=3;for a in $(seq 1 $r);do timeout 1800 ollama pull "$m" && ollama list|grep -q "$m" && return 0||sleep 10;done;return 1;};wr && [ $(($(df /root/.ollama|awk 'NR==2{print $4}')/1024/1024)) -ge 25 ] && { CS=0;for m in deepseek-r1:latest;do dm "$m" && CS=$((CS+1));done;OS=0;for m in gpt-oss:20b;do dm "$m" && OS=$((OS+1));done;[ $CS -eq 1 ] && echo "export OLLAMA_CRITICAL_MODELS_READY=true" >> /etc/environment;[ $((CS+OS)) -eq 2 ] && echo "export OLLAMA_ALL_MODELS_READY=true" >> /etc/environment;find /tmp -name "ollama_*_attempt_*.log" -mmin +60 -delete 2>/dev/null || true;}
+      echo "🤖 Starting enhanced Ollama model download process..."
+
+      wait_for_ollama_ready() {
+        local max_attempts=30
+        local attempt=1
+
+        echo "⏳ Waiting for Ollama service to be fully ready..."
+        while [ $attempt -le $max_attempts ]; do
+          if ollama list >/dev/null 2>&1; then
+            echo "✅ Ollama service is ready (attempt $attempt/$max_attempts)"
+            return 0
+          fi
+          echo "🔄 Ollama not ready yet, waiting... (attempt $attempt/$max_attempts)"
+          sleep 5
+          attempt=$((attempt + 1))
+        done
+
+        echo "❌ ERROR: Ollama service failed to become ready after $max_attempts attempts"
+        return 1
+      }
+
+      download_ollama_model() {
+        local model_name="$1"
+        local max_retries=3
+        local retry_delay=10
+
+        echo "📥 Starting download: $model_name"
+
+        for attempt in $(seq 1 $max_retries); do
+          echo "🔄 Attempt $attempt/$max_retries for $model_name..."
+
+          if timeout 1800 ollama pull "$model_name" 2>&1 | tee "/tmp/ollama_$${model_name//[:\/]/_}_attempt_$${attempt}.log"; then
+            if ollama list | grep -q "$model_name"; then
+              echo "✅ Successfully downloaded and verified: $model_name"
+              return 0
+            else
+              echo "⚠️  Download completed but model not found in list: $model_name"
+            fi
+          else
+            local exit_code=$?
+            echo "❌ Download failed with exit code $exit_code: $model_name (attempt $attempt/$max_retries)"
+
+            if [ $exit_code -eq 124 ]; then
+              echo "🕐 Timeout: Download took longer than 30 minutes"
+            elif [ $exit_code -eq 1 ]; then
+              echo "🌐 Network error: Check connectivity to Ollama registry"
+            fi
+
+            echo "📋 Last 5 lines of download log:"
+            tail -5 "/tmp/ollama_$${model_name//[:\/]/_}_attempt_$${attempt}.log" 2>/dev/null || echo "No log available"
+          fi
+
+          if [ $attempt -lt $max_retries ]; then
+            echo "⏸️  Waiting $${retry_delay}s before retry..."
+            sleep $retry_delay
+            retry_delay=$((retry_delay * 2))  # Exponential backoff
+          fi
+        done
+
+        echo "💥 FAILED: Could not download $model_name after $max_retries attempts"
+        return 1
+      }
+
+      check_disk_space() {
+        local required_gb=$1
+        local available_kb=$(df /root/.ollama | awk 'NR==2 {print $4}')
+        local available_gb=$((available_kb / 1024 / 1024))
+
+        echo "💾 Disk space check: $${available_gb}GB available, $${required_gb}GB required"
+
+        if [ $available_gb -lt $required_gb ]; then
+          echo "❌ ERROR: Insufficient disk space. Need $${required_gb}GB, have $${available_gb}GB"
+          return 1
+        fi
+
+        echo "✅ Sufficient disk space available"
+        return 0
+      }
+
+      if wait_for_ollama_ready; then
+        if check_disk_space 25; then
+
+          declare -a CRITICAL_MODELS=("deepseek-r1:latest")
+          declare -a OPTIONAL_MODELS=("gpt-oss:20b")
+
+          echo "🎯 Phase 1: Downloading critical models..."
+          CRITICAL_SUCCESS=0
+          CRITICAL_TOTAL=$${#CRITICAL_MODELS[@]}
+
+          for model in "$${CRITICAL_MODELS[@]}"; do
+            if download_ollama_model "$model"; then
+              CRITICAL_SUCCESS=$((CRITICAL_SUCCESS + 1))
+            fi
+          done
+
+          echo "📊 Critical models: $CRITICAL_SUCCESS/$CRITICAL_TOTAL successful"
+
+          echo "🔧 Phase 2: Downloading optional models..."
+          OPTIONAL_SUCCESS=0
+          OPTIONAL_TOTAL=$${#OPTIONAL_MODELS[@]}
+
+          for model in "$${OPTIONAL_MODELS[@]}"; do
+            if download_ollama_model "$model"; then
+              OPTIONAL_SUCCESS=$((OPTIONAL_SUCCESS + 1))
+            fi
+          done
+
+          echo "📊 Optional models: $OPTIONAL_SUCCESS/$OPTIONAL_TOTAL successful"
+
+          TOTAL_SUCCESS=$((CRITICAL_SUCCESS + OPTIONAL_SUCCESS))
+          TOTAL_MODELS=$((CRITICAL_TOTAL + OPTIONAL_TOTAL))
+
+          echo "🏁 Final Results:"
+          echo "   ✅ Successfully downloaded: $TOTAL_SUCCESS/$TOTAL_MODELS models"
+          echo "   📁 Models available:"
+          ollama list | grep -E "(NAME|deepseek|gpt-oss)" || echo "   No models found"
+
+          if [ $CRITICAL_SUCCESS -eq $CRITICAL_TOTAL ]; then
+            echo "✅ All critical Ollama models downloaded successfully"
+            echo "export OLLAMA_CRITICAL_MODELS_READY=true" >> /etc/environment
+          else
+            echo "⚠️  Some critical Ollama models failed to download"
+          fi
+
+          if [ $TOTAL_SUCCESS -eq $TOTAL_MODELS ]; then
+            echo "🎉 All Ollama models downloaded successfully!"
+            echo "export OLLAMA_ALL_MODELS_READY=true" >> /etc/environment
+          fi
+
+        else
+          echo "❌ Skipping model downloads due to insufficient disk space"
+        fi
+      else
+        echo "❌ Skipping model downloads - Ollama service not ready"
+      fi
+
+      find /tmp -name "ollama_*_attempt_*.log" -mmin +60 -delete 2>/dev/null || true
 
     else
       echo "❌ Ollama installation failed, skipping model downloads"
@@ -762,14 +1369,159 @@ runcmd:
     mkdir -p /root/.local/state/vs-kubernetes/tools/kubectl/
     ln -sf `which kubectl` /root/.local/state/vs-kubernetes/tools/kubectl/kubectl
   - curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | bash -s -- -b /usr/local/bin
-  - |\n    iac(){ case $1 in apt)apt-get update -y && apt-get install -y awscli;;pip)python3 -m venv /opt/aws-cli-venv && . /opt/aws-cli-venv/bin/activate && pip install --upgrade pip awscli && ln -sf /opt/aws-cli-venv/bin/aws /usr/local/bin/aws && deactivate;;v2)export PYTHONIOENCODING=utf-8 LC_ALL=C.UTF-8 LANG=C.UTF-8 PROMPT_TOOLKIT_NO_CPR=1;curl -sSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip && cd /tmp && unzip -q awscliv2.zip && [ -f /tmp/aws/install ] && /tmp/aws/install && rm -rf /tmp/aws /tmp/awscliv2.zip;;snap)snap install aws-cli --classic;;esac && command -v aws && timeout 10 aws --version;};for m in apt pip v2 snap;do iac $m && S=true && break||{ rm -rf /tmp/aws* /opt/aws-cli-venv;sleep 2;};done;[ $S = true ] && mkdir -p /root/.aws && echo 'complete -C /usr/local/bin/aws_completer aws' >> /root/.bashrc && printf '[default]\\nregion=us-east-1\\noutput=json\\ncli_pager=\\nmax_attempts=3\\nretry_mode=adaptive' > /root/.aws/config || true"
   - |
-    exec 0</dev/null 1>/var/log/ansible-collections-install.log 2>&1;for i in 1 2 3;do timeout 300 ansible-galaxy collection install fortinet.console fortinet.fortiadc fortinet.fortianalyzer fortinet.fortiflexvm fortinet.fortimanager fortinet.fortios fortinet.fortiswitch fortinet.fortiweb --force-with-deps && ansible-galaxy collection list | grep fortinet && break||sleep $((i*10));done;exec 1>/proc/self/fd/1 2>/proc/self/fd/2
-  - export HOME=/root && bash /root/npm-install.sh || true
+
+    install_aws_cli() {
+        local method="$1"
+        local attempt="$2"
+        echo "[Attempt $attempt] Installing AWS CLI using method: $method"
+
+        case "$method" in
+            "apt")
+                echo "Installing AWS CLI v1 via apt package manager..."
+                apt-get update -y >/dev/null 2>&1
+                apt-get install -y awscli >/dev/null 2>&1
+                ;;
+            "pip")
+                echo "Installing AWS CLI v2 via pip in virtual environment..."
+                python3 -m venv /opt/aws-cli-venv
+                source /opt/aws-cli-venv/bin/activate
+                pip install --upgrade pip >/dev/null 2>&1
+                pip install awscli >/dev/null 2>&1
+                ln -sf /opt/aws-cli-venv/bin/aws /usr/local/bin/aws
+                deactivate
+                ;;
+            "v2-enhanced")
+                echo "Installing AWS CLI v2 with PyInstaller compatibility fixes..."
+
+                export PYTHONIOENCODING=utf-8
+                export LC_ALL=C.UTF-8
+                export LANG=C.UTF-8
+                export TERM=xterm-256color
+                export PROMPT_TOOLKIT_NO_CPR=1
+
+                if curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"; then
+                    cd /tmp
+                    unzip -q awscliv2.zip 2>/dev/null
+                    if [ -f "/tmp/aws/install" ]; then
+                        env PYTHONIOENCODING=utf-8 LC_ALL=C.UTF-8 LANG=C.UTF-8 /tmp/aws/install >/dev/null 2>&1
+                    fi
+                    rm -rf /tmp/aws /tmp/awscliv2.zip
+                fi
+                ;;
+            "snap")
+                echo "Installing AWS CLI via snap package..."
+                if command -v snap >/dev/null 2>&1; then
+                    snap install aws-cli --classic >/dev/null 2>&1
+                fi
+                ;;
+        esac
+
+        if command -v aws >/dev/null 2>&1; then
+            if timeout 10 aws --version >/dev/null 2>&1; then
+                echo "SUCCESS: AWS CLI successfully installed and functional: $(aws --version 2>/dev/null | head -1)"
+                return 0
+            else
+                echo "WARNING: AWS CLI installed but not responding properly"
+                return 1
+            fi
+        else
+            echo "ERROR: AWS CLI installation failed for method: $method"
+            return 1
+        fi
+    }
+
+    SUCCESS=false
+    attempt=1
+
+    if [ "$SUCCESS" = "false" ]; then
+        if install_aws_cli "apt" "$attempt"; then
+            SUCCESS=true
+        else
+            echo "Method apt failed, trying next method..."
+            rm -rf /tmp/aws* /opt/aws-cli-venv 2>/dev/null || true
+            sleep 2
+            attempt=$((attempt + 1))
+        fi
+    fi
+
+    if [ "$SUCCESS" = "false" ]; then
+        if install_aws_cli "pip" "$attempt"; then
+            SUCCESS=true
+        else
+            echo "Method pip failed, trying next method..."
+            rm -rf /tmp/aws* /opt/aws-cli-venv 2>/dev/null || true
+            sleep 2
+            attempt=$((attempt + 1))
+        fi
+    fi
+
+    if [ "$SUCCESS" = "false" ]; then
+        if install_aws_cli "v2-enhanced" "$attempt"; then
+            SUCCESS=true
+        else
+            echo "Method v2-enhanced failed, trying next method..."
+            rm -rf /tmp/aws* /opt/aws-cli-venv 2>/dev/null || true
+            sleep 2
+            attempt=$((attempt + 1))
+        fi
+    fi
+
+    if [ "$SUCCESS" = "false" ]; then
+        if install_aws_cli "snap" "$attempt"; then
+            SUCCESS=true
+        else
+            echo "Method snap failed"
+            rm -rf /tmp/aws* /opt/aws-cli-venv 2>/dev/null || true
+        fi
+    fi
+
+    if [ "$SUCCESS" = "false" ]; then
+        echo "ERROR: All AWS CLI installation methods failed" >&2
+        echo "ERROR: This may cause issues with AWS-related functionality" >&2
+    else
+        mkdir -p /root/.aws
+        echo "complete -C '/usr/local/bin/aws_completer' aws" >> /root/.bashrc 2>/dev/null || true
+        echo "complete -C '/usr/local/bin/aws_completer' aws" >> /root/.zshrc 2>/dev/null || true
+
+        cat > /root/.aws/config << 'EOF'
+[default]
+region = us-east-1
+output = json
+cli_pager =
+max_attempts = 3
+retry_mode = adaptive
+EOF
+
+        echo "SUCCESS: AWS CLI installation completed successfully"
+    fi
   - |
-    export HOME=/root;dotnet tool install --global Microsoft.CST.DevSkim.CLI;dotnet dev-certs https --trust
+    exec 0</dev/null 1>/var/log/ansible-collections-install.log 2>&1
+    echo "Installing Fortinet Ansible collections with blocking I/O fix..."
+    for i in 1 2 3; do
+      if timeout 300 ansible-galaxy collection install fortinet.console fortinet.fortiadc fortinet.fortianalyzer fortinet.fortiflexvm fortinet.fortimanager fortinet.fortios fortinet.fortiswitch fortinet.fortiweb --force-with-deps; then
+        echo "SUCCESS: Fortinet collections installed (attempt $i)"
+        ansible-galaxy collection list | grep fortinet
+        break
+      else
+        echo "RETRY: Attempt $i failed, waiting $((i*10))s..."
+        [ $i -lt 3 ] && sleep $((i*10))
+      fi
+    done
+    exec 1>/proc/self/fd/1 2>/proc/self/fd/2
   - |
-    for IMG in ghcr.io/40docs/devcontainer:latest mcp/memory:latest mcp/git:latest mcp/time:latest mcp/sequentialthinking:latest mcp/filesystem:latest kubernetes-mcp-server:latest hashicorp/terraform-mcp-server:latest ghcr.io/github/github-mcp-server;do docker pull "$IMG" 2>&1 | grep -E "(Pulling|Pull complete|Image is up to date|Downloaded newer)" || true;done;usermod -aG docker ${var_admin_username} || true
+    export HOME=/root && bash /root/npm-install.sh || true
+  - |
+    export HOME="/root"
+    dotnet tool install --global Microsoft.CST.DevSkim.CLI
+    dotnet dev-certs https --trust
+  - |
+    echo "Pulling Docker images for MCP and devcontainers..."
+    for IMG in ghcr.io/40docs/devcontainer:latest mcp/memory:latest mcp/git:latest mcp/time:latest mcp/sequentialthinking:latest mcp/filesystem:latest kubernetes-mcp-server:latest hashicorp/terraform-mcp-server:latest ghcr.io/github/github-mcp-server; do
+      echo "  Pulling: $IMG"
+      docker pull "$IMG" 2>&1 | grep -E "(Pulling|Pull complete|Image is up to date|Downloaded newer)" || echo "    Warning: Failed to pull $IMG"
+    done
+    usermod -aG docker ${var_admin_username} || true
 %{ if var_has_gpu ~}
     docker run --privileged --rm tonistiigi/binfmt --install all || true
   - |
@@ -793,26 +1545,90 @@ runcmd:
 %{ endif ~}
   - "service apache2 stop && systemctl disable apache2"
   - |
-    set -eu;export HOME=/root;for i in 1 2 3;do curl -fsSL https://coder.com/install.sh | sh -s -- && break || sleep 10;done;usermod -aG docker coder;mkdir -p /etc/coder.d /etc/systemd/system/coder.service.d;printf 'CODER_HTTP_ADDRESS=0.0.0.0:80\nCODER_TUNNEL_ENABLE=true\nCODER_DERP_FORCE_WEBSOCKETS=true\nCODER_TUNNEL_PREFER_IPV4=true\n' > /etc/coder.d/coder.env;printf '[Service]\nCapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_NET_ADMIN\nAmbientCapabilities=CAP_IPC_LOCK CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_NET_ADMIN\nTimeoutStartSec=120\nRestartSec=10\nStartLimitBurst=5\nStartLimitIntervalSec=300\n' > /etc/systemd/system/coder.service.d/override.conf;systemctl daemon-reload && systemctl enable coder && systemctl start coder
+    set -eu
+
+    export HOME=/root
+    for i in 1 2 3
+    do
+        curl -fsSL https://coder.com/install.sh | sh -s -- && break || sleep 10
+    done
+    usermod -aG docker coder
+    mkdir -p /etc/coder.d /etc/systemd/system/coder.service.d
+    printf '%s\n' \
+      'CODER_HTTP_ADDRESS=0.0.0.0:80' \
+      'CODER_TUNNEL_ENABLE=true' \
+      'CODER_DERP_FORCE_WEBSOCKETS=true' \
+      'CODER_TUNNEL_PREFER_IPV4=true' \
+      > /etc/coder.d/coder.env
+    printf '%s\n' \
+      '[Service]' \
+      'CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_NET_ADMIN' \
+      'AmbientCapabilities=CAP_IPC_LOCK CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_NET_ADMIN' \
+      'TimeoutStartSec=120' \
+      'RestartSec=10' \
+      'StartLimitBurst=5' \
+      'StartLimitIntervalSec=300' \
+      > /etc/systemd/system/coder.service.d/override.conf
+    systemctl daemon-reload && systemctl enable coder && systemctl start coder
   - |
-    ARCH=$(dpkg-architecture -q DEB_BUILD_ARCH);download_url=$(curl -s "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest" | jq -r --arg ARCH "$ARCH" '.assets[] | select(.name | contains("deb") and contains($ARCH)) | .browser_download_url');curl -s -L "$${download_url}" -o /tmp/drawio.deb;apt-get update && apt-get install -y /tmp/drawio.deb || (apt-get install -f -y && dpkg -i /tmp/drawio.deb);rm -f /tmp/drawio.deb
+    ARCH=$(dpkg-architecture -q DEB_BUILD_ARCH)
+    echo "Fetching DrawIO download URL..."
+    download_url=$(curl -s "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest" \
+      | jq -r --arg ARCH "$ARCH" \
+          '.assets[] | select(.name | contains("deb") and contains($ARCH)) | .browser_download_url')
+    curl -s -L "$${download_url}" -o /tmp/drawio.deb
+    apt-get update && apt-get install -y ./tmp/drawio.deb || (apt-get install -f -y && dpkg -i /tmp/drawio.deb)
+    rm -f /tmp/drawio.deb
   - |
-    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb;dpkg -i minikube_latest_amd64.deb;mkdir -p /root/.local/state/vs-kubernetes/tools/minikube/linux-amd64;ln -sf /usr/bin/minikube /root/.local/state/vs-kubernetes/tools/minikube/linux-amd64/minikube;rm minikube_latest_amd64.deb
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+    dpkg -i minikube_latest_amd64.deb
+    mkdir -p /root/.local/state/vs-kubernetes/tools/minikube/linux-amd64
+    ln -sf /usr/bin/minikube /root/.local/state/vs-kubernetes/tools/minikube/linux-amd64/minikube
+    rm minikube_latest_amd64.deb
   - |
-    curl -Lo /tmp/actionlint.sh https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash;chmod 755 /tmp/actionlint.sh;export HOME=/root && bash /tmp/actionlint.sh latest /usr/bin;rm /tmp/actionlint.sh
+    curl -Lo /tmp/actionlint.sh https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash
+    chmod 755 /tmp/actionlint.sh
+    export HOME=/root && bash /tmp/actionlint.sh latest /usr/bin
+    rm /tmp/actionlint.sh
   - |
-    curl -sSLo /tmp/terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.20.0/terraform-docs-v0.20.0-linux-amd64.tar.gz;tar --extract --gzip --file /tmp/terraform-docs.tar.gz --directory /usr/local/bin terraform-docs;chmod +x /usr/local/bin/terraform-docs;rm -f /tmp/terraform-docs.tar.gz
+    curl -sSLo /tmp/terraform-docs.tar.gz \
+      https://github.com/terraform-docs/terraform-docs/releases/download/v0.20.0/terraform-docs-v0.20.0-linux-amd64.tar.gz
+    tar --extract --gzip --file /tmp/terraform-docs.tar.gz \
+        --directory /usr/local/bin terraform-docs
+    chmod +x /usr/local/bin/terraform-docs
+    rm -f /tmp/terraform-docs.tar.gz
   - |
-    curl -Lo /tmp/terrascan.tar.gz https://github.com/tenable/terrascan/releases/download/v1.19.9/terrascan_1.19.9_Linux_x86_64.tar.gz;tar -xf /tmp/terrascan.tar.gz terrascan;install terrascan /usr/local/bin;rm -rf /tmp/terrascan.tar.gz terrascan
+    curl -Lo /tmp/terrascan.tar.gz https://github.com/tenable/terrascan/releases/download/v1.19.9/terrascan_1.19.9_Linux_x86_64.tar.gz
+    tar -xf /tmp/terrascan.tar.gz terrascan
+    install terrascan /usr/local/bin
+    rm -rf /tmp/terrascan.tar.gz terrascan
   - |
-    LV=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*');curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v$${LV}/lazygit_$${LV}_Linux_x86_64.tar.gz";tar xf /tmp/lazygit.tar.gz lazygit;install lazygit -D -t /usr/local/bin/;rm -rf /tmp/lazygit.tar.gz lazygit
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
+    curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v$${LAZYGIT_VERSION}/lazygit_$${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf /tmp/lazygit.tar.gz lazygit
+    install lazygit -D -t /usr/local/bin/
+    rm -rf /tmp/lazygit.tar.gz lazygit
   - curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
   - |
-    curl -Lo /tmp/kustomize.sh "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh";chmod 755 /tmp/kustomize.sh;export HOME=/root && bash /tmp/kustomize.sh /usr/local/bin;rm /tmp/kustomize.sh
+    curl -Lo /tmp/kustomize.sh "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+    chmod 755 /tmp/kustomize.sh
+    export HOME=/root && bash /tmp/kustomize.sh /usr/local/bin
+    rm /tmp/kustomize.sh
   - |
-    curl -sSLo /tmp/speedtest.tgz https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz;tar --extract --gzip --file /tmp/speedtest.tgz --directory /usr/local/bin speedtest;chmod +x /usr/local/bin/speedtest;rm -f /tmp/speedtest.tgz;for shell in .bash_aliases .zshrc .bashrc;do echo 'alias speedtest="speedtest --accept-license --accept-gdpr"' >> /root/$shell;done
+    curl -sSLo /tmp/speedtest.tgz \
+      https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz
+    tar --extract --gzip --file /tmp/speedtest.tgz \
+        --directory /usr/local/bin speedtest
+    chmod +x /usr/local/bin/speedtest
+    rm -f /tmp/speedtest.tgz
+    for shell in .bash_aliases .zshrc .bashrc; do
+      echo 'alias speedtest="speedtest --accept-license --accept-gdpr"' >> /root/$shell
+    done
   - |
-    export PROVIDER=all;curl -LO "https://github.com/GoogleCloudPlatform/terraformer/releases/download/$(curl -s https://api.github.com/repos/GoogleCloudPlatform/terraformer/releases/latest | grep tag_name | cut -d '"' -f 4)/terraformer-$${PROVIDER}-linux-amd64";chmod +x terraformer-$${PROVIDER}-linux-amd64;mv terraformer-$${PROVIDER}-linux-amd64 /usr/local/bin/terraformer
+    export PROVIDER=all
+    curl -LO "https://github.com/GoogleCloudPlatform/terraformer/releases/download/$(curl -s https://api.github.com/repos/GoogleCloudPlatform/terraformer/releases/latest | grep tag_name | cut -d '"' -f 4)/terraformer-$${PROVIDER}-linux-amd64"
+    chmod +x terraformer-$${PROVIDER}-linux-amd64
+    mv terraformer-$${PROVIDER}-linux-amd64 /usr/local/bin/terraformer
   - |
     export "GOBIN=/usr/local/bin"
     echo "Installing Go development tools..."
@@ -947,7 +1763,69 @@ runcmd:
       exit 1
     fi
   - |
-    echo "[$(date)] Implementing SSH security hardening..." >> /var/log/security-events.log;mkdir -p /var/log/security;touch /var/log/security-events.log /var/log/security-report.log;chmod 640 /var/log/security-events.log /var/log/security-report.log;ufw --force reset;ufw default deny incoming;ufw default allow outgoing;ufw limit ssh comment "SSH with rate limiting";ufw allow out 53 comment "DNS outgoing";ufw allow out 80 comment "HTTP outgoing";ufw allow out 443 comment "HTTPS outgoing";ufw allow out 123 comment "NTP outgoing";ufw allow from 172.16.0.0/12 comment "Docker networks";ufw allow from 10.0.0.0/8 comment "Internal networks";ufw allow from 192.168.0.0/16 comment "Private networks";ufw --force enable;systemctl stop fail2ban 2>/dev/null || true;chown root:root /etc/fail2ban/jail.d/cloudshell-custom.conf /etc/fail2ban/filter.d/sshd-aggressive.conf /etc/fail2ban/action.d/cloudshell-notify.conf;systemctl restart rsyslog;systemctl enable fail2ban;systemctl start fail2ban;sleep 5;for jail in sshd sshd-aggressive recidive;do fail2ban-client status "$jail" >/dev/null 2>&1||{ fail2ban-client reload 2>/dev/null;sleep 2;};done;systemctl daemon-reload;systemctl enable security-monitor.service security-report.timer;systemctl start security-monitor.service security-report.timer;/usr/local/bin/security-monitor.sh geoip;/usr/local/bin/security-monitor.sh report;apt-get update -qq;apt-get install -y geoip-bin geoip-database lynis chkrootkit rkhunter logwatch 2>/dev/null || true
+    echo "[$(date)] Implementing SSH security hardening..." >> /var/log/security-events.log
+
+    mkdir -p /var/log/security
+    touch /var/log/security-events.log /var/log/security-report.log
+    chmod 640 /var/log/security-events.log /var/log/security-report.log
+
+    echo "Configuring UFW firewall..."
+    ufw --force reset
+    ufw default deny incoming
+    ufw default allow outgoing
+
+    ufw limit ssh comment "SSH with rate limiting"
+
+    ufw allow out 53 comment "DNS outgoing"
+    ufw allow out 80 comment "HTTP outgoing"
+    ufw allow out 443 comment "HTTPS outgoing"
+    ufw allow out 123 comment "NTP outgoing"
+
+    ufw allow from 172.16.0.0/12 comment "Docker networks"
+    ufw allow from 10.0.0.0/8 comment "Internal networks"
+    ufw allow from 192.168.0.0/16 comment "Private networks"
+
+    ufw --force enable
+    echo "✅ UFW firewall configured and enabled"
+
+    echo "Configuring fail2ban..."
+
+    systemctl stop fail2ban 2>/dev/null || true
+
+    chown root:root /etc/fail2ban/jail.d/cloudshell-custom.conf
+    chown root:root /etc/fail2ban/filter.d/sshd-aggressive.conf
+    chown root:root /etc/fail2ban/action.d/cloudshell-notify.conf
+
+    systemctl restart rsyslog
+
+    systemctl enable fail2ban
+    systemctl start fail2ban
+
+    sleep 5
+
+    for jail in sshd sshd-aggressive recidive; do
+        if fail2ban-client status "$jail" >/dev/null 2>&1; then
+            echo "✅ Fail2ban jail $jail: Active"
+        else
+            echo "⚠️  Fail2ban jail $jail: Not active (will retry)"
+            fail2ban-client reload 2>/dev/null || true
+            sleep 2
+        fi
+    done
+
+    systemctl daemon-reload
+    systemctl enable security-monitor.service
+    systemctl enable security-report.timer
+    systemctl start security-monitor.service
+    systemctl start security-report.timer
+
+    echo "✅ Security monitoring services started"
+
+    /usr/local/bin/security-monitor.sh geoip
+    /usr/local/bin/security-monitor.sh report
+
+    apt-get update -qq
+    apt-get install -y geoip-bin geoip-database lynis chkrootkit rkhunter logwatch 2>/dev/null || true
 
     cat > /etc/logrotate.d/security-logs << 'EOF'
 /var/log/security-events.log {
@@ -1077,12 +1955,49 @@ EOSCRIPT
       timeout 300 bash -c 'printf "y\ny\n" | SuperClaude install --profile developer' 2>&1 | grep -E "(Installing|Success|complete|configured)" || echo "SuperClaude installation may have failed"
     fi
   - |
-    mkdir -p /root/.config/systemd/user /root/bin;printf '[Unit]\nDescription=VS Code Remote Tunnel\nAfter=network.target\n[Service]\nExecStart=%h/bin/start-tunnel.sh\nRestart=always\nTimeoutStartSec=10\n[Install]\nWantedBy=default.target\n' > /root/.config/systemd/user/vscode-tunnel.service;printf '#!/bin/bash\nexec code tunnel --accept-server-license-terms --name=$(hostname)-$USER\n' > /root/bin/start-tunnel.sh;chmod +x /root/bin/start-tunnel.sh
+    mkdir -p /root/.config/systemd/user /root/bin
+    printf '%s\n' \
+      '[Unit]' \
+      'Description=VS Code Remote Tunnel' \
+      'After=network.target' \
+      '[Service]' \
+      'ExecStart=%h/bin/start-tunnel.sh' \
+      'Restart=always' \
+      'TimeoutStartSec=10' \
+      '[Install]' \
+      'WantedBy=default.target' \
+      > /root/.config/systemd/user/vscode-tunnel.service
+    printf '%s\n' \
+      '#!/bin/bash' \
+      'exec code tunnel --accept-server-license-terms --name=$(hostname)-$USER' \
+      > /root/bin/start-tunnel.sh
+    chmod +x /root/bin/start-tunnel.sh
   - |
-    bash /root/prewarm-cache.sh || true;touch /root/.hushlogin
+    bash /root/prewarm-cache.sh || true
+  - touch /root/.hushlogin
   - |
-    for dir in .act .aspnet .azure .bash_aliases .bashrc .cache .config .claude .claude.json .digrc .dotnet .gitconfig .hushlogin .kube .lacework.toml .launchpadlib .local .npm .npmrc .nuget .oh-my-posh .opencommit .p10k.zsh .profile .terraform.d .tfenv .tmux .tmux.conf .vim .vimrc .vscode .vscode-insiders .vscode-server .vscode-server-insiders .wget-hsts .z .zshrc dotfiles 40docs go bin snap;do [ -e /root/$dir ] && cp -a /root/$dir /etc/skel || true;done;mkdir -p /root/.claude;[ -f /root/.claude/mcp.json ] && jq '.mcpServers.Perplexity.env.PERPLEXITY_API_KEY = "'"${var_perplexity_api_key}"'"' /root/.claude/mcp.json > /tmp/mcp.json && mv /tmp/mcp.json /root/.claude/mcp.json && jq '.mcpServers["brave-search"].env.BRAVE_API_KEY = "'"${var_brave_api_key}"'"' /root/.claude/mcp.json > /tmp/mcp.json && mv /tmp/mcp.json /root/.claude/mcp.json
+    for dir in .act .aspnet .azure .bash_aliases .bashrc .cache .config .claude .claude.json .digrc .dotnet .gitconfig .hushlogin .kube .lacework.toml .launchpadlib .local .npm .npmrc .nuget .oh-my-posh .opencommit .p10k.zsh .profile .terraform.d .tfenv .tmux .tmux.conf .vim .vimrc .vscode .vscode-insiders .vscode-server .vscode-server-insiders .wget-hsts .z .zshrc dotfiles 40docs go bin snap; do
+      [ -e /root/$dir ] && cp -a /root/$dir /etc/skel 2>&1 | grep -E "(cp:|copied)" || true
+    done
+    mkdir -p /root/.claude
+    if [ -f /root/.claude/mcp.json ]
+    then
+      jq '.mcpServers.Perplexity.env.PERPLEXITY_API_KEY = "'"${var_perplexity_api_key}"'"' /root/.claude/mcp.json > /tmp/mcp.json && mv /tmp/mcp.json /root/.claude/mcp.json
+      jq '.mcpServers["brave-search"].env.BRAVE_API_KEY = "'"${var_brave_api_key}"'"' /root/.claude/mcp.json > /tmp/mcp.json && mv /tmp/mcp.json /root/.claude/mcp.json
+    fi
   - |
-    echo "Starting GitHub Actions Runner setup..." >> /var/log/runner-setup.log;timeout 600 bash /opt/setup-github-runner.sh >> /var/log/runner-setup.log 2>&1 && echo "GitHub Actions Runner setup completed successfully" >> /var/log/runner-setup.log || echo "GitHub Actions Runner setup failed or timed out - check /var/log/runner-setup.log for details" >> /var/log/runner-setup.log
+    echo "Starting GitHub Actions Runner setup..." >> /var/log/runner-setup.log
+    if timeout 600 bash /opt/setup-github-runner.sh >> /var/log/runner-setup.log 2>&1; then
+      echo "✅ GitHub Actions Runner setup completed successfully" >> /var/log/runner-setup.log
+      echo "✅ GitHub Actions Runner setup completed successfully"
+    else
+      echo "⚠️  GitHub Actions Runner setup failed or timed out" >> /var/log/runner-setup.log
+      echo "⚠️  GitHub Actions Runner setup failed or timed out - check /var/log/runner-setup.log for details"
+    fi
   - |
-    fwupdmgr update -y --no-reboot-check || true;[ -f /var/run/reboot-required ] && reboot || true
+    fwupdmgr update -y --no-reboot-check || true
+  - |
+    if [ -f /var/run/reboot-required ]
+    then
+        reboot || true
+    fi
