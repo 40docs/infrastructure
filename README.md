@@ -1108,7 +1108,7 @@ No modules.
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name for tagging and resource naming | `string` | n/a | yes |
 | <a name="input_response_time_alert_threshold_ms"></a> [response\_time\_alert\_threshold\_ms](#input\_response\_time\_alert\_threshold\_ms) | Application response time threshold in milliseconds for alerts | `number` | `5000` | no |
 | <a name="input_runner_group"></a> [runner\_group](#input\_runner\_group) | GitHub Actions runner group name in your org (must exist) | `string` | `"Default"` | no |
-| <a name="input_runner_labels"></a> [runner\_labels](#input\_runner\_labels) | Comma-separated labels to attach to the runner | `string` | `"self-hosted,linux,x64,build,ubuntu"` | no |
+| <a name="input_runner_labels"></a> [runner\_labels](#input\_runner\_labels) | Comma-separated labels to attach to the runner | `string` | `"CLOUDSHELL,cloudshell,self-hosted,linux"` | no |
 | <a name="input_spoke_aks_node_ip"></a> [spoke\_aks\_node\_ip](#input\_spoke\_aks\_node\_ip) | Spoke Container Server IP Address | `string` | `"10.1.1.4"` | no |
 | <a name="input_spoke_aks_pod_cidr"></a> [spoke\_aks\_pod\_cidr](#input\_spoke\_aks\_pod\_cidr) | Spoke k8s pod cidr. | `string` | `"10.244.0.0/16"` | no |
 | <a name="input_spoke_aks_subnet_name"></a> [spoke\_aks\_subnet\_name](#input\_spoke\_aks\_subnet\_name) | Spoke aks Subnet Name. | `string` | `"spoke-aks-subnet"` | no |

@@ -391,7 +391,7 @@ nva_instances = [
     priority   = 100
   },
   {
-    name       = "secondary" 
+    name       = "secondary"
     zone       = "2"
     private_ip = "10.0.0.21"
     priority   = 90
@@ -410,7 +410,7 @@ nva_instances = [
 resource "azurerm_lb" "hub_nva_lb" {
   sku      = "Standard"
   sku_tier = "Regional"
-  
+
   # VIP frontend configurations for each application
   dynamic "frontend_ip_configuration" {
     for_each = { for vip in local.vip_configs : vip.name => vip if vip.enabled }
@@ -454,7 +454,7 @@ MIME-Version: 1.0
 # Part 1: Shell script for HA cluster setup
 Content-Type: text/x-shellscript
 
-# Part 2: Cloud-config for system configuration  
+# Part 2: Cloud-config for system configuration
 Content-Type: text/cloud-config
 ```
 
@@ -464,7 +464,7 @@ configure_ha_cluster() {
   local role="${var_instance_role}"
   local priority="${var_cluster_priority}"
   local peer_ip="${var_peer_ip}"
-  
+
   # FortiWeb HA configuration
   cat > /tmp/ha_config.conf << EOF
 config system ha
@@ -535,7 +535,7 @@ EOF
 resource "azurerm_monitor_diagnostic_setting" "hub_nva_lb_diagnostics" {
   target_resource_id         = azurerm_lb.hub_nva_lb[0].id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform_workspace.id
-  
+
   enabled_metric {
     category = "AllMetrics"
   }
@@ -547,9 +547,9 @@ resource "azurerm_monitor_diagnostic_setting" "hub_nva_lb_diagnostics" {
 resource "azurerm_monitor_metric_alert" "hub_nva_health_alert" {
   description = "Alert when FortiWeb NVA instances are unhealthy"
   severity    = 1
-  
+
   criteria {
-    metric_name = "DipAvailability" 
+    metric_name = "DipAvailability"
     threshold   = 50  # Alert if <50% backends healthy
   }
 }
@@ -603,7 +603,7 @@ The HA deployment is controlled by the `var.hub_nva_high_availability` variable:
 
 ## Conclusion
 
-The FortiWeb NVA deployment provides comprehensive web application firewall protection for the 40docs platform through automated Azure deployment and cloud-init configuration. 
+The FortiWeb NVA deployment provides comprehensive web application firewall protection for the 40docs platform through automated Azure deployment and cloud-init configuration.
 
 **Standard Deployment** offers essential security capabilities with simplified management for development and small-scale environments.
 

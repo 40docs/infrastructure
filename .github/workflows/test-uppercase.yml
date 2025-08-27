@@ -8,7 +8,7 @@ jobs:
     name: "Test CLOUDSHELL (uppercase)"
     runs-on: CLOUDSHELL
     timeout-minutes: 2
-    
+
     steps:
       - name: "Test runner"
         run: |
