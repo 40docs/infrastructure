@@ -1,0 +1,35 @@
+name: "Test Self-Hosted Runner"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-self-hosted:
+    name: "Self-Hosted Runner Test"
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 5
+
+    steps:
+      - name: "Runner Info"
+        run: |
+          echo "Testing Self-Hosted GitHub Actions Runner"
+          echo "========================================"
+          echo "Hostname: $(hostname)"
+          echo "User: $(whoami)"
+          echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S %Z')"
+          echo ""
+          
+      - name: "Service Check"
+        run: |
+          echo "Runner Details:"
+          echo "Working Directory: $(pwd)"
+          echo "Runner Home: $RUNNER_WORKSPACE"
+          echo ""
+          
+      - name: "Test Complete"
+        run: |
+          echo "✅ Self-hosted runner is working properly!"
+          echo "Workflow Run ID: ${{ github.run_id }}"
